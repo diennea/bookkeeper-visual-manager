@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>bookkeeper-visual-manager</artifactId>    
-    <packaging>war</packaging>
-    <groupId>bookkeeper-visual-manager</groupId>
+    
+    <groupId>org.bookkeepervisualmanager</groupId>
+    <artifactId>bookkeepervisualmanager</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    
+    <modules>
+        <module>bookkeeper-visual-manager-ui</module>
+        <module>bookkeeper-visual-manager-server</module>
+    </modules>
 
-    <name>BookKeeper Visual Manager</name>
-
-    <properties>        
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <bookkeeper.version>4.9.0</bookkeeper.version>        
-        <jersey.version>2.27</jersey.version>
-        <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
-        <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
-        <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>
-    </properties>
+    <name>BookKeeper Visual Manager :: Parent</name>
+    
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -29,71 +27,38 @@
         <tag>HEAD</tag>
     </scm>
  
-    <dependencies>
-        <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
-            <version>7.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.inject</groupId>
-            <artifactId>jersey-hk2</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-servlet</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>${libs.jaxws.jaxb-api}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>${libs.jaxws.jaxb-impl}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <scope>runtime</scope>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>javax.activation-api</artifactId>
-            <version>${libs.javaxactivation.api}</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${libs.spotbugsmaven}</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <effort>Max</effort>
+                    <maxHeap>4096</maxHeap>
+                    <fork>true</fork>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                        <version>${libs.asm.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.2</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>            
         </plugins>
     </build>
-
+    
+    <properties>        
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <bookkeeper.version>4.9.0</bookkeeper.version> 
+        <jetty.version>9.4.8.v20171121</jetty.version>
+        <jersey.version>2.27</jersey.version>
+        <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
+        <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
+        <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>
+        <libs.spotbugsannotations>3.1.2</libs.spotbugsannotations>
+        <libs.spotbugsmaven>3.1.3</libs.spotbugsmaven>
+        <libs.asm.version>6.2</libs.asm.version>
+    </properties>
 </project>

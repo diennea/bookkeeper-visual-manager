@@ -17,13 +17,14 @@
  under the License.
 
  */
-package org.bookkepervisualmanager.api;
+package org.bookkeepervisualmanager.api;
 
 import java.util.Set;
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 
-@javax.ws.rs.ApplicationPath("webresources")
+@ApplicationPath("api")
 public class ApplicationConfig extends Application {
 
     @Override
@@ -40,7 +41,7 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(org.bookkepervisualmanager.api.GenericResource.class);
+        resources.add(org.bookkeepervisualmanager.api.StatusResource.class);
     }
     
 }

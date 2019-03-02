@@ -17,12 +17,12 @@
  under the License.
 
  */
-package org.bookkepervisualmanager.api;
+package org.bookkeepervisualmanager.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,21 +31,23 @@ import javax.ws.rs.core.MediaType;
 /**
  * Main API
  */
-@Path("generic")
-public class GenericResource {
+@Path("status")
+public class StatusResource {
 
-    @Context
-    private UriInfo context;
+    @Context 
+    private ServletContext servletContext;
 
     /**
      * Creates a new instance of GenericResource
      */
-    public GenericResource() {
+    public StatusResource() {
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Object> get() {
-        return new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
+        result.put("status", "ok");        
+        return result;
     }
 }
