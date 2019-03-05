@@ -17,35 +17,16 @@
  under the License.
 
  */
-package org.bookkepervisualmanager.api;
-
-import java.util.HashMap;
-import java.util.Map;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Produces;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
+package org.bookkeepervisualmanager.bookkeeper;
 
 /**
- * Main API
+ *
+ * @author matteo.minardi
  */
-@Path("generic")
-public class GenericResource {
+public class BookkeeperException extends Exception {
 
-    @Context
-    private UriInfo context;
-
-    /**
-     * Creates a new instance of GenericResource
-     */
-    public GenericResource() {
+    public BookkeeperException(Throwable cause) {
+        super(cause);
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Object> get() {
-        return new HashMap<>();
-    }
 }

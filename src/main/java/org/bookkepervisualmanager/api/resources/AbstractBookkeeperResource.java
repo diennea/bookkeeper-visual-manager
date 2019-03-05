@@ -17,24 +17,19 @@
  under the License.
 
  */
-package org.bookkepervisualmanager.api;
+package org.bookkepervisualmanager.api.resources;
 
-import java.util.Set;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.servlet.ServletContext;
+import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
 
+public abstract class AbstractBookkeeperResource {
 
-@javax.ws.rs.ApplicationPath("api")
-public class ApplicationConfig extends Application {
+    @Context
+    private ServletContext servletContext;
 
-    @Override
-    public Set<Class<?>> getClasses() {
-        Set<Class<?>> resources = new java.util.HashSet<>();
-        addRestResourceClasses(resources);
-        return resources;
+    protected BookkeeperManager getBookkeeperManger() {
+        return (BookkeeperManager) servletContext.getAttribute("bookkeeper");
     }
 
-    private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(org.bookkepervisualmanager.api.resources.BookiesResource.class);
-    }
-    
 }
