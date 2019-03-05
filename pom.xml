@@ -72,6 +72,11 @@
             <artifactId>javax.activation-api</artifactId>
             <version>${libs.javaxactivation.api}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.bookkeeper</groupId>
+            <artifactId>bookkeeper-server</artifactId>
+            <version>${bookkeeper.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
