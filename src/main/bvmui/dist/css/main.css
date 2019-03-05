@@ -1,0 +1,7 @@
+/* Diennea S.r.l. - Copyright 2019, all rights reserved.*/ 
+
+/* Import the theme (Globals, variables, mixins) */
+/* Import the components suite */
+body {
+  background-color: white;
+}
