@@ -7,8 +7,10 @@ const clean = require('gulp-clean');
 const rename = require('gulp-rename');
 const plumber = require('gulp-plumber');
 
+const fs = require("fs");
 const header = require('gulp-header');
-const licenseheader = require('./licenseheader');
+const licenseheader = fs.readFileSync('./licenseheader.txt');
+
 const browsersync = require('browser-sync').create();
 
 const { path } = require('./configuration');
