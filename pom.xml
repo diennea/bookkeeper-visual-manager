@@ -10,7 +10,18 @@
 
     <properties>        
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <bookkeeper.version>4.9.0</bookkeeper.version>        
+                
+        <zookpeeper.version>3.5.4-beta</zookpeeper.version>
+        <bookkeeper.version>4.9.0</bookkeeper.version>
+        
+        <npm.version>6.8.0</npm.version>
+        <node.version>v10.0.0</node.version>
+        <frontend.path>src/main/bvmui</frontend.path>
+        <maven.frontend.plugin.version>1.7.5</maven.frontend.plugin.version>
+        
+        <bookkeeper.version>4.9.0</bookkeeper.version>
+        <bookkeeper.version>4.9.0</bookkeeper.version>
+        
         <jersey.version>2.27</jersey.version>
         <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
         <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
@@ -71,6 +82,11 @@
             <groupId>javax.activation</groupId>
             <artifactId>javax.activation-api</artifactId>
             <version>${libs.javaxactivation.api}</version>
+        </dependency>      
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookpeeper.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.bookkeeper</groupId>
@@ -96,9 +112,50 @@
                 <version>3.2.2</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <directory>${frontend.path}/dist</directory>
+                        </resource>
+                    </webResources>
                 </configuration>
-            </plugin>            
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${maven.frontend.plugin.version}</version>
+                <configuration>
+                    <npmVersion>${npm.version}</npmVersion>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <installDirectory>target/</installDirectory>
+                    <workingDirectory>${frontend.path}</workingDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm run dist:prod</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run dist:prod</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>  
         </plugins>
     </build>
-
 </project>

@@ -20,13 +20,12 @@
 package org.bookkepervisualmanager.api.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
-import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 
 @Path("bookie")
@@ -37,10 +36,21 @@ public class BookiesResource extends AbstractBookkeeperResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> getBookies() throws Exception {
         List<String> bookies = new ArrayList<>();
+        
+        Collection<BookieSocketAddress> status = getBookkeeperManger().getAllBookies();
+        status.forEach(bookieHostName -> bookies.add(bookieHostName.toString()));
 
-        Map<BookieSocketAddress, BookieInfo> status = getBookkeeperManger().getBookieInfo();
-        status.keySet().forEach(bookieHostName -> bookies.add(bookieHostName.toString()));
+        return bookies;
+    }
+    
+    @GET
+    @Path("available")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<String> getAvailableBookies() throws Exception {
+        List<String> bookies = new ArrayList<>();
 
+        Collection<BookieSocketAddress> status = getBookkeeperManger().getAvailableBookies();
+        status.forEach(bookieHostName -> bookies.add(bookieHostName.toString()));
         return bookies;
     }
 }

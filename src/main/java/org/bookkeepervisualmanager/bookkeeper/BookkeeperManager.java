@@ -19,13 +19,22 @@
  */
 package org.bookkeepervisualmanager.bookkeeper;
 
-import java.util.Map;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.bookkeeper.client.BKException;
+
+import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.client.BookKeeper;
-import org.apache.bookkeeper.client.BookieInfoReader;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
 /**
  *
@@ -35,18 +44,42 @@ public class BookkeeperManager implements AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(BookkeeperManager.class.getName());
 
+    public static final String BK_LEDGERS_PATH = System.getProperty("bk.ledgers.path", "/ledgers");
     public static final String ZK_SERVER = System.getProperty("zk.servers", "127.0.0.1:2181");
+    public static final int ZK_TIMEOUT = 1000;
 
     private final ClientConfiguration conf;
-    private BookKeeper client;
 
-    public BookkeeperManager(String servers) throws BookkeeperException {
-        this.conf = new ClientConfiguration();
-        this.conf.setMetadataServiceUri("zk+null://" + servers + "/ledgers");
-        
+    private ZooKeeper zkClient;
+    private BookKeeper bkClient;
+    private BookKeeperAdmin bkAdmin;
+
+    public BookkeeperManager(String zkServers) throws BookkeeperException {
         try {
-            LOG.log(Level.INFO, "Starting bookkeeper connection with connection string = {0}", conf.getMetadataServiceUri());
-            this.client = new BookKeeper(conf);
+            this.conf = new ClientConfiguration();
+            this.conf.setMetadataServiceUri("zk+null://" + zkServers.replace(",", ";") + BK_LEDGERS_PATH);
+
+            LOG.log(Level.INFO, "Starting zookeeper connection with connection string = {0}", zkServers);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            this.zkClient = new ZooKeeper(zkServers, ZK_TIMEOUT, e -> {
+                switch (e.getState()) {
+                    case SyncConnected:
+                        LOG.log(Level.INFO, "Zookeeper connection established.");
+                        countDownLatch.countDown();
+                        break;
+                }
+            });
+            countDownLatch.await();
+
+            LOG.log(Level.INFO, "Starting bookkeeper connection with zookeeper. "
+                    + "Zookeeper connected = {0}", zkClient.getState().isConnected());
+            this.bkClient = BookKeeper.forConfig(conf)
+                    .zk(zkClient)
+                    .build();
+
+            LOG.log(Level.INFO, "Starting bookkeeper admin.");
+            this.bkAdmin = new BookKeeperAdmin(conf);
+
         } catch (Throwable t) {
             throw new BookkeeperException(t);
         }
@@ -54,20 +87,69 @@ public class BookkeeperManager implements AutoCloseable {
 
     @Override
     public void close() throws BookkeeperException {
-        if (client != null) {
-            try {
-                LOG.log(Level.INFO, "Closing bookkeeper connection");
-                client.close();
-            } catch (Throwable t) {
-                throw new BookkeeperException(t);
-            } finally {
-                client = null;
+        try {
+            if (zkClient != null) {
+                LOG.log(Level.INFO, "Closing zookeeper connection");
+                zkClient.close();
             }
+            if (bkClient != null) {
+                LOG.log(Level.INFO, "Closing bookkeeper connection");
+                bkClient.close();
+            }
+            if (bkAdmin != null) {
+                LOG.log(Level.INFO, "Closing bookkeeper admin connection");
+                bkAdmin.close();
+            }
+        } catch (Throwable t) {
+            throw new BookkeeperException(t);
+        } finally {
+            zkClient = null;
+            bkClient = null;
+            bkAdmin = null;
         }
     }
 
-    public Map<BookieSocketAddress, BookieInfoReader.BookieInfo> getBookieInfo() throws Exception {
-        return client.getBookieInfo();
+    public ZooKeeper getZookeeper() {
+        return zkClient;
+    }
+
+    public BookKeeper getBookkeeper() {
+        return bkClient;
+    }
+
+    public BookKeeperAdmin getBookkeeperAdmin() {
+        return bkAdmin;
+    }
+
+    public Collection<BookieSocketAddress> getAvailableBookies() throws BookkeeperException {
+        try {
+            return bkAdmin.getAvailableBookies();
+        } catch (BKException e) {
+            throw new BookkeeperException(e);
+        }
+    }
+
+    public Collection<BookieSocketAddress> getAllBookies() throws BookkeeperException {
+        try {
+            Collection<BookieSocketAddress> result = new ArrayList<>();
+
+            Stat stat = zkClient.exists(BK_LEDGERS_PATH, true);
+            if (stat == null) {
+                return result;
+            }
+            List<String> bkCookies = zkClient.getChildren(BK_LEDGERS_PATH + "/cookies", false);
+            if (bkCookies == null) {
+                return result;
+            }
+            for (String bookieAddress : bkCookies) {
+                result.add(new BookieSocketAddress(bookieAddress));
+            }
+
+            return result;
+        } catch (InterruptedException | UnknownHostException | KeeperException e) {
+            throw new BookkeeperException(e);
+        }
+
     }
 
 }
