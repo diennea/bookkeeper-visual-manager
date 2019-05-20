@@ -1,0 +1,34 @@
+import axios from 'axios';
+
+export default {
+    get(url, successCallback, errorCallback) {
+        if (process.env.NODE_ENV === "production") {
+            axios.get(url)
+                .then(response => successCallback(response.data))
+                .catch(errorCallback);
+        } else {
+            var result = mockRequest(url);
+            if (!result) {
+                errorCallback();
+            } else {
+                successCallback(result);
+            }
+        }
+    }
+}
+
+function mockRequest(url) {
+    if (url.includes("api/bookie/")) {
+        var bookie = url.replace("api/bookie/", "");
+        if (bookie === "all") {
+            return [
+                { description: "127.0.0.1:8080", ok: true },
+                { description: "127.0.0.1:8081", ok: true },
+                { description: "127.0.0.1:8082", ok: true },
+            ]
+        } else {
+            return [1, 2, 3, 4]
+        }
+    }
+    return null;
+}

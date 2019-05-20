@@ -1,0 +1,12 @@
+$colors: (
+  'primary': #db9357, 
+  'accent': #6b3b1c,
+  'secondary': #94592c,
+  'foreground': #060606,
+  'background': #FFFFFF
+);
+@function color($key: 'primary') {
+    @return map-get($colors, $key);
+}
+
+$primary-font: "Helvetica Neue", "Arial", sans-serif;

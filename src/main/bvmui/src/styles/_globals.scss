@@ -1,0 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-size: 14px;
+    font-family: $primary-font;
+    background-color: color('background')
+}
+
+ul, ol {
+    text-decoration:none;
+    list-style:none;
+}

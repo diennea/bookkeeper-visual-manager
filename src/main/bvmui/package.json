@@ -1,26 +1,24 @@
 {
-  "name": "bookkeeper-visual-manager-ui",
-  "version": "1.0.0",
-  "description": "",
+  "name": "bvmui",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "clean": "gulp clean",
-    "dist": "gulp dist",
-    "dist:prod": "cross-env NODE_ENV=production gulp dist",
-    "site": "gulp site",
-    "start": "gulp default"
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
   },
-  "author": "Diennea",
-  "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "axios": "0.18.0",
+    "lodash": "4.17.11",
+    "vue": "2.6.10",
+    "vue-router": "^3.0.6",
+    "vuex": "3.1.1"
+  },
   "devDependencies": {
-    "browser-sync": "^2.24.7",
-    "cross-env": "^5.2.0",
-    "gulp": "^4.0.0",
-    "gulp-clean": "^0.4.0",
-    "gulp-clean-css": "^4.0.0",
-    "gulp-header": "^2.0.7",
-    "gulp-less": "^4.0.1",
-    "gulp-plumber": "^1.2.0",
-    "gulp-rename": "^1.4.0"
+    "@vue/cli-plugin-babel": "3.7.0",
+    "@vue/cli-service": "3.7.0",
+    "sass": "1.20.1",
+    "sass-loader": "7.1.0",
+    "vue-template-compiler": "2.6.10",
+    "webpack": "4.31.0"
   }
 }
