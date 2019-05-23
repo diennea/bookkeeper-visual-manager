@@ -2,8 +2,9 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 import ErrorPage from '@/views/ErrorPage'
-import BookieLedgers from '@/views/BookieLedgers'
 import Bookies from '@/views/Bookies'
+import Ledgers from '@/views/Ledgers'
+import BookieLedgers from '@/views/BookieLedgers'
 
 Vue.use(Router);
 
@@ -30,11 +31,19 @@ export default new Router({
             }
         },
         {
-            path: '/ledgers/:bookieId',
+            path: '/ledgers',
             name: 'ledgers',
-            component: BookieLedgers,
+            component: Ledgers,
             meta: {
                 title: "Ledgers"
+            }
+        },
+        {
+            path: '/ledgers/:bookieId',
+            name: 'bookie-ledgers',
+            component: BookieLedgers,
+            meta: {
+                title: "Bookie Ledgers: ${bookieId}"
             }
         }
     ]

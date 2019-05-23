@@ -43,8 +43,8 @@ public class LedgersResource extends AbstractBookkeeperResource {
     public List<LedgerBean> getLedgers() throws Exception {
         final List<LedgerBean> ledgers = new ArrayList<>();
 
-        SortedMap<Long, LedgerMetadata> forBookie = getBookkeeperManger().getAllLedgers();
-        for (Entry<Long, LedgerMetadata> currentLedger : forBookie.entrySet()) {
+        Map<Long, LedgerMetadata> allLedgers = getBookkeeperManger().getAllLedgers();
+        for (Entry<Long, LedgerMetadata> currentLedger : allLedgers.entrySet()) {
             LedgerBean b = new LedgerBean();
 
             long lid = currentLedger.getKey();
@@ -62,7 +62,24 @@ public class LedgersResource extends AbstractBookkeeperResource {
     }
 
     @GET
-    @Path("{bookieId}")
+    @Path("metadata/{ledgerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public LedgerBean getLedgerMetadata(@PathParam("ledgerId") long ledgerId) throws Exception {
+
+        LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledgerId);
+        LedgerBean b = new LedgerBean();
+        b.setId(ledgerId);
+
+        Map<String, byte[]> customMetadata = ledgerMetadata.getCustomMetadata();
+        for (Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
+            b.setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
+        }
+
+        return b;
+    }
+
+    @GET
+    @Path("bookie/{bookieId}")
     @Produces(MediaType.APPLICATION_JSON)
     public List<LedgerBean> getLedgersForBookie(@PathParam("bookieId") String bookieId) throws Exception {
         final List<LedgerBean> ledgers = new ArrayList<>();

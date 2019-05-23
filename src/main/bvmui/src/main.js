@@ -4,12 +4,14 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import request from './lib/request'
+import library from './lib/library'
 
 import upperFirst from 'lodash/upperFirst'
 import camelCase from 'lodash/camelCase'
 
 Vue.config.productionTip = false
 Vue.prototype.$request = request;
+Vue.prototype.$library = library;
 
 // Requiring all components in the /components folder
 const requireComponent = require.context(

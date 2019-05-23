@@ -1,5 +1,5 @@
 <template>
-    <div class="bvm-ledgers">
+    <div class="bvm-ledger">
         <p v-if="pageLoaded">{{ledgers}}</p>
         <Spinner v-else/>
     </div>
@@ -8,16 +8,14 @@
 export default {
     data: function() {
         return {
-            bookieId: this.$route.params.bookieId,
             pageLoaded: false,
             ledgers: []
         };
     },
     methods: {},
     created: function() {
-        const url = `api/ledger/bookie/${this.bookieId}`;
         this.$request.get(
-            url,
+            "api/ledger/all",
             ledgers => {
                 this.pageLoaded = true;
                 this.ledgers = ledgers;

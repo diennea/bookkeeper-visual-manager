@@ -10,10 +10,10 @@
                     <span>Address: {{data.description}}</span>
                 </li>
                 <li v-if="data.ok">
-                    <span>Free space: {{data.freeDiskSpace}}</span>
+                    <span>Free space: {{$library.formatBytes(data.freeDiskSpace)}}</span>
                 </li>
                 <li v-if="data.ok">
-                    <span>Total space: {{data.totalDiskSpace}}</span>
+                    <span>Total space: {{$library.formatBytes(data.totalDiskSpace)}}</span>
                 </li>
             </ul>
         </div>

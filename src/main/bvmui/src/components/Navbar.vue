@@ -1,9 +1,12 @@
 <template>
     <nav class="bvm-navbar">
         <ul class="bvm-navbar-content">
-            <li class="bvm-navbar-item">
-                <router-link class="bvm-nav-link" to="/bookies">Bookies</router-link>
-            </li>
+            <router-link class="bvm-navbar-item" tag="li" to="/bookies">
+                <a class="bvm-nav-link">Bookies</a>
+            </router-link>
+            <router-link class="bvm-navbar-item" tag="li" to="/ledgers">
+                <a class="bvm-nav-link">Ledgers</a>
+            </router-link>
         </ul>
     </nav>
 </template>

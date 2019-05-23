@@ -18,7 +18,7 @@ export default {
         },
         itemClicked(item) {
             this.$router.push({
-                name: "ledgers",
+                name: "bookie-ledgers",
                 params: { bookieId: item.description }
             });
         }

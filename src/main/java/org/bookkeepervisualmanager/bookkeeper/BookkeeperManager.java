@@ -19,7 +19,6 @@
  */
 package org.bookkeepervisualmanager.bookkeeper;
 
-import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,8 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.bookkeeper.client.BKException;
@@ -39,6 +41,7 @@ import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.conf.ClientConfiguration;
+import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
@@ -125,6 +128,10 @@ public class BookkeeperManager implements AutoCloseable {
         return bkClient;
     }
 
+    public LedgerManager getLedgerManager() {
+        return bkClient.getLedgerManager();
+    }
+
     public BookKeeperAdmin getBookkeeperAdmin() {
         return bkAdmin;
     }
@@ -141,6 +148,20 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
+    public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperException {
+        AtomicReference<LedgerMetadata> ledgerMetadata = new AtomicReference<>();
+        try {
+            getLedgerManager().readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
+                if (exception == null) {
+                    ledgerMetadata.set(metadata.getValue());
+                }
+            }).join();
+            return ledgerMetadata.get();
+        } catch (Throwable e) {
+            throw new BookkeeperException(e);
+        }
+    }
+
     public Map<BookieSocketAddress, BookieInfo> getAvailableBookies() throws BookkeeperException {
         try {
             return bkClient.getBookieInfo();
@@ -149,21 +170,24 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public SortedMap<Long, LedgerMetadata> getAllLedgers() throws BookkeeperException {
+    public Map<Long, LedgerMetadata> getAllLedgers() throws BookkeeperException {
         try {
-            final SortedMap<Long, LedgerMetadata> ledgers = new TreeMap<>();
+            final ConcurrentMap<Long, LedgerMetadata> ledgers = new ConcurrentHashMap<>();
+            List<CompletableFuture> resultMetadataRequest = new ArrayList<>();
 
-            bkAdmin.listLedgers().forEach(lid -> {
-                bkClient.getLedgerManager().readLedgerMetadata(lid)
-                        .whenComplete((metadata, exception) -> {
-                            if (exception != null) {
-                                ledgers.put(lid, metadata.getValue());
-                            }
-                        });
+            Iterable<Long> ledgersIds = bkAdmin.listLedgers();
+            ledgersIds.forEach(lid -> {
+                CompletableFuture cf = getLedgerManager().readLedgerMetadata(lid).whenComplete((metadata, exception) -> {
+                    if (exception == null) {
+                        ledgers.put(lid, metadata.getValue());
+                    }
+                });
+                resultMetadataRequest.add(cf);
             });
+            resultMetadataRequest.forEach(cf -> cf.join());
 
             return ledgers;
-        } catch (IOException e) {
+        } catch (Throwable e) {
             throw new BookkeeperException(e);
         }
     }

@@ -18,16 +18,25 @@ export default {
 }
 
 function mockRequest(url) {
-    if (url.includes("api/bookie/")) {
+    if (url.includes("api/bookie")) {
         var bookie = url.replace("api/bookie/", "");
         if (bookie === "all") {
             return [
-                { description: "127.0.0.1:8080", ok: true },
-                { description: "127.0.0.1:8081", ok: true },
-                { description: "127.0.0.1:8082", ok: true },
+                { description: "127.0.0.1:8080", ok: true, freeDiskSpace: 1000, totalDiskSpace: 12433813504 },
+                { description: "127.0.0.1:8081", ok: true, freeDiskSpace: 1000, totalDiskSpace: 12433813504 },
+                { description: "127.0.0.1:8082", ok: true, freeDiskSpace: 1000, totalDiskSpace: 12433813504 },
             ]
         } else {
-            return [1, 2, 3, 4]
+            return []
+        }
+    }
+    if (url.includes("api/ledger")) {
+        var ledger = url.replace("api/ledger/", "");
+        if (ledger === "all") {
+            return [];
+        } else if (url.includes("bookie")) {
+            var bookie = ledger.replace("bookie/", "");
+            return []
         }
     }
     return null;
