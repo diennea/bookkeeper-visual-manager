@@ -1,9 +1,7 @@
 <template>
     <main class="bvm-page-container">
         <Title v-if="pageTitle" :title="pageTitle" :params="this.$route.params"/>
-        <transition>
-            <router-view class="bvm-view"/>
-        </transition>
+        <router-view :key="$route.path" class="bvm-view"/>
     </main>
 </template>
 <script>

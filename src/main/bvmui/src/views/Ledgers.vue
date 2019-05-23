@@ -1,23 +1,62 @@
 <template>
     <div class="bvm-ledger">
-        <p v-if="pageLoaded">{{ledgers}}</p>
+        <TileContainer 
+            v-if="ledgersLoaded" 
+            :items="ledgers" 
+            @item-clicked="showMetadata"
+        />
         <Spinner v-else/>
+        <MetadataContainer
+            v-if="showLedgerMetadata"
+            :id="currentLedger.id"
+            :metadata="currentLedger.metadata"
+            @close="closeMetadata"
+        />
     </div>
 </template>
 <script>
 export default {
     data: function() {
         return {
-            pageLoaded: false,
+            showLedgerMetadata: false,
+            currentLedger: null,
+            ledgersLoaded: false,
             ledgers: []
         };
     },
-    methods: {},
+    methods: {
+        showMetadata(ledger) {
+            const url = `api/ledger/metadata/${ledger.id}`;
+            this.$request.get(
+                url,
+                metadata => {
+                    this.currentLedger = {
+                        id: ledger.id,
+                        metadata: metadata
+                    }
+                    this.showLedgerMetadata = true;
+                },
+                error => {
+                    this.$router.push({
+                        name: "error"
+                    });
+                }
+            );
+        },
+        closeMetadata() {
+            this.metadata = null;
+            this.showLedgerMetadata = false;
+        }
+    },
     created: function() {
-        this.$request.get(
-            "api/ledger/all",
+        let url = "api/ledger/all";
+        if (this.$route.meta.type === "bookie") {
+            const bookieId = this.$route.params.bookieId;
+            url = `api/ledger/bookie/${bookieId}`
+        }
+        this.$request.get(url,
             ledgers => {
-                this.pageLoaded = true;
+                this.ledgersLoaded = true;
                 this.ledgers = ledgers;
             },
             error => {

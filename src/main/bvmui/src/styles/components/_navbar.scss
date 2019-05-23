@@ -2,7 +2,10 @@
     width:100%;
     height:auto;
 
-    position:relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+
     overflow:hidden;
 
     background:none;
@@ -16,12 +19,13 @@
 
         cursor: pointer;
 
-        &:hover {
+        &:hover,
+        &.selected {
             background-color: darken(color('secondary'), 2);
             transition: .3s;
         }
 
-        a {
+        .bvm-nav-link {
             color: white;
             text-decoration: none;
         }

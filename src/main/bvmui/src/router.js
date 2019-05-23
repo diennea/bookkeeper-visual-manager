@@ -4,7 +4,6 @@ import Router from 'vue-router'
 import ErrorPage from '@/views/ErrorPage'
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
-import BookieLedgers from '@/views/BookieLedgers'
 
 Vue.use(Router);
 
@@ -18,7 +17,7 @@ export default new Router({
             redirect: "/bookies",
         },
         {
-            path: '/404',
+            path: '/error',
             name: 'error',
             component: ErrorPage
         },
@@ -35,16 +34,22 @@ export default new Router({
             name: 'ledgers',
             component: Ledgers,
             meta: {
-                title: "Ledgers"
+                title: "Ledgers",
+                type: "all"
             }
         },
         {
             path: '/ledgers/:bookieId',
             name: 'bookie-ledgers',
-            component: BookieLedgers,
+            component: Ledgers,
             meta: {
-                title: "Bookie Ledgers: ${bookieId}"
+                title: "Bookie Ledgers: ${bookieId}",
+                type: "bookie"
             }
+        },
+        { 
+            path: "*", 
+            redirect: "/error" 
         }
     ]
 })

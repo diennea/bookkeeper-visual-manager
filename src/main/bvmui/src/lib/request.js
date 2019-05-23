@@ -22,9 +22,9 @@ function mockRequest(url) {
         var bookie = url.replace("api/bookie/", "");
         if (bookie === "all") {
             return [
-                { description: "127.0.0.1:8080", ok: true, freeDiskSpace: 1000, totalDiskSpace: 12433813504 },
-                { description: "127.0.0.1:8081", ok: true, freeDiskSpace: 1000, totalDiskSpace: 12433813504 },
-                { description: "127.0.0.1:8082", ok: true, freeDiskSpace: 1000, totalDiskSpace: 12433813504 },
+                { description: "127.0.0.1:8080", ok: true, freeDiskSpace: 12433813504, totalDiskSpace: 12433813504 },
+                { description: "127.0.0.1:8081", ok: true, freeDiskSpace: 10436613504, totalDiskSpace: 12433813504 },
+                { description: "127.0.0.1:8082", ok: true, freeDiskSpace: 933813504, totalDiskSpace: 12433813504 },
             ]
         } else {
             return []
@@ -33,10 +33,21 @@ function mockRequest(url) {
     if (url.includes("api/ledger")) {
         var ledger = url.replace("api/ledger/", "");
         if (ledger === "all") {
-            return [];
+            return [
+                { id: 1, metadata: {} },
+                { id: 2, metadata: {} },
+                { id: 3, metadata: {} }
+            ];
         } else if (url.includes("bookie")) {
             var bookie = ledger.replace("bookie/", "");
-            return []
+            return [
+                { id: 1, metadata: {} }
+            ]
+        } else if (url.includes("metadata")) {
+            return {
+                application: "bookkeper",
+                data: "data-bookkeeper",
+            }
         }
     }
     return null;
