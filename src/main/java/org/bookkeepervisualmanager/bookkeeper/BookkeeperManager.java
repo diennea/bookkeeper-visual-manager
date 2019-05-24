@@ -21,6 +21,7 @@ package org.bookkeepervisualmanager.bookkeeper;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -136,13 +137,14 @@ public class BookkeeperManager implements AutoCloseable {
         return bkAdmin;
     }
 
-    public SortedMap<Long, LedgerMetadata> getLedgersForBookie(String bookieId) throws BookkeeperException {
+    public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperException {
         try {
             BookieSocketAddress bookieAddress = new BookieSocketAddress(bookieId);
             Set<BookieSocketAddress> bookieSet = new HashSet<>(1);
             bookieSet.add(bookieAddress);
-
-            return bkAdmin.getLedgersContainBookies(bookieSet);
+            
+            SortedMap<Long, LedgerMetadata> forBookie = bkAdmin.getLedgersContainBookies(bookieSet);
+            return new ArrayList<>(forBookie.keySet());
         } catch (UnknownHostException | InterruptedException | BKException e) {
             throw new BookkeeperException(e);
         }
@@ -170,23 +172,14 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public Map<Long, LedgerMetadata> getAllLedgers() throws BookkeeperException {
+    public List<Long> getAllLedgers() throws BookkeeperException {
         try {
-            final ConcurrentMap<Long, LedgerMetadata> ledgers = new ConcurrentHashMap<>();
-            List<CompletableFuture> resultMetadataRequest = new ArrayList<>();
+            List<Long> resultLedgers = new ArrayList<>();
 
             Iterable<Long> ledgersIds = bkAdmin.listLedgers();
-            ledgersIds.forEach(lid -> {
-                CompletableFuture cf = getLedgerManager().readLedgerMetadata(lid).whenComplete((metadata, exception) -> {
-                    if (exception == null) {
-                        ledgers.put(lid, metadata.getValue());
-                    }
-                });
-                resultMetadataRequest.add(cf);
-            });
-            resultMetadataRequest.forEach(cf -> cf.join());
+            ledgersIds.forEach(resultLedgers::add);
 
-            return ledgers;
+            return resultLedgers;
         } catch (Throwable e) {
             throw new BookkeeperException(e);
         }

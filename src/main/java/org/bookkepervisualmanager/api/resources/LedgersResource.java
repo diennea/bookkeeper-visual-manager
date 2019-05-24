@@ -40,25 +40,8 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @GET
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<LedgerBean> getLedgers() throws Exception {
-        final List<LedgerBean> ledgers = new ArrayList<>();
-
-        Map<Long, LedgerMetadata> allLedgers = getBookkeeperManger().getAllLedgers();
-        for (Entry<Long, LedgerMetadata> currentLedger : allLedgers.entrySet()) {
-            LedgerBean b = new LedgerBean();
-
-            long lid = currentLedger.getKey();
-            b.setId(lid);
-
-            LedgerMetadata ledgerMetadata = currentLedger.getValue();
-            Map<String, byte[]> customMetadata = ledgerMetadata.getCustomMetadata();
-            for (Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
-                b.setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
-            }
-            ledgers.add(b);
-        };
-
-        return ledgers;
+    public List<Long> getLedgers() throws Exception {
+        return getBookkeeperManger().getAllLedgers();
     }
 
     @GET
@@ -81,25 +64,8 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @GET
     @Path("bookie/{bookieId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<LedgerBean> getLedgersForBookie(@PathParam("bookieId") String bookieId) throws Exception {
-        final List<LedgerBean> ledgers = new ArrayList<>();
-
-        SortedMap<Long, LedgerMetadata> forBookie = getBookkeeperManger().getLedgersForBookie(bookieId);
-        for (Entry<Long, LedgerMetadata> currentLedger : forBookie.entrySet()) {
-            LedgerBean b = new LedgerBean();
-
-            long lid = currentLedger.getKey();
-            b.setId(lid);
-
-            LedgerMetadata ledgerMetadata = currentLedger.getValue();
-            Map<String, byte[]> customMetadata = ledgerMetadata.getCustomMetadata();
-            for (Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
-                b.setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
-            }
-            ledgers.add(b);
-        };
-
-        return ledgers;
+    public List<Long> getLedgersForBookie(@PathParam("bookieId") String bookieId) throws Exception {
+        return getBookkeeperManger().getLedgersForBookie(bookieId);
     }
 
     public final class LedgerBean implements Serializable {

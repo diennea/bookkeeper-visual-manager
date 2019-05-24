@@ -3,7 +3,7 @@
         <button class="bvm-metadata-close" @click="$emit('close', $event)">✕</button>
         <h2>Metadata: Ledger {{id}}</h2>
         <div class="bvm-metadata-row" v-for="(key, value) in  metadata" :key="key">
-            <strong>{{key}}</strong>: {{value}}
+            <strong>{{value}}</strong>: {{key}}
         </div>
     </div>
 </template>
@@ -12,14 +12,6 @@ export default {
     props: {
         id: Number,
         metadata: Object
-    },
-    computed: {
-        computedMetadata() {
-            let result = [];
-            for (let metadataValue in this.metadata) {
-                
-            }
-        }
     }
 };
 </script>

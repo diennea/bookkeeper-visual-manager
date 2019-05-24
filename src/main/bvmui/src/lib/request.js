@@ -33,20 +33,17 @@ function mockRequest(url) {
     if (url.includes("api/ledger")) {
         var ledger = url.replace("api/ledger/", "");
         if (ledger === "all") {
-            return [
-                { id: 1, metadata: {} },
-                { id: 2, metadata: {} },
-                { id: 3, metadata: {} }
-            ];
+            return [1, 2, 3];
         } else if (url.includes("bookie")) {
             var bookie = ledger.replace("bookie/", "");
-            return [
-                { id: 1, metadata: {} }
-            ]
+            return [1, 2];
         } else if (url.includes("metadata")) {
             return {
-                application: "bookkeper",
-                data: "data-bookkeeper",
+                id: 1,
+                metadata: {
+                    application: "bookkeper",
+                    data: "data-bookkeeper",
+                }
             }
         }
     }

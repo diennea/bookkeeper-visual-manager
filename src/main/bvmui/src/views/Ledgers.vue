@@ -25,15 +25,12 @@ export default {
         };
     },
     methods: {
-        showMetadata(ledger) {
-            const url = `api/ledger/metadata/${ledger.id}`;
+        showMetadata(ledgerId) {
+            const url = `api/ledger/metadata/${ledgerId}`;
             this.$request.get(
                 url,
-                metadata => {
-                    this.currentLedger = {
-                        id: ledger.id,
-                        metadata: metadata
-                    }
+                ledger => {
+                    this.currentLedger = ledger
                     this.showLedgerMetadata = true;
                 },
                 error => {
