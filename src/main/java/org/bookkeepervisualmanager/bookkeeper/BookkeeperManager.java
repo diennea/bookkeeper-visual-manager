@@ -164,7 +164,7 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public Map<BookieSocketAddress, BookieInfo> getAvailableBookies() throws BookkeeperException {
+    public Map<BookieSocketAddress, BookieInfo> getBookieInfo() throws BookkeeperException {
         try {
             return bkClient.getBookieInfo();
         } catch (InterruptedException | BKException e) {

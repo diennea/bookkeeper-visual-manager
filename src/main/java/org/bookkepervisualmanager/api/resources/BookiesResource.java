@@ -39,7 +39,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<BookieBean> getBookies() throws Exception {
         final List<BookieBean> bookies = new ArrayList<>();
-        final Map<BookieSocketAddress, BookieInfo> bookiesAvailable = getBookkeeperManger().getAvailableBookies();
+        final Map<BookieSocketAddress, BookieInfo> bookiesAvailable = getBookkeeperManger().getBookieInfo();
         final Collection<BookieSocketAddress> bookiesCookie = getBookkeeperManger().getAllBookies();
 
         for (BookieSocketAddress bookieAddress : bookiesCookie) {
