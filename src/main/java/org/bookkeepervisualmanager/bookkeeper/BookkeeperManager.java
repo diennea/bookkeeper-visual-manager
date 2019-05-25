@@ -22,15 +22,23 @@ package org.bookkeepervisualmanager.bookkeeper;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.bookkeeper.client.BKException;
 
 import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.client.BookKeeper;
+import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
+import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.conf.ClientConfiguration;
+import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
@@ -78,7 +86,7 @@ public class BookkeeperManager implements AutoCloseable {
                     .build();
 
             LOG.log(Level.INFO, "Starting bookkeeper admin.");
-            this.bkAdmin = new BookKeeperAdmin(conf);
+            this.bkAdmin = new BookKeeperAdmin(bkClient);
 
         } catch (Throwable t) {
             throw new BookkeeperException(t);
@@ -117,14 +125,58 @@ public class BookkeeperManager implements AutoCloseable {
         return bkClient;
     }
 
+    public LedgerManager getLedgerManager() {
+        return bkClient.getLedgerManager();
+    }
+
     public BookKeeperAdmin getBookkeeperAdmin() {
         return bkAdmin;
     }
 
-    public Collection<BookieSocketAddress> getAvailableBookies() throws BookkeeperException {
+    public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperException {
         try {
-            return bkAdmin.getAvailableBookies();
-        } catch (BKException e) {
+            BookieSocketAddress bookieAddress = new BookieSocketAddress(bookieId);
+            Set<BookieSocketAddress> bookieSet = new HashSet<>(1);
+            bookieSet.add(bookieAddress);
+            
+            SortedMap<Long, LedgerMetadata> forBookie = bkAdmin.getLedgersContainBookies(bookieSet);
+            return new ArrayList<>(forBookie.keySet());
+        } catch (UnknownHostException | InterruptedException | BKException e) {
+            throw new BookkeeperException(e);
+        }
+    }
+
+    public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperException {
+        AtomicReference<LedgerMetadata> ledgerMetadata = new AtomicReference<>();
+        try {
+            getLedgerManager().readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
+                if (exception == null) {
+                    ledgerMetadata.set(metadata.getValue());
+                }
+            }).join();
+            return ledgerMetadata.get();
+        } catch (Throwable e) {
+            throw new BookkeeperException(e);
+        }
+    }
+
+    public Map<BookieSocketAddress, BookieInfo> getBookieInfo() throws BookkeeperException {
+        try {
+            return bkClient.getBookieInfo();
+        } catch (InterruptedException | BKException e) {
+            throw new BookkeeperException(e);
+        }
+    }
+
+    public List<Long> getAllLedgers() throws BookkeeperException {
+        try {
+            List<Long> resultLedgers = new ArrayList<>();
+
+            Iterable<Long> ledgersIds = bkAdmin.listLedgers();
+            ledgersIds.forEach(resultLedgers::add);
+
+            return resultLedgers;
+        } catch (Throwable e) {
             throw new BookkeeperException(e);
         }
     }

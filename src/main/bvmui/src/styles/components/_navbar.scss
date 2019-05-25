@@ -1,0 +1,34 @@
+.bvm-navbar {
+    width:100%;
+    height:auto;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    overflow:hidden;
+
+    background:none;
+    background-color: color('secondary');
+
+    .bvm-navbar-item {
+        font-size: 18px;
+        
+        display: inline-block;
+        padding: 15px 30px;
+
+        cursor: pointer;
+
+        &:hover,
+        &.selected {
+            background-color: darken(color('secondary'), 2);
+            transition: .3s;
+        }
+
+        .bvm-nav-link {
+            color: white;
+            text-decoration: none;
+        }
+    }
+
+}

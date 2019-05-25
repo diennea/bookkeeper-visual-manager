@@ -1,0 +1,49 @@
+.bvm-card-container {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+
+    .bvm-card {
+        margin-right: 10px;
+        margin-bottom: 10px;
+
+        padding: 10px 30px;
+    }
+}
+
+.bvm-card {
+    width: 300px;
+    height: 200px;
+    border-radius: 2px;
+    background-color: color('primary');
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        background-color: lighten(color('primary'), 3);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+        cursor: pointer;
+        transition: .15s;
+    }
+
+    display: flex;
+    flex-flow: column;
+
+    .bvm-card-status {
+        flex: 3;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bvm-card-content {
+        flex: 2;
+
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+
+        font-size: 16px;
+    }
+}
