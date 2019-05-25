@@ -37,7 +37,6 @@ public class ForceHeadersAPIRequestsFilter implements Filter {
             throws IOException, ServletException {
         HttpServletResponse resp = (HttpServletResponse) response;
         resp.setHeader("Cache-Control", "no-cache");
-        resp.setHeader("Access-Control-Allow-Origin", "*");
         chain.doFilter(request, response);
     }
 
