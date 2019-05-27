@@ -17,26 +17,24 @@
  under the License.
 
  */
-package org.bookkepervisualmanager.api;
+package org.bookkepervisualmanager.bookkeeper;
 
-import java.util.Set;
-import javax.ws.rs.core.Application;
+import java.util.Collection;
+import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.bookkepervisualmanager.utils.BookkeeperManagerTestUtils;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
+/**
+ *
+ * @author matteo
+ */
+public class AvailableBookieTest extends BookkeeperManagerTestUtils {
 
-@javax.ws.rs.ApplicationPath("api")
-public class ApplicationConfig extends Application {
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        Set<Class<?>> resources = new java.util.HashSet<>();
-        addRestResourceClasses(resources);
-        return resources;
+    @Test
+    public void testAvailableBookies() throws Exception {
+        Collection<BookieSocketAddress> allBookies = getBookkeeperManager().getAllBookies();
+        assertEquals(allBookies.size(), 1);
     }
 
-    private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(org.bookkepervisualmanager.api.resources.BookiesResource.class);
-        resources.add(org.bookkepervisualmanager.api.resources.LedgersResource.class);
-        resources.add(org.glassfish.jersey.server.wadl.internal.WadlResource.class);
-    }
-    
 }
