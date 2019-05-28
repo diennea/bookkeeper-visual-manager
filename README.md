@@ -26,8 +26,8 @@ To pass the Zookeeper connection string you have to set the System Property
 `zk.servers`.
 
 ~~~~
-BVM_ZK_SERVERS=127.0.0.1:2181
 BVM_PORT=8080
+BVM_ZK_SERVERS=127.0.0.1:2181
 
 mvn jetty:run \
     -Dzk.servers=$BVM_ZK_SERVERS \
@@ -38,8 +38,8 @@ mvn jetty:run \
 
 Download the jetty-runner jar available at [Maven Central](https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/).
 ~~~~
-BVM_WAR_PATH=path/to/bvm/war (target folder)
 BVM_PORT=8080
+BVM_WAR_PATH=path/to/bvm/warfile
 
 java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
 ~~~~
