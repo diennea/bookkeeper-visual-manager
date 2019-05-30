@@ -13,6 +13,8 @@
                 
         <zookpeeper.version>3.5.4-beta</zookpeeper.version>
         <bookkeeper.version>4.9.0</bookkeeper.version>
+        <curator.version>4.2.0</curator.version>
+        <junit.version>4.12</junit.version>
         
         <yarn.version>v1.15.2</yarn.version>
         <node.version>v11.8.0</node.version>
@@ -20,6 +22,10 @@
         <maven.frontend.plugin.version>1.7.6</maven.frontend.plugin.version>
         
         <jersey.version>2.27</jersey.version>
+        <libs.jetty>9.4.18.v20190429</libs.jetty>
+        <libs.checkstyle>3.1.0</libs.checkstyle>
+        <libs.spotbugs>3.1.9</libs.spotbugs>
+        <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
         <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
         <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
         <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>
@@ -90,6 +96,30 @@
             <artifactId>bookkeeper-server</artifactId>
             <version>${bookkeeper.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>${libs.spotbugsannotations}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>${curator.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -152,7 +182,21 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>  
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>${libs.jetty}</version>
+                <configuration>
+                    <war>${project.build.directory}/${project.build.finalName}</war>
+                    <webAppSourceDirectory>${frontend.path}/dist</webAppSourceDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${libs.spotbugs}</version>
+            </plugin>
         </plugins>
     </build>
 </project>

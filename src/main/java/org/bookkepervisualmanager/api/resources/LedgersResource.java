@@ -63,7 +63,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         return getBookkeeperManger().getLedgersForBookie(bookieId);
     }
 
-    public final class LedgerBean implements Serializable {
+    public static final class LedgerBean implements Serializable {
 
         private long id;
         private Map<String, String> metadata = new HashMap<>();
