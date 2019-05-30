@@ -28,6 +28,7 @@
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.9</libs.spotbugs>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
+        
         <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
         <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
         <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>

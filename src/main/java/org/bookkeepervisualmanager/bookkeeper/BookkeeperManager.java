@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +45,16 @@ import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
+import org.bookkeepervisualmanager.config.ConfigurationStore;
+import org.bookkeepervisualmanager.config.ConfigurationStoreUtils;
 
 /**
  *
@@ -52,34 +64,57 @@ public class BookkeeperManager implements AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(BookkeeperManager.class.getName());
 
-    public static final String BK_LEDGERS_PATH = System.getProperty("bk.ledgers.path", "/ledgers");
-    public static final String ZK_SERVER = System.getProperty("zk.servers", "127.0.0.1:2181");
-    public static final int ZK_TIMEOUT = 1000;
-
+    private final ConfigurationStore configStore;
     private final ClientConfiguration conf;
 
     private ZooKeeper zkClient;
     private BookKeeper bkClient;
     private BookKeeperAdmin bkAdmin;
 
-    public BookkeeperManager(String zkServers) throws BookkeeperException {
+    public BookkeeperManager(ConfigurationStore configStore) throws BookkeeperException {
         try {
-            this.conf = new ClientConfiguration();
-            this.conf.setMetadataServiceUri("zk+null://" + zkServers.replace(",", ";") + BK_LEDGERS_PATH);
+            this.configStore = configStore;
+            String zkServers = this.configStore.getProperty(PROPERTY_ZOOKEEPER_SERVER,
+                    PROPERTY_ZOOKEEPER_SERVER_DEFAULT);
+            String bkLedgersPath = this.configStore.getProperty(PROPERTY_BOOKKEEPER_LEDGERS_PATH,
+                    PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT);
 
-            LOG.log(Level.INFO, "Starting zookeeper connection with connection string = {0}", zkServers);
+            int zkSessionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_SESSION_TIMEOUT,
+                    PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT, this.configStore);
+            int zkFirstConnectionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT,
+                    PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT, this.configStore);
+
+            this.conf = new ClientConfiguration();
+            this.conf.setMetadataServiceUri("zk+null://" + zkServers.replace(",", ";") + bkLedgersPath);
+
+            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}", zkServers);
+
+            AtomicBoolean zkConnected = new AtomicBoolean(true);
             CountDownLatch countDownLatch = new CountDownLatch(1);
-            this.zkClient = new ZooKeeper(zkServers, ZK_TIMEOUT, e -> {
+            this.zkClient = new ZooKeeper(zkServers, zkSessionTimeout, e -> {
                 switch (e.getState()) {
                     case SyncConnected:
                         LOG.log(Level.INFO, "Zookeeper connection established.");
+                        zkConnected.set(true);
+                        countDownLatch.countDown();
+                        break;
+                    case Disconnected:
+                        LOG.log(Level.INFO, "Zookeeper connection lost.");
+                        break;
+                    case AuthFailed:
+                        LOG.log(Level.INFO, "Zookeeper auth failed.");
+                        zkConnected.set(true);
                         countDownLatch.countDown();
                         break;
                     default:
                         break;
                 }
             });
-            countDownLatch.await();
+            countDownLatch.await(zkFirstConnectionTimeout, TimeUnit.MILLISECONDS);
+            if (!zkConnected.get()) {
+                LOG.log(Level.INFO, "Zookeeper first connection timed out.");
+                throw new BookkeeperException("Zookeeper " + conf.getMetadataServiceUri() + " not set");
+            }
 
             LOG.log(Level.INFO, "Starting bookkeeper connection with zookeeper. "
                     + "Zookeeper connected = {0}", zkClient.getState().isConnected());
@@ -140,7 +175,7 @@ public class BookkeeperManager implements AutoCloseable {
             BookieSocketAddress bookieAddress = new BookieSocketAddress(bookieId);
             Set<BookieSocketAddress> bookieSet = new HashSet<>(1);
             bookieSet.add(bookieAddress);
-            
+
             SortedMap<Long, LedgerMetadata> forBookie = bkAdmin.getLedgersContainBookies(bookieSet);
             return new ArrayList<>(forBookie.keySet());
         } catch (UnknownHostException | InterruptedException | BKException e) {
@@ -185,13 +220,16 @@ public class BookkeeperManager implements AutoCloseable {
 
     public Collection<BookieSocketAddress> getAllBookies() throws BookkeeperException {
         try {
+            String bkLedgersPath = this.configStore.getProperty(PROPERTY_BOOKKEEPER_LEDGERS_PATH,
+                    PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT);
+
             Collection<BookieSocketAddress> result = new ArrayList<>();
 
-            Stat stat = zkClient.exists(BK_LEDGERS_PATH, true);
+            Stat stat = zkClient.exists(bkLedgersPath, true);
             if (stat == null) {
                 return result;
             }
-            List<String> bkCookies = zkClient.getChildren(BK_LEDGERS_PATH + "/cookies", false);
+            List<String> bkCookies = zkClient.getChildren(bkLedgersPath + "/cookies", false);
             if (bkCookies == null) {
                 return result;
             }

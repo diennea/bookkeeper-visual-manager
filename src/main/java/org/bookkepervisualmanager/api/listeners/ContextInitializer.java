@@ -1,12 +1,19 @@
 package org.bookkepervisualmanager.api.listeners;
 
+import java.io.IOException;
+import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperException;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
-import static org.bookkeepervisualmanager.bookkeeper.BookkeeperManager.ZK_SERVER;
+import org.bookkeepervisualmanager.config.ConfigurationStore;
+import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
+import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.ENV_RESOLVER;
+import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.PropertyConfigurationResolver;
+import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.SYSPROP_RESOLVER;
+import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.WEBXML_RESOLVER;
 
 /*
  Licensed to Diennea S.r.l. under one
@@ -35,9 +42,12 @@ public class ContextInitializer implements ServletContextListener {
         ServletContext context = sce.getServletContext();
 
         try {
-            BookkeeperManager bookkeeperManager = new BookkeeperManager(ZK_SERVER);
+            ConfigurationStore configStore = buildInitialConfiguation(context);
+            context.setAttribute("config", configStore);
+
+            BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore);
             context.setAttribute("bookkeeper", bookkeeperManager);
-        } catch (BookkeeperException ex) {
+        } catch (Throwable ex) {
             throw new RuntimeException("Unexpected error occurred " + ex);
         }
 
@@ -46,7 +56,6 @@ public class ContextInitializer implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
-
         try {
             BookkeeperManager bookkeeperManager = (BookkeeperManager) context.getAttribute("bookkeeper");
             if (bookkeeperManager != null) {
@@ -55,6 +64,27 @@ public class ContextInitializer implements ServletContextListener {
         } catch (BookkeeperException ex) {
             throw new RuntimeException("Unexpected error occurred " + ex);
         }
+    }
+
+    public ConfigurationStore buildInitialConfiguation(ServletContext context) throws IOException {
+        PropertyConfigurationResolver resolver;
+
+        resolver = SYSPROP_RESOLVER("bookkeeper.visual.manager.config.path");
+        if (resolver.resolve() != null) {
+            return new PropertiesConfigurationStore(resolver);
+        }
+
+        resolver = ENV_RESOLVER("BVM_CONF_PATH");
+        if (resolver.resolve() != null) {
+            return new PropertiesConfigurationStore(resolver);
+        }
+
+        resolver = WEBXML_RESOLVER(context, "bookkeeper.visual.manager.config.path");
+        if (resolver.resolve() != null) {
+            return new PropertiesConfigurationStore(resolver);
+        }
+
+        return new PropertiesConfigurationStore(() -> new Properties());
     }
 
 }
