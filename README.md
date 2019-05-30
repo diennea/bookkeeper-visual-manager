@@ -1,6 +1,6 @@
 # Bookkeeper Visual Manager
 
-Bookkeeper Visual Manager (BVM) is an open source visual interface for [Apache
+Bookkeeper Visual Manager is an open source visual interface for [Apache
 Bookkeeper](https://bookkeeper.apache.org/).
 
 [![Build Status](https://travis-ci.org/diennea/bookkeeper-visual-manager.svg?branch=master)](https://travis-ci.org/apache/bookkeeper)
@@ -47,4 +47,4 @@ java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
 #### Deploy the war application on container
 
 You can also deploy the `target/bookkeeper-visual-manager-XX.XX.war` on your
-container passing the `zk.servers` location.
+container passing the `zk.servers` location in a System property.

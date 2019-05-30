@@ -26,7 +26,6 @@
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.9</libs.spotbugs>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
-        <libs.asm.version>6.2</libs.asm.version>
         <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
         <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
         <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>
@@ -147,7 +146,7 @@
                     </webResources>
                 </configuration>
             </plugin>
-<!--            <plugin>
+            <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>${maven.frontend.plugin.version}</version>
@@ -183,13 +182,13 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>${libs.jetty}</version>
                 <configuration>
-                    <war> ${project.build.directory}/${project.build.finalName}</war>
+                    <war>${project.build.directory}/${project.build.finalName}</war>
                     <webAppSourceDirectory>${frontend.path}/dist</webAppSourceDirectory>
                 </configuration>
             </plugin>
@@ -197,18 +196,6 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>${libs.spotbugs}</version>
-                <configuration>
-                    <effort>Max</effort>
-                    <maxHeap>4096</maxHeap>
-                    <fork>true</fork>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                        <version>${libs.asm.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

@@ -32,6 +32,8 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 /**
+ * Test class that provides a testing server able to start Zookeeper and a
+ * Bookkeeper Bookie.
  *
  * @author matteo.minardi
  */
@@ -43,7 +45,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     }
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    public final TemporaryFolder folder = new TemporaryFolder();
 
     TestingServer zkServer;
     BookieServer bookie;
@@ -56,7 +58,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         path = folder.newFolder().toPath();
         zkServer = new TestingServer(1282, path.toFile(), true);
 
-        try (ZooKeeperClient zkc = ZooKeeperClient
+        try ( ZooKeeperClient zkc = ZooKeeperClient
                 .newBuilder()
                 .connectString("localhost:1282")
                 .sessionTimeoutMs(10000)
@@ -116,7 +118,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     public TestingServer getZookeeperServer() {
         return zkServer;
     }
-    
+
     public String getAddress() {
         return "localhost:1282";
     }

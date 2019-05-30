@@ -56,7 +56,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
         return bookies;
     }
 
-    public final class BookieBean implements Serializable {
+    public static final class BookieBean implements Serializable {
 
         private boolean ok;
         private String description;

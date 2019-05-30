@@ -25,10 +25,6 @@ import org.bookkepervisualmanager.utils.BookkeeperManagerTestUtils;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-/**
- *
- * @author matteo
- */
 public class AvailableBookieTest extends BookkeeperManagerTestUtils {
 
     @Test

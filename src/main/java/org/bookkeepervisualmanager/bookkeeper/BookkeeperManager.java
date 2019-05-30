@@ -75,6 +75,8 @@ public class BookkeeperManager implements AutoCloseable {
                         LOG.log(Level.INFO, "Zookeeper connection established.");
                         countDownLatch.countDown();
                         break;
+                    default:
+                        break;
                 }
             });
             countDownLatch.await();
