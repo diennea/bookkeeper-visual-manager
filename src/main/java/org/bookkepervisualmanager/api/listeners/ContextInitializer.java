@@ -1,6 +1,5 @@
 package org.bookkepervisualmanager.api.listeners;
 
-import java.io.IOException;
 import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -8,12 +7,14 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperException;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
+import org.bookkeepervisualmanager.config.ConfigurationNotValidException;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
 import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.ENV_RESOLVER;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.PropertyConfigurationResolver;
 import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.SYSPROP_RESOLVER;
 import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.WEBXML_RESOLVER;
+import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.SIMPLE_RESOLVER;
 
 /*
  Licensed to Diennea S.r.l. under one
@@ -44,7 +45,7 @@ public class ContextInitializer implements ServletContextListener {
         try {
             ConfigurationStore configStore = buildInitialConfiguation(context);
             context.setAttribute("config", configStore);
-
+            
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore);
             context.setAttribute("bookkeeper", bookkeeperManager);
         } catch (Throwable ex) {
@@ -66,9 +67,26 @@ public class ContextInitializer implements ServletContextListener {
         }
     }
 
-    public ConfigurationStore buildInitialConfiguation(ServletContext context) throws IOException {
+    /**
+     * Creates a {@link ConfigurationStore} following this priority order:
+     * <ol>
+     *  <li>Simple: System Property bookkeeper.visual.manager.serviceMetadataUri</li>
+     *  <li>Advanced: System Property bookkeeper.visual.manager.config.path</li>
+     *  <li>Advanced: Environment variable BVM_CONF_PATH</li>
+     *  <li>Advanced: web.xml property bookkeeper.visual.manager.config.path</li>
+     * </ol>
+     * @param context The Servlet context
+     * @return A {@link ConfigurationStore} containing the Bookkeeper configuration
+     * @throws ConfigurationNotValidException 
+     */
+    public ConfigurationStore buildInitialConfiguation(ServletContext context) throws ConfigurationNotValidException {
         PropertyConfigurationResolver resolver;
 
+        resolver = SIMPLE_RESOLVER("bookkeeper.visual.manager.metadataServiceUri");
+        if (resolver.resolve() != null) {
+            return new PropertiesConfigurationStore(resolver);
+        }
+        
         resolver = SYSPROP_RESOLVER("bookkeeper.visual.manager.config.path");
         if (resolver.resolve() != null) {
             return new PropertiesConfigurationStore(resolver);

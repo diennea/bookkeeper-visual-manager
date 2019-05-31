@@ -45,8 +45,11 @@ public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
         startBookie();
 
         final Properties properties = new Properties();
-        properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER, zkServer.getConnectString());
-        
+        properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER,
+                zkServer.getConnectString());
+        properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
+                "zk+null://" + zkServer.getConnectString() + "/ledgers");
+
         ConfigurationStore config = new PropertiesConfigurationStore(() -> properties);
         bookkeeperManager = new BookkeeperManager(config);
     }

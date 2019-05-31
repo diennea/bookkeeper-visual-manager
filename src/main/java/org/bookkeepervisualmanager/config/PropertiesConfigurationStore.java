@@ -37,16 +37,8 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
 
     private final Properties properties;
 
-    public PropertiesConfigurationStore(String path) throws ConfigurationNotValidException {
-        this(STATIC_RESOLVER(path));
-    }
-
     public PropertiesConfigurationStore(PropertyConfigurationResolver resolver) throws ConfigurationNotValidException {
-        try {
-            this.properties = resolver.resolve();
-        } catch (IOException ex) {
-            throw new ConfigurationNotValidException(ex);
-        }
+        this.properties = resolver.resolve();
     }
 
     @Override
@@ -61,14 +53,21 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
         });
     }
 
+    @FunctionalInterface
     public static interface PropertyConfigurationResolver {
 
-        Properties resolve() throws IOException;
+        Properties resolve() throws ConfigurationNotValidException;
     }
 
-    public static PropertyConfigurationResolver STATIC_RESOLVER(String configPath) {
+    public static PropertyConfigurationResolver SIMPLE_RESOLVER(String propName) {
         return () -> {
-            return readPropertiesFromFile(configPath);
+            String serviceMetadataUri = System.getProperty(propName);
+            if (serviceMetadataUri == null) {
+                return null;
+            }
+            Properties properties = new Properties();
+            properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, serviceMetadataUri);
+            return properties;
         };
     }
 
@@ -93,7 +92,7 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
         };
     }
 
-    private static Properties readPropertiesFromFile(String path) throws IOException {
+    private static Properties readPropertiesFromFile(String path) throws ConfigurationNotValidException {
         if (path == null) {
             return null;
         }
@@ -105,8 +104,10 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
         try (InputStreamReader reader = new InputStreamReader(
                 new FileInputStream(configFile), StandardCharsets.UTF_8)) {
             properties.load(reader);
+        } catch (IOException ex) {
+            throw new ConfigurationNotValidException(ex);
         }
         return properties;
     }
-
+    
 }

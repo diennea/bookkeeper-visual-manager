@@ -49,12 +49,14 @@ import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BO
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER_DEFAULT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.ConfigurationStoreUtils;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT;
 
 /**
  *
@@ -74,10 +76,11 @@ public class BookkeeperManager implements AutoCloseable {
     public BookkeeperManager(ConfigurationStore configStore) throws BookkeeperException {
         try {
             this.configStore = configStore;
+
             String zkServers = this.configStore.getProperty(PROPERTY_ZOOKEEPER_SERVER,
                     PROPERTY_ZOOKEEPER_SERVER_DEFAULT);
-            String bkLedgersPath = this.configStore.getProperty(PROPERTY_BOOKKEEPER_LEDGERS_PATH,
-                    PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT);
+            String zkServiceMetadataUri = this.configStore.getProperty(PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
+                    PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT);
 
             int zkSessionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_SESSION_TIMEOUT,
                     PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT, this.configStore);
@@ -85,11 +88,10 @@ public class BookkeeperManager implements AutoCloseable {
                     PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT, this.configStore);
 
             this.conf = new ClientConfiguration();
-            this.conf.setMetadataServiceUri("zk+null://" + zkServers.replace(",", ";") + bkLedgersPath);
+            this.conf.setMetadataServiceUri(zkServiceMetadataUri);
 
-            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}", zkServers);
-
-            AtomicBoolean zkConnected = new AtomicBoolean(true);
+            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}", zkServiceMetadataUri);
+            AtomicBoolean zkConnected = new AtomicBoolean(false);
             CountDownLatch countDownLatch = new CountDownLatch(1);
             this.zkClient = new ZooKeeper(zkServers, zkSessionTimeout, e -> {
                 switch (e.getState()) {
@@ -113,7 +115,7 @@ public class BookkeeperManager implements AutoCloseable {
             countDownLatch.await(zkFirstConnectionTimeout, TimeUnit.MILLISECONDS);
             if (!zkConnected.get()) {
                 LOG.log(Level.INFO, "Zookeeper first connection timed out.");
-                throw new BookkeeperException("Zookeeper " + conf.getMetadataServiceUri() + " not set");
+                throw new BookkeeperException("First connection to " + conf.getMetadataServiceUri() + " timed out.");
             }
 
             LOG.log(Level.INFO, "Starting bookkeeper connection with zookeeper. "
