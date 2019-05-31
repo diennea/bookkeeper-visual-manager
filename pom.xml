@@ -11,7 +11,7 @@
     <properties>        
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
                 
-        <zookpeeper.version>3.5.4-beta</zookpeeper.version>
+        <zookpeeper.version>3.5.5</zookpeeper.version>
         <bookkeeper.version>4.9.0</bookkeeper.version>
         <curator.version>4.2.0</curator.version>
         <junit.version>4.12</junit.version>
