@@ -13,6 +13,8 @@
                 
         <zookpeeper.version>3.5.5</zookpeeper.version>
         <bookkeeper.version>4.9.0</bookkeeper.version>
+        <netty.version>4.1.31.Final</netty.version>
+        <netty.boringssl.version>2.0.19.Final</netty.boringssl.version>
         <curator.version>4.2.0</curator.version>
         <junit.version>4.12</junit.version>
         
@@ -85,7 +87,17 @@
             <groupId>javax.activation</groupId>
             <artifactId>javax.activation-api</artifactId>
             <version>${libs.javaxactivation.api}</version>
-        </dependency>      
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${netty.boringssl.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
@@ -95,6 +107,12 @@
             <groupId>org.apache.bookkeeper</groupId>
             <artifactId>bookkeeper-server</artifactId>
             <version>${bookkeeper.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.spotbugs</groupId>
