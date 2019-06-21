@@ -16,13 +16,13 @@
         <curator.version>4.2.0</curator.version>
         <junit.version>4.12</junit.version>
         
-        <yarn.version>v1.15.2</yarn.version>
+        <yarn.version>v1.16.0</yarn.version>
         <node.version>v11.8.0</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
         <maven.frontend.plugin.version>1.7.6</maven.frontend.plugin.version>
         
         <jersey.version>2.27</jersey.version>
-        <libs.jetty>9.4.18.v20190429</libs.jetty>
+        <libs.jetty>9.4.19.v20190610</libs.jetty>
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.9</libs.spotbugs>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
@@ -127,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -136,7 +136,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.2.3</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                     <webResources>
