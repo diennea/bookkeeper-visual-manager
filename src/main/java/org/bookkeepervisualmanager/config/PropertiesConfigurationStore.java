@@ -37,8 +37,8 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
 
     private final Properties properties;
 
-    public PropertiesConfigurationStore(PropertyConfigurationResolver resolver) throws ConfigurationNotValidException {
-        this.properties = resolver.resolve();
+    public PropertiesConfigurationStore(Properties properties) {
+        this.properties = properties;
     }
 
     @Override
@@ -53,61 +53,39 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
         });
     }
 
-    @FunctionalInterface
-    public static interface PropertyConfigurationResolver {
+    public static class PropertiesConfigurationFactory {
 
-        Properties resolve() throws ConfigurationNotValidException;
-    }
+        public static Properties buildFromSystemProperty(String propName) throws IOException {
+            String configPath = System.getProperty(propName);
+            return readPropertiesFromFile(configPath);
+        }
 
-    public static PropertyConfigurationResolver SIMPLE_RESOLVER(String propName) {
-        return () -> {
-            String serviceMetadataUri = System.getProperty(propName);
-            if (serviceMetadataUri == null) {
+        public static Properties buildFromEnvironmentVariable(String envName) throws IOException {
+            String configPath = System.getenv(envName);
+            return readPropertiesFromFile(configPath);
+        }
+
+        public static Properties buildFromWebXML(ServletContext ctx, String propName) throws IOException {
+            String configPath = ctx.getInitParameter(propName);
+            return readPropertiesFromFile(configPath);
+        }
+
+        private static Properties readPropertiesFromFile(String path) throws IOException {
+            if (path == null) {
+                return null;
+            }
+            File configFile = new File(path);
+            if (!configFile.isFile()) {
                 return null;
             }
             Properties properties = new Properties();
-            properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, serviceMetadataUri);
+            try (InputStreamReader reader = new InputStreamReader(
+                    new FileInputStream(configFile), StandardCharsets.UTF_8)) {
+                properties.load(reader);
+            }
             return properties;
-        };
-    }
-
-    public static PropertyConfigurationResolver SYSPROP_RESOLVER(String propName) {
-        return () -> {
-            String configPath = System.getProperty(propName);
-            return readPropertiesFromFile(configPath);
-        };
-    }
-
-    public static PropertyConfigurationResolver ENV_RESOLVER(String envName) {
-        return () -> {
-            String configPath = System.getenv(envName);
-            return readPropertiesFromFile(configPath);
-        };
-    }
-
-    public static PropertyConfigurationResolver WEBXML_RESOLVER(ServletContext ctx, String propName) {
-        return () -> {
-            String configPath = ctx.getInitParameter(propName);
-            return readPropertiesFromFile(configPath);
-        };
-    }
-
-    private static Properties readPropertiesFromFile(String path) throws ConfigurationNotValidException {
-        if (path == null) {
-            return null;
         }
-        File configFile = new File(path);
-        if (!configFile.isFile()) {
-            return null;
-        }
-        Properties properties = new Properties();
-        try (InputStreamReader reader = new InputStreamReader(
-                new FileInputStream(configFile), StandardCharsets.UTF_8)) {
-            properties.load(reader);
-        } catch (IOException ex) {
-            throw new ConfigurationNotValidException(ex);
-        }
-        return properties;
+
     }
     
 }

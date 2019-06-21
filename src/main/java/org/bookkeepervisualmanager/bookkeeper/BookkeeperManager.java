@@ -76,10 +76,9 @@ public class BookkeeperManager implements AutoCloseable {
     public BookkeeperManager(ConfigurationStore configStore) throws BookkeeperException {
         try {
             this.configStore = configStore;
-
             String zkServers = this.configStore.getProperty(PROPERTY_ZOOKEEPER_SERVER,
                     PROPERTY_ZOOKEEPER_SERVER_DEFAULT);
-            String zkServiceMetadataUri = this.configStore.getProperty(PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
+            String zkMetadataServiceUri = this.configStore.getProperty(PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
                     PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT);
 
             int zkSessionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_SESSION_TIMEOUT,
@@ -88,9 +87,9 @@ public class BookkeeperManager implements AutoCloseable {
                     PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT, this.configStore);
 
             this.conf = new ClientConfiguration();
-            this.conf.setMetadataServiceUri(zkServiceMetadataUri);
+            this.conf.setMetadataServiceUri(zkMetadataServiceUri);
 
-            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}", zkServiceMetadataUri);
+            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}", zkMetadataServiceUri);
             AtomicBoolean zkConnected = new AtomicBoolean(false);
             CountDownLatch countDownLatch = new CountDownLatch(1);
             this.zkClient = new ZooKeeper(zkServers, zkSessionTimeout, e -> {
@@ -105,17 +104,15 @@ public class BookkeeperManager implements AutoCloseable {
                         break;
                     case AuthFailed:
                         LOG.log(Level.INFO, "Zookeeper auth failed.");
-                        zkConnected.set(true);
-                        countDownLatch.countDown();
-                        break;
+                        throw new RuntimeException("Auth failed.");
                     default:
                         break;
                 }
             });
             countDownLatch.await(zkFirstConnectionTimeout, TimeUnit.MILLISECONDS);
             if (!zkConnected.get()) {
-                LOG.log(Level.INFO, "Zookeeper first connection timed out.");
-                throw new BookkeeperException("First connection to " + conf.getMetadataServiceUri() + " timed out.");
+                LOG.log(Level.INFO, "Zookeeper first connection failed.");
+                throw new BookkeeperException("First connection to " + conf.getMetadataServiceUri() + " failed.");
             }
 
             LOG.log(Level.INFO, "Starting bookkeeper connection with zookeeper. "

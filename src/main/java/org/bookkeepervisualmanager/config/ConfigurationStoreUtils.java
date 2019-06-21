@@ -2,6 +2,8 @@ package org.bookkeepervisualmanager.config;
 
 /**
  *
+ * Configuration utiltiy class to retrive parameters from {@link ConfigurationStore}
+ *
  * @author matteo.minardi
  */
 public class ConfigurationStoreUtils {

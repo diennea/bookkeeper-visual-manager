@@ -26,13 +26,10 @@ import java.util.function.BiConsumer;
  *
  * @author matteo.minardi
  */
-public interface ConfigurationStore extends AutoCloseable {
+public interface ConfigurationStore {
 
     String getProperty(String key, String defaultValue);
 
     void forEach(BiConsumer<String, String> consumer);
-
-    @Override
-    default void close() {}
 
 }

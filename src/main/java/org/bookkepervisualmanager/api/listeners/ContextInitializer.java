@@ -10,11 +10,7 @@ import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
 import org.bookkeepervisualmanager.config.ConfigurationNotValidException;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
-import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.ENV_RESOLVER;
-import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.PropertyConfigurationResolver;
-import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.SYSPROP_RESOLVER;
-import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.WEBXML_RESOLVER;
-import static org.bookkeepervisualmanager.config.PropertiesConfigurationStore.SIMPLE_RESOLVER;
+import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.PropertiesConfigurationFactory;
 
 /*
  Licensed to Diennea S.r.l. under one
@@ -66,7 +62,7 @@ public class ContextInitializer implements ServletContextListener {
             throw new RuntimeException("Unexpected error occurred " + ex);
         }
     }
-
+    
     /**
      * Creates a {@link ConfigurationStore} following this priority order:
      * <ol>
@@ -80,29 +76,32 @@ public class ContextInitializer implements ServletContextListener {
      * @throws ConfigurationNotValidException 
      */
     public ConfigurationStore buildInitialConfiguation(ServletContext context) throws ConfigurationNotValidException {
-        PropertyConfigurationResolver resolver;
+        try {
+            Properties properties = new Properties();
 
-        resolver = SIMPLE_RESOLVER("bookkeeper.visual.manager.metadataServiceUri");
-        if (resolver.resolve() != null) {
-            return new PropertiesConfigurationStore(resolver);
-        }
-        
-        resolver = SYSPROP_RESOLVER("bookkeeper.visual.manager.config.path");
-        if (resolver.resolve() != null) {
-            return new PropertiesConfigurationStore(resolver);
-        }
+            properties = PropertiesConfigurationFactory.buildFromSystemProperty("bookkeeper.visual.manager.config.path");
+            if (properties != null) {
+                return new PropertiesConfigurationStore(properties);
+            }
 
-        resolver = ENV_RESOLVER("BVM_CONF_PATH");
-        if (resolver.resolve() != null) {
-            return new PropertiesConfigurationStore(resolver);
-        }
+            properties = PropertiesConfigurationFactory.buildFromEnvironmentVariable("BVM_CONF_PATH");
+            if (properties != null) {
+                return new PropertiesConfigurationStore(properties);
+            }
 
-        resolver = WEBXML_RESOLVER(context, "bookkeeper.visual.manager.config.path");
-        if (resolver.resolve() != null) {
-            return new PropertiesConfigurationStore(resolver);
-        }
+            properties = PropertiesConfigurationFactory.buildFromWebXML(context, "bookkeeper.visual.manager.config.path");
+            if (properties != null) {
+                return new PropertiesConfigurationStore(properties);
+            }
 
-        return new PropertiesConfigurationStore(() -> new Properties());
+            if (properties == null) {
+                throw new ConfigurationNotValidException("Configuration not provided.");
+            }
+            
+            return new PropertiesConfigurationStore(properties);
+        } catch (Throwable t) {
+            throw new ConfigurationNotValidException(t);
+        }
     }
 
 }
