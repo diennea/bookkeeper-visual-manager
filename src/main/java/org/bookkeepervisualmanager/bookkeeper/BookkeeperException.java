@@ -28,7 +28,7 @@ public class BookkeeperException extends Exception {
     public BookkeeperException(Throwable cause) {
         super(cause);
     }
-    
+
     public BookkeeperException(String cause) {
         super(cause);
     }
