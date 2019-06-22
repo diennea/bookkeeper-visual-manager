@@ -11,6 +11,7 @@ import org.bookkeepervisualmanager.config.ConfigurationNotValidException;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.PropertiesConfigurationFactory;
+import org.bookkeepervisualmanager.config.ServerConfiguration;
 
 /*
  Licensed to Diennea S.r.l. under one
@@ -66,7 +67,7 @@ public class ContextInitializer implements ServletContextListener {
     /**
      * Creates a {@link ConfigurationStore} following this priority order:
      * <ol>
-     *  <li>Simple: System Property bookkeeper.visual.manager.serviceMetadataUri</li>
+     *  <li>Simple: System Property bookkeeper.visual.manager.metadataServiceUri</li>
      *  <li>Advanced: System Property bookkeeper.visual.manager.config.path</li>
      *  <li>Advanced: Environment variable BVM_CONF_PATH</li>
      *  <li>Advanced: web.xml property bookkeeper.visual.manager.config.path</li>
@@ -79,11 +80,22 @@ public class ContextInitializer implements ServletContextListener {
         try {
             Properties properties = new Properties();
 
+            String metadataServiceUri = System.getProperty("bookkeeper.visual.manager.metadataServiceUri");
+            if (metadataServiceUri != null) {
+                properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, metadataServiceUri);
+
+                String msu = metadataServiceUri.split("//")[1];
+                properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER, msu.split("/")[0]);
+                properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH, "/" + msu.split("/")[1]);
+
+                return new PropertiesConfigurationStore(properties);
+            }
+
             properties = PropertiesConfigurationFactory.buildFromSystemProperty("bookkeeper.visual.manager.config.path");
             if (properties != null) {
                 return new PropertiesConfigurationStore(properties);
             }
-
+            
             properties = PropertiesConfigurationFactory.buildFromEnvironmentVariable("BVM_CONF_PATH");
             if (properties != null) {
                 return new PropertiesConfigurationStore(properties);

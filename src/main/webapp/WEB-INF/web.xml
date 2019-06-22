@@ -14,6 +14,6 @@
     </session-config>
     <context-param>
         <param-name>bookkeeper.visual.manager.config.path</param-name>
-        <param-value>/server.properties</param-value>
+        <param-value>/bvm_conf.properties</param-value>
     </context-param>
 </web-app>

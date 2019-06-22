@@ -17,6 +17,7 @@
         <netty.boringssl.version>2.0.19.Final</netty.boringssl.version>
         <curator.version>4.2.0</curator.version>
         <junit.version>4.12</junit.version>
+        <mockito.version>1.10.19</mockito.version>
         
         <yarn.version>v1.16.0</yarn.version>
         <node.version>v11.8.0</node.version>
@@ -139,6 +140,12 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -218,4 +225,34 @@
             </plugin>
         </plugins>
     </build>
+    
+    <profiles>
+        <profile>
+            <id>no-frontend</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${maven.frontend.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>install node and yarn</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>yarn install</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>yarn run build</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    
 </project>

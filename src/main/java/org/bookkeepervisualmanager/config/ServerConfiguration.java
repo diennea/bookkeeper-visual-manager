@@ -28,25 +28,25 @@ public final class ServerConfiguration {
     /**
      * Zookeeper location.
      */
-    public static final String PROPERTY_ZOOKEEPER_SERVER = "zookeeper.servers";
+    public static final String PROPERTY_ZOOKEEPER_SERVER = "zkServers";
     public static final String PROPERTY_ZOOKEEPER_SERVER_DEFAULT = "127.0.0.1:2181";
 
     /**
      * Comma separated list of Zookeeper servers.
      */
-    public static final String PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI = "zookeeper.metadataServiceUri";
+    public static final String PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI = "metadataServiceUri";
     public static final String PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT = "zk+null://127.0.0.1:2181/ledgers";
 
     /**
      * Zookeeper session timeout.
      */
-    public static final String PROPERTY_ZOOKEEPER_SESSION_TIMEOUT = "zookeeper.session.timeout";
+    public static final String PROPERTY_ZOOKEEPER_SESSION_TIMEOUT = "zkTimeout";
     public static final int PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT = 10000;
 
     /**
      * Zookeeper first connection timeout.
      */
-    public static final String PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT = "zookeeper.connection.timeout";
+    public static final String PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT = "zkConnectionTimeout";
     public static final int PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT = 10000;
 
     /**
@@ -54,7 +54,7 @@ public final class ServerConfiguration {
      * match with zookeeper service metadata uri.
      */
     @Deprecated
-    public static final String PROPERTY_BOOKKEEPER_LEDGERS_PATH = "bookkeeper.ledgers.path";
+    public static final String PROPERTY_BOOKKEEPER_LEDGERS_PATH = "zkLedgersRootPath";
     public static final String PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT = "/ledgers";
 
 }
