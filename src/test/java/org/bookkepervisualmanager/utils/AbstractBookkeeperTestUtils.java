@@ -20,7 +20,6 @@
 package org.bookkepervisualmanager.utils;
 
 import java.nio.file.Path;
-
 import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.BookieServer;
@@ -32,8 +31,7 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * Test class that provides a testing server able to start Zookeeper and a
- * Bookkeeper Bookie.
+ * Test class that provides a testing server able to start Zookeeper and a Bookkeeper Bookie.
  *
  * @author matteo.minardi
  */
@@ -58,7 +56,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         path = folder.newFolder().toPath();
         zkServer = new TestingServer(1282, path.toFile(), true);
 
-        try ( ZooKeeperClient zkc = ZooKeeperClient
+        try (ZooKeeperClient zkc = ZooKeeperClient
                 .newBuilder()
                 .connectString("localhost:1282")
                 .sessionTimeoutMs(10000)

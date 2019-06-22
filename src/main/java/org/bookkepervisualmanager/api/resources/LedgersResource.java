@@ -25,10 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 
@@ -48,12 +48,12 @@ public class LedgersResource extends AbstractBookkeeperResource {
     public LedgerBean getLedgerMetadata(@PathParam("ledgerId") long ledgerId) throws Exception {
 
         LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledgerId);
-        
+
         LedgerBean b = new LedgerBean();
         b.setId(ledgerId);
         b.setLedgerMetadata(ledgerMetadata);
 
-       return b;
+        return b;
     }
 
     @GET
@@ -83,11 +83,11 @@ public class LedgersResource extends AbstractBookkeeperResource {
         public void setMetadata(Map<String, String> metadata) {
             this.metadata = metadata;
         }
-        
+
         public void setMetadataValue(String key, byte[] value) throws UnsupportedEncodingException {
             this.metadata.put(key, new String(value, "UTF-8"));
         }
-        
+
         public void setLedgerMetadata(LedgerMetadata metadata) throws UnsupportedEncodingException {
             Map<String, byte[]> customMetadata = metadata.getCustomMetadata();
             for (Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {

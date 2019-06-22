@@ -1,5 +1,6 @@
 package org.bookkepervisualmanager.api.listeners;
 
+import java.io.IOException;
 import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -42,7 +43,7 @@ public class ContextInitializer implements ServletContextListener {
         try {
             ConfigurationStore configStore = buildInitialConfiguation(context);
             context.setAttribute("config", configStore);
-            
+
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore);
             context.setAttribute("bookkeeper", bookkeeperManager);
         } catch (Throwable ex) {
@@ -63,18 +64,19 @@ public class ContextInitializer implements ServletContextListener {
             throw new RuntimeException("Unexpected error occurred " + ex);
         }
     }
-    
+
     /**
      * Creates a {@link ConfigurationStore} following this priority order:
      * <ol>
-     *  <li>Simple: System Property bookkeeper.visual.manager.metadataServiceUri</li>
-     *  <li>Advanced: System Property bookkeeper.visual.manager.config.path</li>
-     *  <li>Advanced: Environment variable BVM_CONF_PATH</li>
-     *  <li>Advanced: web.xml property bookkeeper.visual.manager.config.path</li>
+     * <li>Simple: System Property bookkeeper.visual.manager.metadataServiceUri</li>
+     * <li>Advanced: System Property bookkeeper.visual.manager.config.path</li>
+     * <li>Advanced: Environment variable BVM_CONF_PATH</li>
+     * <li>Advanced: web.xml property bookkeeper.visual.manager.config.path</li>
      * </ol>
+     *
      * @param context The Servlet context
      * @return A {@link ConfigurationStore} containing the Bookkeeper configuration
-     * @throws ConfigurationNotValidException 
+     * @throws ConfigurationNotValidException
      */
     public ConfigurationStore buildInitialConfiguation(ServletContext context) throws ConfigurationNotValidException {
         try {
@@ -91,27 +93,25 @@ public class ContextInitializer implements ServletContextListener {
                 return new PropertiesConfigurationStore(properties);
             }
 
-            properties = PropertiesConfigurationFactory.buildFromSystemProperty("bookkeeper.visual.manager.config.path");
+            properties = PropertiesConfigurationFactory.buildFromSystemProperty(
+                    "bookkeeper.visual.manager.config.path");
             if (properties != null) {
                 return new PropertiesConfigurationStore(properties);
             }
-            
+
             properties = PropertiesConfigurationFactory.buildFromEnvironmentVariable("BVM_CONF_PATH");
             if (properties != null) {
                 return new PropertiesConfigurationStore(properties);
             }
 
-            properties = PropertiesConfigurationFactory.buildFromWebXML(context, "bookkeeper.visual.manager.config.path");
+            properties = PropertiesConfigurationFactory.buildFromWebXML(context,
+                    "bookkeeper.visual.manager.config.path");
             if (properties != null) {
                 return new PropertiesConfigurationStore(properties);
             }
 
-            if (properties == null) {
-                throw new ConfigurationNotValidException("Configuration not provided.");
-            }
-            
-            return new PropertiesConfigurationStore(properties);
-        } catch (Throwable t) {
+            throw new ConfigurationNotValidException("Configuration not provided.");
+        } catch (IOException t) {
             throw new ConfigurationNotValidException(t);
         }
     }

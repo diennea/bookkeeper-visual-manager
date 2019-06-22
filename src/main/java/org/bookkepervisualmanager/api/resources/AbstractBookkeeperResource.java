@@ -19,8 +19,8 @@
  */
 package org.bookkepervisualmanager.api.resources;
 
-import javax.ws.rs.core.Context;
 import javax.servlet.ServletContext;
+import javax.ws.rs.core.Context;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
 
 public abstract class AbstractBookkeeperResource {

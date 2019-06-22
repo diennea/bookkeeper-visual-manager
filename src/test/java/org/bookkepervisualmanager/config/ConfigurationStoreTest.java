@@ -19,6 +19,7 @@
  */
 package org.bookkepervisualmanager.config;
 
+import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -26,7 +27,6 @@ import java.util.Properties;
 import javax.servlet.ServletContext;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.PropertiesConfigurationFactory;
 import org.bookkeepervisualmanager.config.ServerConfiguration;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,7 +54,8 @@ public class ConfigurationStoreTest {
     public void testSystemPropertyConfiguration() throws Exception {
         System.setProperty("bookkeeper.visual.manager.config.path", propertiesFilePath);
 
-        Properties resultProperties = PropertiesConfigurationFactory.buildFromSystemProperty("bookkeeper.visual.manager.config.path");
+        Properties resultProperties = PropertiesConfigurationFactory.buildFromSystemProperty(
+                "bookkeeper.visual.manager.config.path");
 
         Properties expectedProperties = getTestingProperties();
         assertEquals(resultProperties, expectedProperties);
