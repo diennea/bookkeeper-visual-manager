@@ -19,9 +19,13 @@
  */
 package org.bookkepervisualmanager.utils;
 
+import java.util.Properties;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
+import org.bookkeepervisualmanager.config.ConfigurationStore;
+import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
+import org.bookkeepervisualmanager.config.ServerConfiguration;
 import org.junit.After;
 import org.junit.Before;
 
@@ -40,7 +44,11 @@ public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
         startZookeeper();
         startBookie();
 
-        bookkeeperManager = new BookkeeperManager(zkServer.getConnectString());
+        final Properties properties = new Properties();
+        properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER, zkServer.getConnectString());
+        
+        ConfigurationStore config = new PropertiesConfigurationStore(properties);
+        bookkeeperManager = new BookkeeperManager(config);
     }
 
     @After

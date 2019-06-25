@@ -17,20 +17,19 @@
  under the License.
 
  */
-package org.bookkeepervisualmanager.bookkeeper;
+package org.bookkeepervisualmanager.config;
+
+import java.util.function.BiConsumer;
 
 /**
+ * Stores configuration
  *
  * @author matteo.minardi
  */
-public class BookkeeperException extends Exception {
+public interface ConfigurationStore {
 
-    public BookkeeperException(Throwable cause) {
-        super(cause);
-    }
-    
-    public BookkeeperException(String cause) {
-        super(cause);
-    }
+    String getProperty(String key, String defaultValue);
+
+    void forEach(BiConsumer<String, String> consumer);
 
 }

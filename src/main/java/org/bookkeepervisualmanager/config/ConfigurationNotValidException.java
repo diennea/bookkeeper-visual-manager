@@ -17,19 +17,20 @@
  under the License.
 
  */
-package org.bookkeepervisualmanager.bookkeeper;
+package org.bookkeepervisualmanager.config;
 
 /**
+ * Exception thrown when there was an error in the provided {@link ConfigurationStore}
  *
  * @author matteo.minardi
  */
-public class BookkeeperException extends Exception {
+public class ConfigurationNotValidException extends RuntimeException {
 
-    public BookkeeperException(Throwable cause) {
+    public ConfigurationNotValidException(String cause) {
         super(cause);
     }
-    
-    public BookkeeperException(String cause) {
+
+    public ConfigurationNotValidException(Throwable cause) {
         super(cause);
     }
 

@@ -12,4 +12,8 @@
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
+    <context-param>
+        <param-name>bookkeeper.visual.manager.config.path</param-name>
+        <param-value>/bvm_conf.properties</param-value>
+    </context-param>
 </web-app>
