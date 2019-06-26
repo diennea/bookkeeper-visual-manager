@@ -19,6 +19,16 @@
  */
 package org.bookkeepervisualmanager.bookkeeper;
 
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER_DEFAULT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
+import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,14 +39,12 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.bookkeeper.client.BKException;
-
-import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.client.BookKeeper;
+import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.conf.ClientConfiguration;
@@ -45,18 +53,8 @@ import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.ConfigurationStoreUtils;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER_DEFAULT;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI;
-import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT;
 
 /**
  *
@@ -89,14 +87,13 @@ public class BookkeeperManager implements AutoCloseable {
             this.conf = new ClientConfiguration();
             this.conf.setMetadataServiceUri(zkMetadataServiceUri);
 
-            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}", zkMetadataServiceUri);
-            AtomicBoolean zkConnected = new AtomicBoolean(false);
+            LOG.log(Level.INFO, "Starting Zookeeper first connection with connection string = {0}",
+                    zkMetadataServiceUri);
             CountDownLatch countDownLatch = new CountDownLatch(1);
             this.zkClient = new ZooKeeper(zkServers, zkSessionTimeout, e -> {
                 switch (e.getState()) {
                     case SyncConnected:
                         LOG.log(Level.INFO, "Zookeeper connection established.");
-                        zkConnected.set(true);
                         countDownLatch.countDown();
                         break;
                     case Disconnected:
@@ -109,8 +106,8 @@ public class BookkeeperManager implements AutoCloseable {
                         break;
                 }
             });
-            countDownLatch.await(zkFirstConnectionTimeout, TimeUnit.MILLISECONDS);
-            if (!zkConnected.get()) {
+            boolean connectedBeforeTimeout = countDownLatch.await(zkFirstConnectionTimeout, TimeUnit.MILLISECONDS);
+            if (!connectedBeforeTimeout) {
                 LOG.log(Level.INFO, "Zookeeper first connection failed.");
                 throw new BookkeeperException("First connection to " + conf.getMetadataServiceUri() + " failed.");
             }

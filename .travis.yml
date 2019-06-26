@@ -9,7 +9,7 @@ jobs:
   include:
   - stage: test
     jdk: openjdk11
-    script: mvn verify -Pjenkins -Dmaven.test.redirectTestOutputToFile=true
+    script: mvn verify -Pjenkins -Dmaven.test.redirectTestOutputToFile=true checkstyle:check spotbugs:check
 
 branches:
   only:

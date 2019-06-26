@@ -30,8 +30,8 @@ import org.junit.After;
 import org.junit.Before;
 
 /**
- * Testing class that provides before each test a {@link BookkeeperManager}
- * connection with an active Zookeeper and Bookkeeper Bookie.
+ * Testing class that provides before each test a {@link BookkeeperManager} connection with an active Zookeeper and
+ * Bookkeeper Bookie.
  *
  * @author matteo.minardi
  */
@@ -46,7 +46,7 @@ public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
 
         final Properties properties = new Properties();
         properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER, zkServer.getConnectString());
-        
+
         ConfigurationStore config = new PropertiesConfigurationStore(properties);
         bookkeeperManager = new BookkeeperManager(config);
     }

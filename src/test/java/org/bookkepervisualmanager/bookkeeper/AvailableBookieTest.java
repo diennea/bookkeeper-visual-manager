@@ -19,10 +19,10 @@
  */
 package org.bookkepervisualmanager.bookkeeper;
 
+import static org.junit.Assert.assertEquals;
 import java.util.Collection;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.bookkepervisualmanager.utils.BookkeeperManagerTestUtils;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class AvailableBookieTest extends BookkeeperManagerTestUtils {

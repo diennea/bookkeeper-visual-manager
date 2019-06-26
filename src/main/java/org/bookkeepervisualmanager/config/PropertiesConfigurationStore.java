@@ -87,5 +87,5 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
         }
 
     }
-    
+
 }

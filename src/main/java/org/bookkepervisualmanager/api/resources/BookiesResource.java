@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.net.BookieSocketAddress;
@@ -98,7 +98,8 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
         @Override
         public String toString() {
-            return "BookieBean{" + "ok=" + ok + ", description=" + description + ", freeDiskSpace=" + freeDiskSpace + ", totalDiskSpace=" + totalDiskSpace + '}';
+            return "BookieBean{" + "ok=" + ok + ", description=" + description
+                    + ", freeDiskSpace=" + freeDiskSpace + ", totalDiskSpace=" + totalDiskSpace + '}';
         }
 
     }
