@@ -85,11 +85,6 @@ public class ContextInitializer implements ServletContextListener {
             String metadataServiceUri = System.getProperty("bookkeeper.visual.manager.metadataServiceUri");
             if (metadataServiceUri != null) {
                 properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, metadataServiceUri);
-
-                String msu = metadataServiceUri.split("//")[1];
-                properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER, msu.split("/")[0]);
-                properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_LEDGERS_PATH, "/" + msu.split("/")[1]);
-
                 return new PropertiesConfigurationStore(properties);
             }
 
@@ -110,7 +105,7 @@ public class ContextInitializer implements ServletContextListener {
                 return new PropertiesConfigurationStore(properties);
             }
 
-            throw new ConfigurationNotValidException("Configuration not provided.");
+            return new PropertiesConfigurationStore(new Properties());
         } catch (IOException t) {
             throw new ConfigurationNotValidException(t);
         }

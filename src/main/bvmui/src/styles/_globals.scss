@@ -5,12 +5,15 @@
 }
 
 body {
-    font-size: 14px;
     font-family: $primary-font;
-    background-color: color('background')
+    background-color: color("background");
+
+    font-size: 14px;
+    line-height: 1.4;
 }
 
-ul, ol {
-    text-decoration:none;
-    list-style:none;
+ul,
+ol {
+    text-decoration: none;
+    list-style: none;
 }

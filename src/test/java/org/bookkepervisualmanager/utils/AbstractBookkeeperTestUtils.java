@@ -58,7 +58,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
 
         try (ZooKeeperClient zkc = ZooKeeperClient
                 .newBuilder()
-                .connectString("localhost:1282")
+                .connectString(getAddress())
                 .sessionTimeoutMs(10000)
                 .build()) {
 

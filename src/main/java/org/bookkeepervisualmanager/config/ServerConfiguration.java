@@ -26,12 +26,6 @@ package org.bookkeepervisualmanager.config;
 public final class ServerConfiguration {
 
     /**
-     * Zookeeper location.
-     */
-    public static final String PROPERTY_ZOOKEEPER_SERVER = "zkServers";
-    public static final String PROPERTY_ZOOKEEPER_SERVER_DEFAULT = "127.0.0.1:2181";
-
-    /**
      * Comma separated list of Zookeeper servers.
      */
     public static final String PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI = "metadataServiceUri";
@@ -48,13 +42,5 @@ public final class ServerConfiguration {
      */
     public static final String PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT = "zkConnectionTimeout";
     public static final int PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT = 10000;
-
-    /**
-     * Zookeeper ledgers location. This is used only to retrive cookies. It must
-     * match with zookeeper service metadata uri.
-     */
-    @Deprecated
-    public static final String PROPERTY_BOOKKEEPER_LEDGERS_PATH = "zkLedgersRootPath";
-    public static final String PROPERTY_BOOKKEEPER_LEDGERS_PATH_DEFAULT = "/ledgers";
 
 }

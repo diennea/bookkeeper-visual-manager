@@ -12,14 +12,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
                 
         <zookpeeper.version>3.5.5</zookpeeper.version>
-        <bookkeeper.version>4.9.2</bookkeeper.version>
-        <netty.version>4.1.31.Final</netty.version>
-        <netty.boringssl.version>2.0.19.Final</netty.boringssl.version>
+        <bookkeeper.version>4.10.0</bookkeeper.version>
+        <netty.version>4.1.43.Final</netty.version>
+        <netty.boringssl.version>2.0.26.Final</netty.boringssl.version>
         <curator.version>4.2.0</curator.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
         
-        <yarn.version>v1.16.0</yarn.version>
+        <yarn.version>v1.19.1</yarn.version>
         <node.version>v11.8.0</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
         <maven.frontend.plugin.version>1.7.6</maven.frontend.plugin.version>
@@ -181,6 +181,7 @@
                     <nodeVersion>${node.version}</nodeVersion>
                     <installDirectory>target/</installDirectory>
                     <workingDirectory>${frontend.path}</workingDirectory>
+                    <skip>${skipYarn}</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -247,35 +248,5 @@
                 </executions>
             </plugin>
         </plugins>
-    </build>
-    
-    <profiles>
-        <profile>
-            <id>no-frontend</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>${maven.frontend.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>install node and yarn</id>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>yarn install</id>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>yarn run build</id>
-                                <phase>none</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-    
+    </build>   
 </project>
