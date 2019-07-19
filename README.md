@@ -27,11 +27,19 @@ To pass the Zookeeper connection string you have to set the System Property
 
 ~~~~
 BVM_PORT=8080
-BVM_ZK_SERVERS=127.0.0.1:2181
+BVM_ZK_SERVERS=zk+null://localhost:2181/ledgers
 
 mvn jetty:run \
-    -Dzk.servers=$BVM_ZK_SERVERS \
+    -Dbookkeeper.visual.manager.metadataServiceUri=$BVM_ZK_SERVERS \
     -Djetty.http.port=$BVM_PORT
+
+~~~~
+
+#### Deploy the war application on container
+
+You can also deploy the `target/bookkeeper-visual-manager-XX.XX.war` on your
+container passing the `bookkeeper.visual.manager.metadataServiceUri` location in a System property.
+
 ~~~~
 
 #### Deploy the war application using Maven Jetty Runner
@@ -42,9 +50,3 @@ BVM_PORT=8080
 BVM_WAR_PATH=path/to/bvm/warfile
 
 java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
-~~~~
-
-#### Deploy the war application on container
-
-You can also deploy the `target/bookkeeper-visual-manager-XX.XX.war` on your
-container passing the `zk.servers` location in a System property.
