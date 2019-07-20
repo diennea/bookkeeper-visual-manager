@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
                 
         <zookpeeper.version>3.5.5</zookpeeper.version>
-        <bookkeeper.version>4.9.0</bookkeeper.version>
+        <bookkeeper.version>4.9.2</bookkeeper.version>
         <netty.version>4.1.31.Final</netty.version>
         <netty.boringssl.version>2.0.19.Final</netty.boringssl.version>
         <curator.version>4.2.0</curator.version>
@@ -24,14 +24,14 @@
         <frontend.path>src/main/bvmui</frontend.path>
         <maven.frontend.plugin.version>1.7.6</maven.frontend.plugin.version>
         
-        <jersey.version>2.27</jersey.version>
+        <jersey.version>2.29</jersey.version>
         <libs.jetty>9.4.19.v20190610</libs.jetty>
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.9</libs.spotbugs>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
         
-        <libs.jaxws.jaxb-api>2.3.0</libs.jaxws.jaxb-api>
-        <libs.jaxws.jaxb-impl>2.3.0</libs.jaxws.jaxb-impl>
+        <libs.jaxws.jaxb-api>2.3.1</libs.jaxws.jaxb-api>
+        <libs.jaxws.jaxb-impl>2.3.2</libs.jaxws.jaxb-impl>
         <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>
     </properties>
     <licenses>
@@ -226,7 +226,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${libs.checkstyle}</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <suppressionsLocation>suppressions.xml</suppressionsLocation>
