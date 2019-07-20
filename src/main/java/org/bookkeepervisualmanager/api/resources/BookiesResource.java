@@ -17,7 +17,7 @@
  under the License.
 
  */
-package org.bookkepervisualmanager.api.resources;
+package org.bookkeepervisualmanager.api.resources;
 
 import java.io.Serializable;
 import java.util.ArrayList;

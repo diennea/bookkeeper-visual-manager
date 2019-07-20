@@ -1,4 +1,4 @@
-package org.bookkepervisualmanager.api.listeners;
+package org.bookkeepervisualmanager.api.listeners;
 
 import java.io.IOException;
 import java.util.Properties;

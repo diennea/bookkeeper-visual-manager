@@ -1,4 +1,4 @@
-package org.bookkepervisualmanager.filters;
+package org.bookkeepervisualmanager.filters;
 
 /*
  Licensed to Diennea S.r.l. under one
