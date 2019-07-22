@@ -28,6 +28,7 @@ To pass the Metadata Service URI connection string you have to set the System pr
 BVM_PORT=8080
 BVM_SERVICEURI=zk+null://localhost:2181/ledgers
 
+# System property configuration
 mvn jetty:run \
     -Dbookkeeper.visual.manager.metadataServiceUri=$BVM_SERVICEURI \
     -Djetty.http.port=$BVM_PORT
@@ -47,7 +48,8 @@ Central](https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/).
 BVM_PORT=8080
 BVM_WAR_PATH=path/to/warfile
 
-java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
+# Environment Variable configuration
+BVM_CONF_PATH=/path/to/conf java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
 ~~~~
 
 ### Advanced configuration
