@@ -78,7 +78,8 @@ public class ConfigurationStoreTest {
 
     private Properties getTestingProperties() {
         Properties properties = new Properties();
-        properties.put(ServerConfiguration.PROPERTY_ZOOKEEPER_SERVER, "127.0.0.1:2181");
+        properties.put(ServerConfiguration.PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT,
+                "zk+null://127.0.0.1:2181/ledgers");
         return properties;
     }
 

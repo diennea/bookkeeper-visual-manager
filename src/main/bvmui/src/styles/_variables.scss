@@ -1,8 +1,6 @@
 $colors: (
-  'primary': #db9357, 
-  'accent': #6b3b1c,
-  'secondary': #94592c,
-  'foreground': #060606,
+  'primary': #4a4e4d, 
+  'secondary': #0e9aa7,
   'background': #FFFFFF
 );
 @function color($key: 'primary') {
