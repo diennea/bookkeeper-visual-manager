@@ -10,6 +10,11 @@ export default {
 
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     },
+    formatPercent(a, b, decimals = 2) {
+        if (b === 0) return 'N/A';
+               
+        return parseFloat(a * 100 / b).toFixed(decimals);
+    },
     replacePlaceholders(string, placeholders) {
         const _placeholders = !placeholders ? {} : placeholders;
         for (var placeholder in _placeholders) {

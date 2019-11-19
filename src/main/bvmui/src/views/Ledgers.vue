@@ -8,8 +8,7 @@
         <Spinner v-else/>
         <MetadataContainer
             v-if="showLedgerMetadata"
-            :id="currentLedger.id"
-            :metadata="currentLedger.metadata"
+            :currentLedger="currentLedger"
             @close="closeMetadata"
         />
     </div>
@@ -30,7 +29,7 @@ export default {
             this.$request.get(
                 url,
                 ledger => {
-                    this.currentLedger = ledger
+                    this.currentLedger = ledger;
                     this.showLedgerMetadata = true;
                 },
                 error => {

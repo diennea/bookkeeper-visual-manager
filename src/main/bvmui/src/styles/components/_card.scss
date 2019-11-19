@@ -38,6 +38,15 @@
         align-items: center;
         justify-content: center;
     }
+    
+    .bvm-card-description {
+        flex: 3;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
 
     .bvm-card-content {
         flex: 2;

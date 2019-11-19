@@ -24,3 +24,4 @@ hs_err_pid*
 /target/
 
 **/node_modules/**
+src/main/bvmui/dist
