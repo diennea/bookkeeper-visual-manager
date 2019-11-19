@@ -47,6 +47,7 @@ public class ContextInitializer implements ServletContextListener {
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore);
             context.setAttribute("bookkeeper", bookkeeperManager);
         } catch (Throwable ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Unexpected error occurred " + ex);
         }
 

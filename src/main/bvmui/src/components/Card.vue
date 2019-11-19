@@ -1,16 +1,14 @@
 <template>
     <div class="bvm-card" @click="$emit('click', $event)">
+        <div class="bvm-card-description">{{data.description}}</div>
         <div class="bvm-card-status">
-            <h1 v-if="data.ok">AVAILABLE</h1>
-            <h1 v-else>NOT AVAILABLE</h1>
+            <h1 v-if="data.ok">Available</h1>
+            <h1 v-else>Down</h1>
         </div>
         <div class="bvm-card-content">
             <ul>
-                <li>
-                    <span>Address: {{data.description}}</span>
-                </li>
                 <li v-if="data.ok">
-                    <span>Free space: {{$library.formatBytes(data.freeDiskSpace)}}</span>
+                    <span>Free space: {{$library.formatBytes(data.freeDiskSpace)}} - {{$library.formatPercent(data.freeDiskSpace, data.totalDiskSpace)}} %</span>
                 </li>
                 <li v-if="data.ok">
                     <span>Total space: {{$library.formatBytes(data.totalDiskSpace)}}</span>

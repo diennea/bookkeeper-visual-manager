@@ -53,6 +53,18 @@ public class LedgersResource extends AbstractBookkeeperResource {
         b.setId(ledgerId);
         b.setLedgerMetadata(ledgerMetadata);
 
+        b.setEnsembleSize(ledgerMetadata.getEnsembleSize());
+        b.setWriteQuorumSize(ledgerMetadata.getWriteQuorumSize());
+        b.setAckQuorumSize(ledgerMetadata.getAckQuorumSize());
+        b.setLastEntryId(ledgerMetadata.getLastEntryId());
+        b.setLength(ledgerMetadata.getLength());
+        b.setPassword(ledgerMetadata.hasPassword() ? new String(ledgerMetadata.getPassword(), "UTF-8") : "");
+        b.setDigestType(ledgerMetadata.getDigestType() + "");
+        b.setCtime(ledgerMetadata.getCtime());
+        b.setClosed(ledgerMetadata.isClosed());
+        b.setState(ledgerMetadata.getState() + "");
+        b.setMetadataFormatVersion(ledgerMetadata.getMetadataFormatVersion());
+
         return b;
     }
 
@@ -67,6 +79,18 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
         private long id;
         private Map<String, String> metadata = new HashMap<>();
+
+        private int ensembleSize;
+        private int writeQuorumSize;
+        private int ackQuorumSize;
+        private long lastEntryId;
+        private long length;
+        private String password;
+        private String digestType;
+        private long ctime;
+        private boolean closed;
+        private String state;
+        private int metadataFormatVersion;
 
         public long getId() {
             return id;
@@ -94,6 +118,95 @@ public class LedgersResource extends AbstractBookkeeperResource {
                 setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
             }
         }
+
+        public int getEnsembleSize() {
+            return ensembleSize;
+        }
+
+        public void setEnsembleSize(int ensembleSize) {
+            this.ensembleSize = ensembleSize;
+        }
+
+        public int getWriteQuorumSize() {
+            return writeQuorumSize;
+        }
+
+        public void setWriteQuorumSize(int writeQuorumSize) {
+            this.writeQuorumSize = writeQuorumSize;
+        }
+
+        public int getAckQuorumSize() {
+            return ackQuorumSize;
+        }
+
+        public void setAckQuorumSize(int ackQuorumSize) {
+            this.ackQuorumSize = ackQuorumSize;
+        }
+
+        public long getLastEntryId() {
+            return lastEntryId;
+        }
+
+        public void setLastEntryId(long lastEntryId) {
+            this.lastEntryId = lastEntryId;
+        }
+
+        public long getLength() {
+            return length;
+        }
+
+        public void setLength(long length) {
+            this.length = length;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getDigestType() {
+            return digestType;
+        }
+
+        public void setDigestType(String digestType) {
+            this.digestType = digestType;
+        }
+
+        public long getCtime() {
+            return ctime;
+        }
+
+        public void setCtime(long ctime) {
+            this.ctime = ctime;
+        }
+
+        public boolean isClosed() {
+            return closed;
+        }
+
+        public void setClosed(boolean closed) {
+            this.closed = closed;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
+
+        public int getMetadataFormatVersion() {
+            return metadataFormatVersion;
+        }
+
+        public void setMetadataFormatVersion(int metadataFormatVersion) {
+            this.metadataFormatVersion = metadataFormatVersion;
+        }
+
 
         @Override
         public String toString() {
