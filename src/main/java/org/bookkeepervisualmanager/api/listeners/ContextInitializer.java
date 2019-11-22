@@ -1,13 +1,15 @@
 package org.bookkeepervisualmanager.api.listeners;
 
+import herddb.jdbc.HerdDBEmbeddedDataSource;
 import java.io.IOException;
+import java.sql.Driver;
 import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import org.bookkeepervisualmanager.bookkeeper.BookkeeperException;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
+import org.bookkeepervisualmanager.cache.MetadataCache;
 import org.bookkeepervisualmanager.config.ConfigurationNotValidException;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
@@ -15,23 +17,14 @@ import org.bookkeepervisualmanager.config.PropertiesConfigurationStore.Propertie
 import org.bookkeepervisualmanager.config.ServerConfiguration;
 
 /*
- Licensed to Diennea S.r.l. under one
- or more contributor license agreements. See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership. Diennea S.r.l. licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
-
- http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
-
+ * Licensed to Diennea S.r.l. under one or more contributor license agreements. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Diennea S.r.l.
+ * licenses this file to you under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 @WebListener
 public class ContextInitializer implements ServletContextListener {
@@ -40,12 +33,30 @@ public class ContextInitializer implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
 
+        // force register calcite driver
+        Driver driver = new org.apache.calcite.jdbc.Driver();
+
+        HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();
+        // In the future we will make this configurable
+        datasource.setUrl("jdbc:herddb:local");
+
         try {
+            context.setAttribute("datasource", datasource);
+
+            MetadataCache metadataCache = new MetadataCache(datasource);
+
+            context.setAttribute("metadataCache", metadataCache);
+            // boot the server
+            datasource.setStartServer(true);
+            datasource.getConnection().close();
+
             ConfigurationStore configStore = buildInitialConfiguation(context);
             context.setAttribute("config", configStore);
 
-            BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore);
+            BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
+
+            bookkeeperManager.refreshMetadataCache();
         } catch (Throwable ex) {
             ex.printStackTrace();
             throw new RuntimeException("Unexpected error occurred " + ex);
@@ -56,27 +67,50 @@ public class ContextInitializer implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
+
         try {
             BookkeeperManager bookkeeperManager = (BookkeeperManager) context.getAttribute("bookkeeper");
             if (bookkeeperManager != null) {
                 bookkeeperManager.close();
             }
-        } catch (BookkeeperException ex) {
-            throw new RuntimeException("Unexpected error occurred " + ex);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            context.log("An error occurred while closing the application", ex);
+        }
+        try {
+            MetadataCache metadataCache = (MetadataCache) context.getAttribute("metadataCache");
+            if (metadataCache != null) {
+                metadataCache.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            context.log("An error occurred while closing the application", ex);
+        }
+
+        try {
+            HerdDBEmbeddedDataSource datasource = (HerdDBEmbeddedDataSource) context.getAttribute("datasource");
+            if (datasource != null) {
+                datasource.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            context.log("An error occurred while closing the application", ex);
         }
     }
 
     /**
      * Creates a {@link ConfigurationStore} following this priority order:
      * <ol>
-     * <li>Simple: System Property bookkeeper.visual.manager.metadataServiceUri</li>
+     * <li>Simple: System Property
+     * bookkeeper.visual.manager.metadataServiceUri</li>
      * <li>Advanced: System Property bookkeeper.visual.manager.config.path</li>
      * <li>Advanced: Environment variable BVM_CONF_PATH</li>
      * <li>Advanced: web.xml property bookkeeper.visual.manager.config.path</li>
      * </ol>
      *
      * @param context The Servlet context
-     * @return A {@link ConfigurationStore} containing the Bookkeeper configuration
+     * @return A {@link ConfigurationStore} containing the Bookkeeper
+     * configuration
      * @throws ConfigurationNotValidException
      */
     public ConfigurationStore buildInitialConfiguation(ServletContext context) throws ConfigurationNotValidException {

@@ -9,6 +9,10 @@
             tag="li" to="/ledgers" exact>
                 <span class="bvm-nav-link">Ledgers</span>
             </router-link>
+            <router-link class="bvm-navbar-item" active-class="selected"
+            tag="li" to="/cache" exact>
+                <span class="bvm-nav-link">Cache</span>
+            </router-link>
         </ul>
     </nav>
 </template>

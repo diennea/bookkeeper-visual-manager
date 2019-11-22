@@ -49,6 +49,10 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
         LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledgerId);
 
+        return convertLedgerBean(ledgerId, ledgerMetadata);
+    }
+
+    private static LedgerBean convertLedgerBean(long ledgerId, LedgerMetadata ledgerMetadata) throws UnsupportedEncodingException {
         LedgerBean b = new LedgerBean();
         b.setId(ledgerId);
         b.setLedgerMetadata(ledgerMetadata);
@@ -206,7 +210,6 @@ public class LedgersResource extends AbstractBookkeeperResource {
         public void setMetadataFormatVersion(int metadataFormatVersion) {
             this.metadataFormatVersion = metadataFormatVersion;
         }
-
 
         @Override
         public String toString() {

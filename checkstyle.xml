@@ -224,22 +224,7 @@ page at http://checkstyle.sourceforge.net/config.html -->
         LENGTH and CODING CHECKS
 
         -->
-
-        <module name="LineLength">
-            <!-- Checks if a line is too long. -->
-            <property name="max" value="120"/>
-            <property name="severity" value="error"/>
-
-            <!--
-              The default ignore pattern exempts the following elements:
-                - import statements
-                - long URLs inside comments
-            -->
-
-            <property name="ignorePattern"
-                      value="^(package .*;\s*)|(import .*;\s*)|( *\* .*https?://.*)$"/>
-        </module>
-
+        
         <module name="LeftCurly">
             <!-- Checks for placement of the left curly brace ('{'). -->
             <property name="severity" value="error"/>

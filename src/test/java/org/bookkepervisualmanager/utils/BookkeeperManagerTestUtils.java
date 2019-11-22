@@ -19,8 +19,10 @@
  */
 package org.bookkepervisualmanager.utils;
 
+import herddb.jdbc.HerdDBEmbeddedDataSource;
 import java.util.Properties;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
+import org.bookkeepervisualmanager.cache.MetadataCache;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
 import org.bookkeepervisualmanager.config.PropertiesConfigurationStore;
 import org.bookkeepervisualmanager.config.ServerConfiguration;
@@ -28,13 +30,15 @@ import org.junit.After;
 import org.junit.Before;
 
 /**
- * Testing class that provides before each test a {@link BookkeeperManager} connection with an active Zookeeper and
- * Bookkeeper Bookie.
+ * Testing class that provides before each test a {@link BookkeeperManager}
+ * connection with an active Zookeeper and Bookkeeper Bookie.
  *
  * @author matteo.minardi
  */
 public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
 
+    private HerdDBEmbeddedDataSource datasource;
+    private MetadataCache metadataCache;
     private BookkeeperManager bookkeeperManager;
 
     @Before
@@ -42,18 +46,27 @@ public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
         startZookeeper();
         startBookie();
 
+        datasource = new HerdDBEmbeddedDataSource();
+        datasource.setUrl("jdbc:herddb:local");
+        metadataCache = new MetadataCache(datasource);
         final Properties properties = new Properties();
         properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
                 "zk+null://" + zkServer.getConnectString() + "/ledgers");
 
         ConfigurationStore config = new PropertiesConfigurationStore(properties);
-        bookkeeperManager = new BookkeeperManager(config);
+        bookkeeperManager = new BookkeeperManager(config, metadataCache);
     }
 
     @After
     public void afterTeardown() throws Exception {
         if (bookkeeperManager != null) {
             bookkeeperManager.close();
+        }
+        if (metadataCache != null) {
+            metadataCache.close();
+        }
+        if (datasource != null) {
+            datasource.close();
         }
 
         if (zkServer != null) {
