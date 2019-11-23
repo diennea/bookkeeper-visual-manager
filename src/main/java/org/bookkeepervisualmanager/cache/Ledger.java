@@ -19,6 +19,7 @@
  */
 package org.bookkeepervisualmanager.cache;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import javax.persistence.Column;
@@ -31,6 +32,7 @@ import javax.persistence.Id;
  * @author eolivelli
  */
 @Entity(name = "ledger")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Ledger implements Serializable {
 
     @Column(columnDefinition = "long")
