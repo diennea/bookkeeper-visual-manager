@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FindBugsFilter>
+    <!-- this is for classes generated at build time by EclipseLink-->
+    <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+
+</FindBugsFilter>
+

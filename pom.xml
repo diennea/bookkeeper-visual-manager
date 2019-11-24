@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>bookkeeper-visual-manager</artifactId>    
+    <artifactId>bookkeeper-visual-manager</artifactId>
     <packaging>war</packaging>
     <groupId>bookkeeper-visual-manager</groupId>
     <version>0.0.1-SNAPSHOT</version>
 
     <name>BookKeeper Visual Manager</name>
 
-    <properties>        
+    <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-                
+
         <zookpeeper.version>3.5.5</zookpeeper.version>
         <bookkeeper.version>4.10.0</bookkeeper.version>
         <netty.version>4.1.43.Final</netty.version>
@@ -18,18 +18,21 @@
         <curator.version>4.2.0</curator.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
-        
+        <!-- we need 0.14.0-SNAPSHOT as it supports BK 4.10.0 -->
+        <herddb.version>0.14.0-SNAPSHOT</herddb.version>
+
         <yarn.version>v1.19.1</yarn.version>
         <node.version>v11.8.0</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
         <maven.frontend.plugin.version>1.7.6</maven.frontend.plugin.version>
-        
+
         <jersey.version>2.29</jersey.version>
         <libs.jetty>9.4.19.v20190610</libs.jetty>
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.9</libs.spotbugs>
+        <eclipselink.version>2.7.5</eclipselink.version>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
-        
+
         <libs.jaxws.jaxb-api>2.3.1</libs.jaxws.jaxb-api>
         <libs.jaxws.jaxb-impl>2.3.2</libs.jaxws.jaxb-impl>
         <libs.javaxactivation.api>1.2.0</libs.javaxactivation.api>
@@ -46,8 +49,39 @@
         <developerConnection>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
- 
-    <dependencies>
+
+    <dependencies>        
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.core</artifactId>
+            <version>${eclipselink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.asm</artifactId>
+            <version>${eclipselink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.antlr</artifactId>
+            <version>${eclipselink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>${eclipselink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa.jpql</artifactId>
+            <version>${eclipselink.version}</version>
+        </dependency>        
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
+            <version>${eclipselink.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
@@ -104,6 +138,21 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <version>${zookpeeper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.herddb</groupId>
+            <artifactId>herddb-jdbc</artifactId>
+            <version>${herddb.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>       
         </dependency>
         <dependency>
             <groupId>org.apache.bookkeeper</groupId>
@@ -223,6 +272,9 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>${libs.spotbugs}</version>
+                <configuration>
+                    <excludeFilterFile>excludeFindBugsFilter.xml</excludeFilterFile>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -248,5 +300,28 @@
                 </executions>
             </plugin>
         </plugins>
-    </build>   
+    </build>
+    <repositories>
+        <repository>
+            <id>apache-snapshots</id>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>https://repository.apache.org/snapshots/</url>
+        </repository>
+        <repository>
+            <id>dev.majordodo.org.snapshots</id>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>https://dev.majordodo.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>dev.majordodo.org.releases</id>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>https://dev.majordodo.org/nexus/content/repositories/releases/</url>
+        </repository>
+    </repositories>
 </project>

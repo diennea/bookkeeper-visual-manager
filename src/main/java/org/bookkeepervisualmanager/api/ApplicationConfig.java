@@ -34,6 +34,7 @@ public class ApplicationConfig extends Application {
 
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(org.bookkeepervisualmanager.api.resources.BookiesResource.class);
+        resources.add(org.bookkeepervisualmanager.api.resources.CacheResource.class);
         resources.add(org.bookkeepervisualmanager.api.resources.LedgersResource.class);
     }
 

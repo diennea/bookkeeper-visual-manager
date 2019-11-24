@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import ErrorPage from '@/views/ErrorPage'
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
+import Cache from '@/views/Cache'
 
 Vue.use(Router);
 
@@ -35,6 +36,15 @@ export default new Router({
             component: Ledgers,
             meta: {
                 title: "Ledgers",
+                type: "all"
+            }
+        },
+        {
+            path: '/cache',
+            name: 'cache',
+            component: Cache,
+            meta: {
+                title: "Cache",
                 type: "all"
             }
         },
