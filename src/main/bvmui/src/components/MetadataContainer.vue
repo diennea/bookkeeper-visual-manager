@@ -8,7 +8,7 @@
         <div>Ensemble size: {{currentLedger.ensembleSize}} (number of bookies)</div>
         <div>WriteQuorumSize: {{currentLedger.writeQuorumSize}} (number of copies)</div>
         <div>AckQuorumSize: {{currentLedger.ackQuorumSize}}</div>
-        <div>Size: {{currentLedger.length}} bytes</div>
+        <div>Size: {{$library.formatBytes(currentLedger.length)}}</div>
         <div>LastEntryId: {{currentLedger.lastEntryId}}</div>
         <div>Password: {{currentLedger.password}}</div>
         <div>DigestType: {{currentLedger.digestType}}</div>

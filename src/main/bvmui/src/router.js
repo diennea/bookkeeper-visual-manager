@@ -57,9 +57,9 @@ export default new Router({
                 type: "bookie"
             }
         },
-        { 
-            path: "*", 
-            redirect: "/error" 
+        {
+            path: "*",
+            redirect: "/error"
         }
     ]
 })

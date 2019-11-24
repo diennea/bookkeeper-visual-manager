@@ -6,7 +6,7 @@
 </template>
 <script>
 export default {
-    data: function() {
+    data() {
         return {
             pageLoaded: false,
             bookies: []
@@ -23,7 +23,7 @@ export default {
             });
         }
     },
-    created: function() {
+    created() {
         this.$request.get(
             "api/bookie/all",
             bookies => {

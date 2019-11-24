@@ -1,26 +1,16 @@
 <template>
-    <nav class="bvm-navbar">
-        <ul class="bvm-navbar-content">
-            <router-link class="bvm-navbar-item" active-class="selected"
-            tag="li" to="/bookies" exact>
-                <span class="bvm-nav-link">Bookies</span>
-            </router-link>
-            <router-link class="bvm-navbar-item" active-class="selected"
-            tag="li" to="/ledgers" exact>
-                <span class="bvm-nav-link">Ledgers</span>
-            </router-link>
-            <router-link class="bvm-navbar-item" active-class="selected"
-            tag="li" to="/cache" exact>
-                <span class="bvm-nav-link">System</span>
-            </router-link>
-        </ul>
-    </nav>
+    <v-app-bar app clipped-left color="blue lighten-1">
+        <v-app-bar-nav-icon class="white--text" @click="toggleDrawer"></v-app-bar-nav-icon>
+        <span class="title ml-3 mr-5 white--text">
+            Bookkeeper&nbsp;<span class="font-weight-light">Visual Manager</span>
+        </span>
+    </v-app-bar>
 </template>
 <script>
 export default {
-    data: function () {
-        return {
-
+    methods: {
+        toggleDrawer() {
+            this.$store.commit('toggleDrawer');
         }
     }
 };

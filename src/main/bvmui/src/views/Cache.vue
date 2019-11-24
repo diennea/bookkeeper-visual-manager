@@ -1,23 +1,34 @@
 <template>
     <div class="bvm-bookie">
         <div v-if="pageLoaded">
-            BookKeeper Visual Manager caches data on a local database in order to save resources on the Metadata Service (ZooKeeper).
-            <br>
-            Last cache refresh was at <b>{{new Date(lastCacheRefresh)}}</b>.
-            <br>
-            Cache status <b>{{status}}</b> (<a @click="refreshPage" style="cursor: pointer;">Refresh</a>)
-            <br><br><br>
-            <a @click="refreshCache" style="cursor: pointer;">Reload now Bookie state and Ledger state</a>
-            <br><br><br>
-            <span>Current BookKeeper Client Configuration:</span>
-            <textarea v-model='bookkeeperConfiguration' style='width: 100%; min-height: 200px;'></textarea>
+            <p>
+                BookKeeper Visual Manager caches data on a local database in order to save resources on the Metadata Service (ZooKeeper).
+            </p>
+            <p>
+                Last cache refresh was at <b>{{new Date(lastCacheRefresh)}}</b>.
+            </p>
+            <p>
+                Cache status <b>{{status}}</b> (<a @click="refreshPage" style="cursor: pointer;">Refresh</a>)
+            </p>
+             <v-btn
+                depressed
+                large
+                tile
+                color="blue lighten-1 white--text"
+                @click="refreshCache">
+                Refresh now
+            </v-btn>
+            <div>
+                <span>Current BookKeeper Client Configuration:</span>
+                <textarea v-model='bookkeeperConfiguration' style='width: 100%; min-height: 200px;'></textarea>
+            </div>
         </div>
         <Spinner v-else/>
     </div>
 </template>
 <script>
 export default {
-    data: function() {
+    data() {
         return {
             pageLoaded: false,
             lastCacheRefresh: 0,
@@ -59,7 +70,7 @@ export default {
         );
         }
     },
-    created: function() {
+    created() {
         this.$request.get(
             "api/cache/info",
             cacheInfo => {

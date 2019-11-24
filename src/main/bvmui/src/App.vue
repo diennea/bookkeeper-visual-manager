@@ -1,10 +1,9 @@
-<style lang="scss">
-@import "@/styles/main.scss";
-</style>
-
 <template>
-    <div class="bvm-wrapper">
-        <Navbar/>
-        <Page/>
+    <div id="app">
+        <v-app id="inspire">
+            <Drawer />
+            <Navbar />
+            <Page />
+        </v-app>
     </div>
 </template>
