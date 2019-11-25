@@ -24,7 +24,7 @@
         <yarn.version>v1.19.1</yarn.version>
         <node.version>v11.8.0</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
-        <maven.frontend.plugin.version>1.7.6</maven.frontend.plugin.version>
+        <maven.frontend.plugin.version>1.8.0</maven.frontend.plugin.version>
 
         <jersey.version>2.29</jersey.version>
         <libs.jetty>9.4.19.v20190610</libs.jetty>
@@ -238,6 +238,15 @@
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>yarn no strict ssl</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>config set strict-ssl false</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn install</id>
