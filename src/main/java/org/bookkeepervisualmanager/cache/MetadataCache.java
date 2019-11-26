@@ -50,7 +50,7 @@ public class MetadataCache implements AutoCloseable {
         em.getTransaction().begin();
         em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId).executeUpdate();
         em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId).executeUpdate();
-        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId).executeUpdate();        
+        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId).executeUpdate();
         em.getTransaction().commit();
     }
     public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
