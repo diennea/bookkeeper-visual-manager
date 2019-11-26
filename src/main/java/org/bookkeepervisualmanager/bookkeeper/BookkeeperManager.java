@@ -26,27 +26,33 @@ import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZO
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
 import java.io.IOException;
-import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.bookkeeper.client.BKException;
+import org.apache.bookkeeper.client.BKException.BKNoSuchLedgerExistsOnMetadataServerException;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
+import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerMetadataSerDe;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.bookkeepervisualmanager.cache.Ledger;
+import org.bookkeepervisualmanager.cache.LedgerBookie;
+import org.bookkeepervisualmanager.cache.LedgerMetadataEntry;
 import org.bookkeepervisualmanager.cache.MetadataCache;
 import org.bookkeepervisualmanager.config.ConfigurationNotValidException;
 import org.bookkeepervisualmanager.config.ConfigurationStore;
@@ -103,19 +109,43 @@ public class BookkeeperManager implements AutoCloseable {
             Iterable<Long> ledgersIds = bkAdmin.listLedgers();
             for (long ledgerId : ledgersIds) {
                 LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId);
+                if (ledgerMetadata == null) {
+                    // ledger disappeared
+                    metadataCache.deleteLedger(ledgerId);
+                    return;
+                }
                 Ledger ledger = new Ledger(ledgerId,
                         ledgerMetadata.getLength(),
                         new java.sql.Timestamp(ledgerMetadata.getCtime()),
                         new java.sql.Timestamp(System.currentTimeMillis()),
                         Base64.getEncoder().encodeToString(serDe.serialize(ledgerMetadata)));
+                List<LedgerMetadataEntry> metadataEntries = new ArrayList<>();
+                ledgerMetadata.getCustomMetadata().forEach((n, v) -> {
+                    metadataEntries.add(new LedgerMetadataEntry(ledgerId, n, new String(v, StandardCharsets.UTF_8)));
+                });
+                List<LedgerBookie> bookies = new ArrayList<>();
+                Set<String> bookieAddresses = buildBookieList(ledgerMetadata);
+                bookieAddresses.forEach(s -> {
+                    bookies.add(new LedgerBookie(ledgerId, s));
+                });
                 LOG.log(Level.INFO, "Updating ledeger {0} metadata", ledgerId);
-                metadataCache.updateLedger(ledger);
+                metadataCache.updateLedger(ledger, bookies, metadataEntries);
             }
 
             lastMetadataCacheRefresh = System.currentTimeMillis();
         } catch (Throwable e) {
             throw new BookkeeperException(e);
         }
+    }
+
+    public static Set<String> buildBookieList(LedgerMetadata ledgerMetadata) {
+        Set<String> bookieAddresses = new HashSet<>();
+        ledgerMetadata.getAllEnsembles().values().forEach(bookieList -> {
+            bookieList.forEach(bookieAddress -> {
+                bookieAddresses.add(bookieAddress.toString());
+            });
+        });
+        return bookieAddresses;
     }
 
     public long getLastMetadataCacheRefresh() {
@@ -151,26 +181,7 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperException {
-        try {
-            List<Long> res = new ArrayList<>();
-            BookieSocketAddress bookieSocketAddress = new BookieSocketAddress(bookieId);
-            for (long id : getAllLedgers()) {
-                LedgerMetadata md = getLedgerMetadata(id);
-                boolean isInBookie = false;
-                for (List<? extends BookieSocketAddress> segment : md.getAllEnsembles().values()) {
-                    if (segment.contains(bookieSocketAddress)) {
-                        isInBookie = true;
-                        break;
-                    }
-                }
-                if (isInBookie) {
-                    res.add(id);
-                }
-            }
-            return res;
-        } catch (UnknownHostException e) {
-            throw new BookkeeperException(e);
-        }
+        return metadataCache.getLedgersForBookie(bookieId);
     }
 
     public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperException {
@@ -194,13 +205,15 @@ public class BookkeeperManager implements AutoCloseable {
     private LedgerMetadata readLedgerMetadata(long ledgerId) throws BookkeeperException {
         AtomicReference<LedgerMetadata> ledgerMetadata = new AtomicReference<>();
         try {
-            getLedgerManager().readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
+            FutureUtils.result(getLedgerManager().readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
                 if (exception == null) {
                     ledgerMetadata.set(metadata.getValue());
                 }
-            }).join();
+            }));
             return ledgerMetadata.get();
-        } catch (Throwable e) {
+        } catch (BKNoSuchLedgerExistsOnMetadataServerException e) {
+            return null;
+        }catch (Throwable e) {
             throw new BookkeeperException(e);
         }
     }
@@ -216,6 +229,15 @@ public class BookkeeperManager implements AutoCloseable {
     public List<Long> getAllLedgers() throws BookkeeperException {
         return metadataCache
                 .listLedgers()
+                .stream()
+                .map(Ledger::getLedgerId)
+                .collect(Collectors.toList());
+
+    }
+    
+    public List<Long> searchLedgers(String term, String bookie) throws BookkeeperException {
+        return metadataCache
+                .searchLedgers(term, bookie)
                 .stream()
                 .map(Ledger::getLedgerId)
                 .collect(Collectors.toList());
