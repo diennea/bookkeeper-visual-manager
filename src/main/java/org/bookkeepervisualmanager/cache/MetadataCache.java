@@ -22,6 +22,7 @@ package org.bookkeepervisualmanager.cache;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -45,7 +46,15 @@ public class MetadataCache implements AutoCloseable {
         em = emf.createEntityManager();
     }
 
-    public void updateLedger(Ledger ledger) {
+    public void deleteLedger(long ledgerId) {
+        em.getTransaction().begin();
+        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId).executeUpdate();
+        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId).executeUpdate();
+        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId).executeUpdate();
+        em.getTransaction().commit();
+    }
+    public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
+            List<LedgerMetadataEntry> metadataEntries) {
         em.getTransaction().begin();
         Ledger exists = em.find(Ledger.class, ledger.getLedgerId());
         if (exists != null) {
@@ -53,12 +62,46 @@ public class MetadataCache implements AutoCloseable {
         } else {
             em.persist(ledger);
         }
+        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledger.getLedgerId()).executeUpdate();
+        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledger.getLedgerId()).executeUpdate();
+        for (LedgerBookie lb : bookies) {
+            em.persist(lb);
+        }
+        for (LedgerMetadataEntry lme : metadataEntries) {
+            em.persist(lme);
+        }
         em.getTransaction().commit();
     }
 
     public List<Ledger> listLedgers() {
         Query q = em.createQuery("select l from ledger l", Ledger.class);
         return q.getResultList();
+    }
+
+    public List<Ledger> searchLedgers(String metadataTerm, String bookie) {
+        if (metadataTerm != null && !metadataTerm.isEmpty() && bookie != null && !bookie.isEmpty()) {
+            Query q = em.createQuery("select DISTINCT(l) from ledger l "
+                    + "               INNER JOIN ledger_metadata lm on lm.ledgerId = l.ledgerId"
+                    + "               INNER JOIN ledger_bookie ln on ln.ledgerId = l.ledgerId "
+                    + " where lm.entryValue like :term and ln.bookieAddress = :address", Ledger.class);
+            q.setParameter("term", "%" + metadataTerm + "%");
+            q.setParameter("address", bookie);
+            return q.getResultList();
+        } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
+            Query q = em.createQuery("select DISTINCT(l) from ledger l INNER JOIN ledger_metadata lm on lm.ledgerId = l.ledgerId"
+                    + " where lm.entryValue like :term", Ledger.class);
+            q.setParameter("term", "%" + metadataTerm + "%");
+            return q.getResultList();
+        } else if (bookie != null && !bookie.isEmpty()) {
+            Query q = em.createQuery("select DISTINCT(l) from ledger l "
+                    + "               INNER JOIN ledger_bookie ln on ln.ledgerId = l.ledgerId "
+                    + " where ln.bookieAddress = :address", Ledger.class);
+            q.setParameter("address", bookie);
+            return q.getResultList();
+        } else {
+            Query q = em.createQuery("select l from ledger l ", Ledger.class);
+            return q.getResultList();
+        }
     }
 
     public Ledger getLedgerMetadata(long id) {
@@ -69,6 +112,13 @@ public class MetadataCache implements AutoCloseable {
     public void close() {
         em.close();
         emf.close();
+    }
+
+    public List<Long> getLedgersForBookie(String bookieId) {
+        Query q = em.createQuery("select l from ledger_bookie l where l.bookieAddress = :address", LedgerBookie.class);
+        q.setParameter("address", bookieId);
+        List<LedgerBookie> mapping = q.getResultList();
+        return mapping.stream().map(LedgerBookie::getLedgerId).collect(Collectors.toList());
     }
 
 }

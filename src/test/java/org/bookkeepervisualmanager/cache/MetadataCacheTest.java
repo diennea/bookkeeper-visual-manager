@@ -21,6 +21,7 @@ package org.bookkeepervisualmanager.cache;
 
 import static org.junit.Assert.assertEquals;
 import herddb.jdbc.HerdDBEmbeddedDataSource;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
@@ -32,14 +33,30 @@ public class MetadataCacheTest {
             datasource.setUrl("jdbc:herddb:local");
             try (MetadataCache metadataCache = new MetadataCache(datasource)) {
                 Ledger ledger = new Ledger(1, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
-                metadataCache.updateLedger(ledger);
+                List<LedgerBookie> lb = new ArrayList<>();
+                lb.add(new LedgerBookie(1, "localhost:1234"));
+                lb.add(new LedgerBookie(2, "localhost:1235"));
+                List<LedgerMetadataEntry> entries = new ArrayList<>();
+                entries.add(new LedgerMetadataEntry(1, "application", "pulsar"));
+                entries.add(new LedgerMetadataEntry(1, "component", "foo"));
+                entries.add(new LedgerMetadataEntry(1, "other", "foo"));
+                metadataCache.updateLedger(ledger, lb, entries);
                 List<Ledger> ledgers = metadataCache.listLedgers();
                 assertEquals(1, ledgers.size());
                 assertEquals(1024, ledgers.get(0).getSize());
+                List<Long> ledgersInBookie = metadataCache.getLedgersForBookie("localhost:1234");
+                assertEquals(1, ledgersInBookie.size());
+
+                List<Ledger> ledgersByMeta = metadataCache.searchLedgers("foo", null);
+                assertEquals(1, ledgersByMeta.size());
+                List<Ledger> ledgersByBookie = metadataCache.searchLedgers(null, "localhost:1234");
+                assertEquals(1, ledgersByBookie.size());
+                List<Ledger> ledgersByBookieAndMeta = metadataCache.searchLedgers("pulsar", "localhost:1234");
+                assertEquals(1, ledgersByBookieAndMeta.size());
 
                 // UPDATE, just the size
                 Ledger ledger2 = new Ledger(1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
-                metadataCache.updateLedger(ledger2);
+                metadataCache.updateLedger(ledger2, lb, entries);
                 List<Ledger> ledgers2 = metadataCache.listLedgers();
                 assertEquals(1, ledgers2.size());
                 assertEquals(2048, ledgers2.get(0).getSize());
