@@ -64,6 +64,7 @@ public class ContextInitializer implements ServletContextListener {
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
 
+            // launch reload in background
             bookkeeperManager.refreshMetadataCache();
         } catch (Throwable ex) {
             ex.printStackTrace();

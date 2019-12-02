@@ -35,6 +35,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,11 +76,25 @@ public class BookkeeperManager implements AutoCloseable {
     private final BookKeeperAdmin bkAdmin;
     private final MetadataCache metadataCache;
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
+    private final ExecutorService refreshThread;
 
+    public enum RefreshStatus {
+        IDLE,
+        WORKING
+    }
     private volatile long lastMetadataCacheRefresh;
+    private volatile AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperException {
         try {
+            this.refreshThread = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "bk-visual-manager-cache-refresh");
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
             this.configStore = configStore;
             int zkSessionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_SESSION_TIMEOUT,
                     PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT, this.configStore);
@@ -103,7 +120,40 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public void refreshMetadataCache() throws BookkeeperException {
+    public static final class RefreshCacheWorkerStatus {
+
+        private final RefreshStatus status;
+        private final long lastMetadataCacheRefresh;
+
+        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh) {
+            this.status = status;
+            this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
+        }
+
+        public RefreshStatus getStatus() {
+            return status;
+        }
+
+        public long getLastMetadataCacheRefresh() {
+            return lastMetadataCacheRefresh;
+        }
+
+    }
+
+    public RefreshCacheWorkerStatus refreshMetadataCache() throws BookkeeperException {
+        if (refreshStatus.compareAndSet(RefreshStatus.IDLE, RefreshStatus.WORKING)) {
+            this.refreshThread.submit(() -> {
+                doRefreshMetadataCache();
+            });
+        }
+        return getRefreshWorkerStatus();
+    }
+
+    public RefreshCacheWorkerStatus getRefreshWorkerStatus() {
+        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh);
+    }
+
+    private void doRefreshMetadataCache() {
         LOG.info("Refreshing Metadata Cache");
         try {
             Iterable<Long> ledgersIds = bkAdmin.listLedgers();
@@ -134,7 +184,9 @@ public class BookkeeperManager implements AutoCloseable {
 
             lastMetadataCacheRefresh = System.currentTimeMillis();
         } catch (Throwable e) {
-            throw new BookkeeperException(e);
+            LOG.log(Level.SEVERE, "Cannot refresh metadata", e);
+        } finally {
+             refreshStatus.compareAndSet(RefreshStatus.WORKING, RefreshStatus.IDLE);
         }
     }
 
@@ -148,10 +200,6 @@ public class BookkeeperManager implements AutoCloseable {
         return bookieAddresses;
     }
 
-    public long getLastMetadataCacheRefresh() {
-        return lastMetadataCacheRefresh;
-    }
-
     @Override
     public void close() throws BookkeeperException {
         try {
@@ -162,6 +210,9 @@ public class BookkeeperManager implements AutoCloseable {
             if (bkAdmin != null) {
                 LOG.log(Level.INFO, "Closing bookkeeper admin connection");
                 bkAdmin.close();
+            }
+            if (refreshThread != null) {
+                refreshThread.shutdown();
             }
         } catch (Throwable t) {
             throw new BookkeeperException(t);

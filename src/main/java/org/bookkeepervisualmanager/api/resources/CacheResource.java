@@ -23,6 +23,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 
 @Path("cache")
 public class CacheResource extends AbstractBookkeeperResource {
@@ -30,9 +31,11 @@ public class CacheResource extends AbstractBookkeeperResource {
     public static final class CacheInfo {
 
         private long lastCacheRefresh;
+        private String status;
 
-        public CacheInfo(long lastCacheRefresh) {
-            this.lastCacheRefresh = lastCacheRefresh;
+        public CacheInfo(RefreshCacheWorkerStatus status) {
+            this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
+            this.status = status.getStatus().toString();
         }
 
         public long getLastCacheRefresh() {
@@ -43,13 +46,21 @@ public class CacheResource extends AbstractBookkeeperResource {
             this.lastCacheRefresh = lastCacheRefresh;
         }
 
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
     }
 
     @GET
     @Path("info")
     @Produces(MediaType.APPLICATION_JSON)
     public CacheInfo getInfo() throws Exception {
-        return new CacheInfo(getBookkeeperManger().getLastMetadataCacheRefresh());
+        return new CacheInfo(getBookkeeperManger().getRefreshWorkerStatus());
     }
 
     @GET
