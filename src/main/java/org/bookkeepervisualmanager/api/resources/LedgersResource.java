@@ -41,8 +41,16 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @GET
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Long> getLedgers(@QueryParam("term") String term, @QueryParam("bookie") String bookie) throws Exception {
-        return getBookkeeperManger().searchLedgers(term, bookie);
+    public List<LedgerBean> getLedgers(@QueryParam("term") String term, @QueryParam("bookie") String bookie) throws Exception {
+        List<Long> ids =  getBookkeeperManger().searchLedgers(term, bookie);
+        List<LedgerBean> res = new ArrayList<>();
+        for (long id : ids) {
+            LedgerBean bean = getLedgerMetadata(id);
+            if (bean != null) {
+                res.add(bean);
+            }
+        }
+        return res;
     }
 
     @GET
@@ -72,13 +80,6 @@ public class LedgersResource extends AbstractBookkeeperResource {
         b.setMetadataFormatVersion(ledgerMetadata.getMetadataFormatVersion());
         b.setBookies(new ArrayList<>(BookkeeperManager.buildBookieList(ledgerMetadata)));
         return b;
-    }
-
-    @GET
-    @Path("bookie/{bookieId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Long> getLedgersForBookie(@PathParam("bookieId") String bookieId) throws Exception {
-        return getBookkeeperManger().getLedgersForBookie(bookieId);
     }
 
     public static final class LedgerBean implements Serializable {

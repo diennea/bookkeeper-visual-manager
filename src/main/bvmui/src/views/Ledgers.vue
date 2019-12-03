@@ -1,8 +1,7 @@
 <template>
-    <div class="bvm-ledger">
-        <div>
-            Search: <input v-model="searchTerm"> <button v-on:click="performSearch" >Search</button><br />  
-        </div>
+    <div>
+    <div>Search: <input v-model="searchTerm"> <button v-on:click="performSearch" >Search</button></div>
+    <div class="bvm-ledger">            
         <TileContainer 
             v-if="ledgersLoaded" 
             :items="ledgers" 
@@ -14,6 +13,7 @@
             :currentLedger="currentLedger"
             @close="closeMetadata"
         />
+    </div>
     </div>
 </template>
 <script>
@@ -57,6 +57,7 @@ export default {
             ledgers => {
                 this.ledgersLoaded = true;
                 this.ledgers = ledgers;
+                console.log(ledgers);
             },
             error => {
                 this.$router.push({
@@ -70,12 +71,13 @@ export default {
         let url = "api/ledger/all";
         if (this.$route.meta.type === "bookie") {
             const bookieId = this.$route.params.bookieId;
-            url = `api/ledger/bookie/${bookieId}`
+            url = "api/ledger/all?bookie="+encodeURIComponent(bookieId);
         }
         this.$request.get(url,
             ledgers => {
                 this.ledgersLoaded = true;
                 this.ledgers = ledgers;
+                 console.log(ledgers);
             },
             error => {
                 this.$router.push({
