@@ -1,7 +1,7 @@
 <template>
     <div class="bvm-ledger">
         <div>
-            Search: <input v-model="searchTerm"> <button v-on:click="performSearch" >Search</button>        
+            Search: <input v-model="searchTerm"> <button v-on:click="performSearch" >Search</button><br />  
         </div>
         <TileContainer 
             v-if="ledgersLoaded" 
