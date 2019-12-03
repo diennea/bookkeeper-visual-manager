@@ -1,10 +1,10 @@
 <template>
     <div class="bvm-tile-container">
         <Tile
-            @click="$emit('item-clicked', item)"
+            @click="$emit('item-clicked', item.id)"
             v-for="item in items"
-            :id="item"
-            :key="item"
+            :item="item"
+            :key="item.id"
         />
     </div>
 </template>
