@@ -22,6 +22,7 @@ package org.bookkeepervisualmanager.cache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -100,6 +101,47 @@ public class Ledger implements Serializable {
 
     public void setSerializedMetadata(String serializedMetadata) {
         this.serializedMetadata = serializedMetadata;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 29 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
+        hash = 29 * hash + (int) (this.size ^ (this.size >>> 32));
+        hash = 29 * hash + Objects.hashCode(this.ctime);
+        hash = 29 * hash + Objects.hashCode(this.scanTime);
+        hash = 29 * hash + Objects.hashCode(this.serializedMetadata);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Ledger other = (Ledger) obj;
+        if (this.ledgerId != other.ledgerId) {
+            return false;
+        }
+        if (this.size != other.size) {
+            return false;
+        }
+        if (!Objects.equals(this.serializedMetadata, other.serializedMetadata)) {
+            return false;
+        }
+        if (!Objects.equals(this.ctime, other.ctime)) {
+            return false;
+        }
+        if (!Objects.equals(this.scanTime, other.scanTime)) {
+            return false;
+        }
+        return true;
     }
 
 }

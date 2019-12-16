@@ -4,11 +4,14 @@
     <class>org.bookkeepervisualmanager.cache.Ledger</class>
     <class>org.bookkeepervisualmanager.cache.LedgerMetadataEntry</class>
     <class>org.bookkeepervisualmanager.cache.LedgerBookie</class>
+    <class>org.bookkeepervisualmanager.cache.Bookie</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties> 
       <property name="javax.persistence.schema-generation.database.action" value="create"/>
       <!-- ledgerId can be zero -->
       <property name="eclipselink.allow-zero-id" value="true"/>
+      <property name="eclipselink.logging.logger" value="JavaLogger" />
+      <property name="eclipselink.logging.level" value="ALL"/>
     </properties>
   </persistence-unit>
 </persistence>

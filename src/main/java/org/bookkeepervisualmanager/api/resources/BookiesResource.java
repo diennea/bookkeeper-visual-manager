@@ -30,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.bookkeepervisualmanager.cache.Bookie;
 
 @Path("bookie")
 public class BookiesResource extends AbstractBookkeeperResource {
@@ -39,18 +40,27 @@ public class BookiesResource extends AbstractBookkeeperResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<BookieBean> getBookies() throws Exception {
         final List<BookieBean> bookies = new ArrayList<>();
-        final Map<BookieSocketAddress, BookieInfo> bookiesAvailable = getBookkeeperManger().getBookieInfo();
-        final Collection<BookieSocketAddress> bookiesCookie = getBookkeeperManger().getAllBookies();
+        final Collection<Bookie> fromMetadata = getBookkeeperManger().getAllBookies();
 
-        for (BookieSocketAddress bookieAddress : bookiesCookie) {
+        for (Bookie bookie : fromMetadata) {
             BookieBean b = new BookieBean();
-            b.setDescription(bookieAddress.toString());
-            b.setOk(bookiesAvailable.containsKey(bookieAddress));
-            if (b.isOk()) {
-                BookieInfo info = bookiesAvailable.get(bookieAddress);
-                b.setFreeDiskSpace(info.getFreeDiskSpace());
-                b.setTotalDiskSpace(info.getTotalDiskSpace());
+            b.setDescription(bookie.getDescription());
+            switch (bookie.getState()) {
+                case Bookie.STATE_AVAILABLE:
+                    b.setState("available");
+                    break;
+                case Bookie.STATE_READONLY:
+                    b.setState("readonly");
+                    break;
+                default:
+                    b.setState("down");
+                    break;
+
             }
+
+            b.setFreeDiskSpace(bookie.getFreeDiskspace());
+            b.setTotalDiskSpace(bookie.getTotalDiskspace());
+
             bookies.add(b);
         }
         return bookies;
@@ -58,18 +68,18 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
     public static final class BookieBean implements Serializable {
 
-        private boolean ok;
+        private String state;
         private String description;
 
         private long freeDiskSpace;
         private long totalDiskSpace;
 
-        public boolean isOk() {
-            return ok;
+        public String getState() {
+            return state;
         }
 
-        public void setOk(boolean ok) {
-            this.ok = ok;
+        public void setState(String state) {
+            this.state = state;
         }
 
         public String getDescription() {
@@ -98,7 +108,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
         @Override
         public String toString() {
-            return "BookieBean{" + "ok=" + ok + ", description=" + description
+            return "BookieBean{" + "state=" + state + ", description=" + description
                     + ", freeDiskSpace=" + freeDiskSpace + ", totalDiskSpace=" + totalDiskSpace + '}';
         }
 

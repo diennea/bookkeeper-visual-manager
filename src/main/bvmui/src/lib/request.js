@@ -1,19 +1,15 @@
 import axios from 'axios';
 
 export default {
-    get(url, successCallback, errorCallback) {
-        if (process.env.NODE_ENV === "production") {
-            axios.get(url)
+    get(url, successCallback, errorCallback) {        
+        if (process.env.NODE_ENV !== "production") {
+            url = "http://localhost:8086/" + url;
+        }
+        console.log('url', url);
+        axios.get(url)
                 .then(response => successCallback(response.data))
                 .catch(errorCallback);
-        } else {
-            var result = mockRequest(url);
-            if (!result) {
-                errorCallback();
-            } else {
-                successCallback(result);
-            }
-        }
+
     }
 }
 
