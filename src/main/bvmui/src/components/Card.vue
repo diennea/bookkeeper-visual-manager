@@ -6,11 +6,14 @@
         </div>
         <div class="bvm-card-content">
             <ul>
-                <li v-if="data.ok">
+                <li v-if="data.totalDiskSpace > 0">
                     <span>Free space: {{$library.formatBytes(data.freeDiskSpace)}} - {{$library.formatPercent(data.freeDiskSpace, data.totalDiskSpace)}} %</span>
                 </li>
-                <li v-if="data.ok">
+                <li v-if="data.totalDiskSpace > 0">
                     <span>Total space: {{$library.formatBytes(data.totalDiskSpace)}}</span>
+                </li>
+                <li>
+                    <span>Sampled at {{new Date(data.lastScan)}}.</span>
                 </li>
             </ul>
         </div>
