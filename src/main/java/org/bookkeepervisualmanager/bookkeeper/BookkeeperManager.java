@@ -85,6 +85,7 @@ public class BookkeeperManager implements AutoCloseable {
         WORKING
     }
     private volatile long lastMetadataCacheRefresh;
+    private final String bookkeeperClientConfiguration;
     private volatile AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperException {
@@ -119,6 +120,12 @@ public class BookkeeperManager implements AutoCloseable {
             LOG.log(Level.INFO, "Starting bookkeeper client with connection string = {0}", zkMetadataServiceUri);
             this.bkClient = BookKeeper.forConfig(conf).build();
 
+            StringBuilder bkConfigDumper = new StringBuilder();
+            this.conf.getKeys().forEachRemaining(key -> {
+                bkConfigDumper.append(key + "=" + conf.getProperty(key) + "\n");
+            });
+            this.bookkeeperClientConfiguration = bkConfigDumper.toString();
+
             LOG.log(Level.INFO, "Starting bookkeeper admin.");
             this.bkAdmin = new BookKeeperAdmin(bkClient);
 
@@ -132,10 +139,16 @@ public class BookkeeperManager implements AutoCloseable {
 
         private final RefreshStatus status;
         private final long lastMetadataCacheRefresh;
+        private final String bookkkeeperClientConfiguration;
 
-        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh) {
+        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, String bookkkeeperClientConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
+            this.bookkkeeperClientConfiguration = bookkkeeperClientConfiguration;
+        }
+
+        public String getBookkkeeperClientConfiguration() {
+            return bookkkeeperClientConfiguration;
         }
 
         public RefreshStatus getStatus() {
@@ -160,7 +173,7 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public RefreshCacheWorkerStatus getRefreshWorkerStatus() {
-        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh);
+        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh, bookkeeperClientConfiguration);
     }
 
     public void doRefreshMetadataCache() {

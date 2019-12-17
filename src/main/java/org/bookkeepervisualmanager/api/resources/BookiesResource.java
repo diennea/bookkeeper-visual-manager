@@ -58,6 +58,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
             b.setFreeDiskSpace(bookie.getFreeDiskspace());
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
+            b.setLastScan(bookie.getScanTime().getTime());
 
             bookies.add(b);
         }
@@ -71,6 +72,16 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
         private long freeDiskSpace;
         private long totalDiskSpace;
+        private long lastScan;
+
+        public long getLastScan() {
+            return lastScan;
+        }
+
+        public void setLastScan(long lastScan) {
+            this.lastScan = lastScan;
+        }
+
 
         public String getState() {
             return state;
