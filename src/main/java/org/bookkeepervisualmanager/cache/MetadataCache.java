@@ -53,7 +53,7 @@ public class MetadataCache implements AutoCloseable {
         em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId).executeUpdate();
         em.getTransaction().commit();
     }
-    
+
     public void updateBookie(Bookie bookie) {
         em.getTransaction().begin();
         Bookie exists = em.find(Bookie.class, bookie.getBookieId());
@@ -64,12 +64,12 @@ public class MetadataCache implements AutoCloseable {
         }
         em.getTransaction().commit();
     }
-    
+
     public List<Bookie> listBookies() {
         Query q = em.createQuery("select l from bookie l order by l.bookieId", Bookie.class);
         return q.getResultList();
     }
-    
+
     public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
             List<LedgerMetadataEntry> metadataEntries) {
         em.getTransaction().begin();
@@ -127,7 +127,7 @@ public class MetadataCache implements AutoCloseable {
     public Ledger getLedgerMetadata(long id) {
         return em.find(Ledger.class, id);
     }
-    
+
     public Bookie getBookie(String bookieId) {
         return em.find(Bookie.class, bookieId);
     }

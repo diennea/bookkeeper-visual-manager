@@ -34,15 +34,15 @@ import javax.persistence.Id;
 @Entity(name = "bookie")
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Bookie implements Serializable {
-    
+
     public static final int STATE_DOWN = 0;
     public static final int STATE_AVAILABLE = 1;
     public static final int STATE_READONLY = 2;
-    
+
     @Column(columnDefinition = "string")
     @Id
     private String bookieId;
-    
+
     @Column(columnDefinition = "string")
     private String description;
 
@@ -54,7 +54,7 @@ public class Bookie implements Serializable {
 
     @Column(columnDefinition = "long")
     private long freeDiskspace;
-    
+
     @Column(columnDefinition = "long")
     private long totalDiskspace;
 
@@ -158,6 +158,6 @@ public class Bookie implements Serializable {
         }
         return true;
     }
-    
-    
+
+
 }

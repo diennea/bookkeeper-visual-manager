@@ -154,7 +154,7 @@ public class BookkeeperManager implements AutoCloseable {
                 doRefreshMetadataCache();
             });
         } else {
-            LOG.log(Level.INFO,"Metadata refresh is still in progress");
+            LOG.log(Level.INFO, "Metadata refresh is still in progress");
         }
         return getRefreshWorkerStatus();
     }

@@ -13,6 +13,7 @@
 
         <zookpeeper.version>3.5.5</zookpeeper.version>
         <bookkeeper.version>4.10.0</bookkeeper.version>
+        <slf4j.version>1.7.29</slf4j.version>
         <netty.version>4.1.43.Final</netty.version>
         <netty.boringssl.version>2.0.26.Final</netty.boringssl.version>
         <curator.version>4.2.0</curator.version>
@@ -50,7 +51,17 @@
         <tag>HEAD</tag>
     </scm>
 
-    <dependencies>        
+    <dependencies>   
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>     
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>     
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.core</artifactId>
@@ -138,6 +149,16 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <version>${zookpeeper.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.herddb</groupId>
@@ -159,6 +180,14 @@
             <artifactId>bookkeeper-server</artifactId>
             <version>${bookkeeper.version}</version>
             <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>*</artifactId>

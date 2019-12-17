@@ -1,39 +1,36 @@
 /*
- Licensed to Diennea S.r.l. under one
- or more contributor license agreements. See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership. Diennea S.r.l. licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
-
- http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
-
+ * Licensed to Diennea S.r.l. under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. Diennea S.r.l. licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
  */
 package org.bookkeepervisualmanager.cache;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import herddb.jdbc.HerdDBEmbeddedDataSource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public class MetadataCacheTest {
 
     @Test
-    public void test() {        
+    public void test() {
         try (HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();) {
             datasource.setUrl("jdbc:herddb:local");
             try (MetadataCache metadataCache = new MetadataCache(datasource)) {
@@ -67,23 +64,23 @@ public class MetadataCacheTest {
                 assertEquals(2048, ledgers2.get(0).getSize());
 
                 System.out.println("ledgers: " + ledgers2);
-                
+
                 Bookie bookie = new Bookie("bookie:123", "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // insert
                 metadataCache.updateBookie(bookie);
-                
+
                 List<Bookie> bookies1 = metadataCache.listBookies();
                 assertEquals(bookie, bookies1.get(0));
 
                 Bookie lookup = metadataCache.getBookie(bookie.getBookieId());
                 assertEquals(bookie, lookup);
-                
+
                 Bookie bookie2 = new Bookie("bookie:123", "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // update
                 metadataCache.updateBookie(bookie2);
                 lookup = metadataCache.getBookie("bookie:123");
                 assertEquals(bookie2, lookup);
-                
+
                 List<Bookie> bookies = metadataCache.listBookies();
                 assertEquals(lookup, bookies.get(0));
 
