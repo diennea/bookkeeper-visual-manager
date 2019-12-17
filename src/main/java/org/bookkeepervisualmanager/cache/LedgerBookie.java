@@ -21,6 +21,7 @@ package org.bookkeepervisualmanager.cache;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -40,14 +41,14 @@ public class LedgerBookie implements Serializable {
 
     @Column(columnDefinition = "string")
     @Id
-    private String bookieAddress;
+    private String bookieId;
 
     public LedgerBookie() {
     }
 
     public LedgerBookie(long ledgerId, String bookieAddress) {
         this.ledgerId = ledgerId;
-        this.bookieAddress = bookieAddress;
+        this.bookieId = bookieAddress;
     }
 
     public long getLedgerId() {
@@ -58,12 +59,41 @@ public class LedgerBookie implements Serializable {
         this.ledgerId = ledgerId;
     }
 
-    public String getBookieAddress() {
-        return bookieAddress;
+    public String getBookieId() {
+        return bookieId;
     }
 
-    public void setBookieAddress(String bookieAddress) {
-        this.bookieAddress = bookieAddress;
+    public void setBookieId(String bookieId) {
+        this.bookieId = bookieId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 97 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
+        hash = 97 * hash + Objects.hashCode(this.bookieId);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final LedgerBookie other = (LedgerBookie) obj;
+        if (this.ledgerId != other.ledgerId) {
+            return false;
+        }
+        if (!Objects.equals(this.bookieId, other.bookieId)) {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -53,6 +53,23 @@ public class MetadataCache implements AutoCloseable {
         em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId).executeUpdate();
         em.getTransaction().commit();
     }
+
+    public void updateBookie(Bookie bookie) {
+        em.getTransaction().begin();
+        Bookie exists = em.find(Bookie.class, bookie.getBookieId());
+        if (exists != null) {
+            em.merge(bookie);
+        } else {
+            em.persist(bookie);
+        }
+        em.getTransaction().commit();
+    }
+
+    public List<Bookie> listBookies() {
+        Query q = em.createQuery("select l from bookie l order by l.bookieId", Bookie.class);
+        return q.getResultList();
+    }
+
     public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
             List<LedgerMetadataEntry> metadataEntries) {
         em.getTransaction().begin();
@@ -83,20 +100,23 @@ public class MetadataCache implements AutoCloseable {
             Query q = em.createQuery("select DISTINCT(l) from ledger l "
                     + "               INNER JOIN ledger_metadata lm on lm.ledgerId = l.ledgerId"
                     + "               INNER JOIN ledger_bookie ln on ln.ledgerId = l.ledgerId "
-                    + " where lm.entryValue like :term and ln.bookieAddress = :address", Ledger.class);
+                    + " where lm.entryValue like :term and ln.bookieId = :bookieId"
+                    + " order by l.ledgerId", Ledger.class);
             q.setParameter("term", "%" + metadataTerm + "%");
-            q.setParameter("address", bookie);
+            q.setParameter("bookieId", bookie);
             return q.getResultList();
         } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
             Query q = em.createQuery("select DISTINCT(l) from ledger l INNER JOIN ledger_metadata lm on lm.ledgerId = l.ledgerId"
-                    + " where lm.entryValue like :term", Ledger.class);
+                    + " where lm.entryValue like :term"
+                    + " order by l.ledgerId", Ledger.class);
             q.setParameter("term", "%" + metadataTerm + "%");
             return q.getResultList();
         } else if (bookie != null && !bookie.isEmpty()) {
             Query q = em.createQuery("select DISTINCT(l) from ledger l "
                     + "               INNER JOIN ledger_bookie ln on ln.ledgerId = l.ledgerId "
-                    + " where ln.bookieAddress = :address", Ledger.class);
-            q.setParameter("address", bookie);
+                    + " where ln.bookieId = :bookieId"
+                    + " order by l.ledgerId", Ledger.class);
+            q.setParameter("bookieId", bookie);
             return q.getResultList();
         } else {
             Query q = em.createQuery("select l from ledger l ", Ledger.class);
@@ -108,6 +128,10 @@ public class MetadataCache implements AutoCloseable {
         return em.find(Ledger.class, id);
     }
 
+    public Bookie getBookie(String bookieId) {
+        return em.find(Bookie.class, bookieId);
+    }
+
     @Override
     public void close() {
         em.close();
@@ -115,10 +139,18 @@ public class MetadataCache implements AutoCloseable {
     }
 
     public List<Long> getLedgersForBookie(String bookieId) {
-        Query q = em.createQuery("select l from ledger_bookie l where l.bookieAddress = :address", LedgerBookie.class);
-        q.setParameter("address", bookieId);
+        Query q = em.createQuery("select l from ledger_bookie l where l.bookieId = :bookieId", LedgerBookie.class);
+        q.setParameter("bookieId", bookieId);
         List<LedgerBookie> mapping = q.getResultList();
         return mapping.stream().map(LedgerBookie::getLedgerId).collect(Collectors.toList());
+    }
+
+    public void deleteBookie(String bookieId) {
+        em.getTransaction().begin();
+        Query delete = em.createQuery("DELETE FROM bookie lm where lm.bookieId=:bookieId");
+        delete.setParameter("bookieId", bookieId);
+        delete.executeUpdate();
+        em.getTransaction().commit();
     }
 
 }

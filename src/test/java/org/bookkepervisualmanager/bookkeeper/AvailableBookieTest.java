@@ -21,7 +21,7 @@ package org.bookkepervisualmanager.bookkeeper;
 
 import static org.junit.Assert.assertEquals;
 import java.util.Collection;
-import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.bookkeepervisualmanager.cache.Bookie;
 import org.bookkepervisualmanager.utils.BookkeeperManagerTestUtils;
 import org.junit.Test;
 
@@ -29,8 +29,9 @@ public class AvailableBookieTest extends BookkeeperManagerTestUtils {
 
     @Test
     public void testAvailableBookies() throws Exception {
-        Collection<BookieSocketAddress> allBookies = getBookkeeperManager().getAllBookies();
-        assertEquals(allBookies.size(), 1);
+        getBookkeeperManager().doRefreshMetadataCache();
+        Collection<Bookie> allBookies = getBookkeeperManager().getAllBookies();
+        assertEquals(1, allBookies.size());
     }
 
 }

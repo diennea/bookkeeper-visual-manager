@@ -50,9 +50,11 @@ import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.conf.ClientConfiguration;
+import org.apache.bookkeeper.discover.RegistrationClient;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerMetadataSerDe;
 import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.bookkeepervisualmanager.cache.Bookie;
 import org.bookkeepervisualmanager.cache.Ledger;
 import org.bookkeepervisualmanager.cache.LedgerBookie;
 import org.bookkeepervisualmanager.cache.LedgerMetadataEntry;
@@ -83,6 +85,7 @@ public class BookkeeperManager implements AutoCloseable {
         WORKING
     }
     private volatile long lastMetadataCacheRefresh;
+    private final String bookkeeperClientConfiguration;
     private volatile AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperException {
@@ -92,6 +95,9 @@ public class BookkeeperManager implements AutoCloseable {
                 public Thread newThread(Runnable r) {
                     Thread t = new Thread(r, "bk-visual-manager-cache-refresh");
                     t.setDaemon(true);
+                    t.setUncaughtExceptionHandler((Thread t1, Throwable e) -> {
+                        e.printStackTrace();
+                    });
                     return t;
                 }
             });
@@ -106,10 +112,19 @@ public class BookkeeperManager implements AutoCloseable {
             this.conf = new ClientConfiguration()
                     .setZkTimeout(zkSessionTimeout)
                     .setMetadataServiceUri(zkMetadataServiceUri)
-                    .setClientConnectTimeoutMillis(zkFirstConnectionTimeout);
+                    .setClientConnectTimeoutMillis(zkFirstConnectionTimeout)
+                    .setEnableDigestTypeAutodetection(true)
+                    .setGetBookieInfoTimeout(1000)
+                    .setClientConnectTimeoutMillis(1000);
 
             LOG.log(Level.INFO, "Starting bookkeeper client with connection string = {0}", zkMetadataServiceUri);
             this.bkClient = BookKeeper.forConfig(conf).build();
+
+            StringBuilder bkConfigDumper = new StringBuilder();
+            this.conf.getKeys().forEachRemaining(key -> {
+                bkConfigDumper.append(key + "=" + conf.getProperty(key) + "\n");
+            });
+            this.bookkeeperClientConfiguration = bkConfigDumper.toString();
 
             LOG.log(Level.INFO, "Starting bookkeeper admin.");
             this.bkAdmin = new BookKeeperAdmin(bkClient);
@@ -124,10 +139,16 @@ public class BookkeeperManager implements AutoCloseable {
 
         private final RefreshStatus status;
         private final long lastMetadataCacheRefresh;
+        private final String bookkkeeperClientConfiguration;
 
-        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh) {
+        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, String bookkkeeperClientConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
+            this.bookkkeeperClientConfiguration = bookkkeeperClientConfiguration;
+        }
+
+        public String getBookkkeeperClientConfiguration() {
+            return bookkkeeperClientConfiguration;
         }
 
         public RefreshStatus getStatus() {
@@ -145,17 +166,69 @@ public class BookkeeperManager implements AutoCloseable {
             this.refreshThread.submit(() -> {
                 doRefreshMetadataCache();
             });
+        } else {
+            LOG.log(Level.INFO, "Metadata refresh is still in progress");
         }
         return getRefreshWorkerStatus();
     }
 
     public RefreshCacheWorkerStatus getRefreshWorkerStatus() {
-        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh);
+        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh, bookkeeperClientConfiguration);
     }
 
-    private void doRefreshMetadataCache() {
+    public void doRefreshMetadataCache() {
         LOG.info("Refreshing Metadata Cache");
         try {
+            final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
+            RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
+            final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
+            final Collection<BookieSocketAddress> available = metadataClient.getWritableBookies().get().getValue();
+            final Collection<BookieSocketAddress> readonly = metadataClient.getReadOnlyBookies().get().getValue();
+            LOG.log(Level.INFO, "all Bookies {0}", bookiesCookie);
+            LOG.log(Level.INFO, "writable Bookies {0}", available);
+            LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+            List<Bookie> bookiesBefore = metadataCache.listBookies();
+            List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
+            for (BookieSocketAddress bookieAddress : bookiesCookie) {
+                LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
+                Bookie b = new Bookie();
+                b.setBookieId(bookieAddress.toString());
+                b.setDescription(bookieAddress.toString());
+                int state;
+                if (available.contains(bookieAddress)) {
+                    state = Bookie.STATE_AVAILABLE;
+                } else if (readonly.contains(bookieAddress)) {
+                    state = Bookie.STATE_READONLY;
+                } else {
+                    state = Bookie.STATE_DOWN;
+                }
+                LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieAddress, state});
+                b.setState(state);
+                b.setScanTime(now);
+                if (b.getState() != Bookie.STATE_DOWN) {
+                    BookieInfo info = bookieInfo.get(bookieAddress);
+                    LOG.log(Level.INFO, "Bookie info {0}", info);
+                    if (info != null) {
+                        b.setFreeDiskspace(info.getFreeDiskSpace());
+                        b.setTotalDiskspace(info.getTotalDiskSpace());
+                    } else {
+                        // bookie did not anwer to getBookieInfo, this is not good
+                        state = Bookie.STATE_DOWN;
+                        b.setState(state);
+                    }
+                }
+                metadataCache.updateBookie(b);
+                currentKnownBookiesOnMetadataServer.add(b.getBookieId());
+            }
+            for (Bookie b : bookiesBefore) {
+                if (!currentKnownBookiesOnMetadataServer.contains(b.getBookieId())) {
+                    // bookie decommissioned
+                    LOG.log(Level.INFO, "Found decommissioned bookie {0}", b.getBookieId());
+                    metadataCache.deleteBookie(b.getBookieId());
+                }
+            }
+
             Iterable<Long> ledgersIds = bkAdmin.listLedgers();
             for (long ledgerId : ledgersIds) {
                 LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId);
@@ -183,10 +256,12 @@ public class BookkeeperManager implements AutoCloseable {
             }
 
             lastMetadataCacheRefresh = System.currentTimeMillis();
+            LOG.info("Refreshing Metadata Cache Finished");
         } catch (Throwable e) {
-            LOG.log(Level.SEVERE, "Cannot refresh metadata", e);
+            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Cannot refresh metadata {}", e);
         } finally {
-             refreshStatus.compareAndSet(RefreshStatus.WORKING, RefreshStatus.IDLE);
+            refreshStatus.compareAndSet(RefreshStatus.WORKING, RefreshStatus.IDLE);
         }
     }
 
@@ -269,14 +344,6 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public Map<BookieSocketAddress, BookieInfo> getBookieInfo() throws BookkeeperException {
-        try {
-            return bkClient.getBookieInfo();
-        } catch (Throwable e) {
-            throw new BookkeeperException(e);
-        }
-    }
-
     public List<Long> getAllLedgers() throws BookkeeperException {
         return metadataCache
                 .listLedgers()
@@ -295,12 +362,8 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public Collection<BookieSocketAddress> getAllBookies() throws BookkeeperException {
-        try {
-            return bkAdmin.getAllBookies();
-        } catch (Throwable e) {
-            throw new BookkeeperException(e);
-        }
+    public Collection<Bookie> getAllBookies() throws BookkeeperException {
+        return metadataCache.listBookies();
     }
 
 }

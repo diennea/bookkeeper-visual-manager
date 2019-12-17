@@ -11,7 +11,7 @@
             </router-link>
             <router-link class="bvm-navbar-item" active-class="selected"
             tag="li" to="/cache" exact>
-                <span class="bvm-nav-link">Cache</span>
+                <span class="bvm-nav-link">System</span>
             </router-link>
         </ul>
     </nav>
