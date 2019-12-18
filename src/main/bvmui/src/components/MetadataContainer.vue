@@ -2,6 +2,7 @@
     <div class="bvm-metadata-container">
         <button class="bvm-metadata-close" @click="$emit('close', $event)">✕</button>
         <h2>Ledger {{currentLedger.id}}</h2>
+        <div>Age: {{currentLedger.age}} hours</div>
         <div>Created at: {{new Date(currentLedger.ctime)}}</div>
         <div>State: {{currentLedger.state}}</div>
         <div>Ensemble size: {{currentLedger.ensembleSize}} (number of bookies)</div>

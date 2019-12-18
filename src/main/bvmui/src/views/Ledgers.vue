@@ -1,6 +1,10 @@
 <template>
     <div>
-    <div>Search: <input v-model="searchTerm"> <button v-on:click="performSearch" >Search</button></div>
+    <div>Search: Keywork: <input v-model="searchTerm">
+                 Min Length: <input v-model="minLength" type="number">
+                 Max Length:  <input v-model="maxLength" type="number">
+                 Age:  <input v-model="minAge" type="number" >
+                <button v-on:click="performSearch" >Search</button></div>
     <div class="bvm-ledger">            
         <TileContainer 
             v-if="ledgersLoaded" 
@@ -21,6 +25,9 @@ export default {
     data: function() {
         return {
             searchTerm: '',
+            minLength: '',
+            maxLength: '',
+            minAge: 0,
             showLedgerMetadata: false,
             currentLedger: null,
             ledgersLoaded: false,
@@ -48,10 +55,13 @@ export default {
             this.showLedgerMetadata = false;
         },
     performSearch: function() {
-        let url = "api/ledger/all?term="+encodeURIComponent(this.searchTerm);
+        let url = "api/ledger/all?term="+encodeURIComponent(this.searchTerm)
+                                +"&minLength="+encodeURIComponent(this.minLength)
+                                +"&maxLength="+encodeURIComponent(this.maxLength)
+                                +"&minAge="+encodeURIComponent(this.minAge) ;
         if (this.$route.meta.type === "bookie") {
             const bookieId = this.$route.params.bookieId;
-            url = "api/ledger/all?term="+encodeURIComponent(this.searchTerm)+"&bookie="+encodeURIComponent(bookieId);
+            url = url + "&bookie="+encodeURIComponent(bookieId);
         }
         this.$request.get(url,
             ledgers => {

@@ -22,6 +22,8 @@ package org.bookkeepervisualmanager.cache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -142,6 +144,10 @@ public class Ledger implements Serializable {
             return false;
         }
         return true;
+    }
+
+    public long getAge() {
+        return Duration.between(this.ctime.toInstant(), Instant.now()).toMinutes();
     }
 
 }

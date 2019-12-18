@@ -310,6 +310,14 @@ public class BookkeeperManager implements AutoCloseable {
         return metadataCache.getLedgersForBookie(bookieId);
     }
 
+    public Ledger getLedger(long ledgerId) throws BookkeeperException {
+        return metadataCache.getLedgerMetadata(ledgerId);
+    }
+
+    public LedgerMetadata getLedgerMetadata(Ledger ledger) throws BookkeeperException {
+        return convertLedgerMetadata(ledger);
+    }
+
     public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperException {
         Ledger ledger = metadataCache.getLedgerMetadata(ledgerId);
         return convertLedgerMetadata(ledger);
@@ -353,10 +361,26 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public List<Long> searchLedgers(String term, String bookie) throws BookkeeperException {
+    public List<Long> searchLedgers(String term,
+                                    String bookie,
+                                    Integer minLength,
+                                    Integer maxLength,
+                                    Integer minAge) throws BookkeeperException {
         return metadataCache
                 .searchLedgers(term, bookie)
                 .stream()
+                .filter(l -> {
+                    if (minLength != null && l.getSize() < minLength) {
+                        return false;
+                    }
+                    if (maxLength != null && l.getSize() > maxLength) {
+                        return false;
+                    }
+                    if (minAge != null && l.getAge() < minAge) {
+                        return false;
+                    }
+                    return true;
+                })
                 .map(Ledger::getLedgerId)
                 .collect(Collectors.toList());
 

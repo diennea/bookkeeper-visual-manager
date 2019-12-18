@@ -20,7 +20,7 @@
 package org.bookkeepervisualmanager.api.resources;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +33,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
+import org.bookkeepervisualmanager.bookkeeper.BookkeeperException;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
+import org.bookkeepervisualmanager.cache.Ledger;
 
 @Path("ledger")
 public class LedgersResource extends AbstractBookkeeperResource {
@@ -41,8 +43,15 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @GET
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<LedgerBean> getLedgers(@QueryParam("term") String term, @QueryParam("bookie") String bookie) throws Exception {
-        List<Long> ids =  getBookkeeperManger().searchLedgers(term, bookie);
+    public List<LedgerBean> getLedgers(@QueryParam("term") String term,
+                                       @QueryParam("bookie") String bookie,
+                                       @QueryParam("minLength") String minLength,
+                                       @QueryParam("maxLength") String maxLength,
+                                       @QueryParam("minAge") String minAge
+                                       ) throws Exception {
+
+        List<Long> ids =  getBookkeeperManger().searchLedgers(term, bookie, convertParam(minLength),
+                convertParam(maxLength), convertParam(minAge));
         List<LedgerBean> res = new ArrayList<>();
         for (long id : ids) {
             LedgerBean bean = getLedgerMetadata(id);
@@ -57,22 +66,22 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @Path("metadata/{ledgerId}")
     @Produces(MediaType.APPLICATION_JSON)
     public LedgerBean getLedgerMetadata(@PathParam("ledgerId") long ledgerId) throws Exception {
-
-        LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledgerId);
+        Ledger ledgerMetadata = getBookkeeperManger().getLedger(ledgerId);
         return convertLedgerBean(ledgerId, ledgerMetadata);
     }
 
-    private static LedgerBean convertLedgerBean(long ledgerId, LedgerMetadata ledgerMetadata) throws UnsupportedEncodingException {
+    private LedgerBean convertLedgerBean(long ledgerId, Ledger ledger) throws BookkeeperException {
+        LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledger);
         LedgerBean b = new LedgerBean();
         b.setId(ledgerId);
         b.setLedgerMetadata(ledgerMetadata);
-
+        b.setAge(ledger.getAge());
         b.setEnsembleSize(ledgerMetadata.getEnsembleSize());
         b.setWriteQuorumSize(ledgerMetadata.getWriteQuorumSize());
         b.setAckQuorumSize(ledgerMetadata.getAckQuorumSize());
         b.setLastEntryId(ledgerMetadata.getLastEntryId());
         b.setLength(ledgerMetadata.getLength());
-        b.setPassword(ledgerMetadata.hasPassword() ? new String(ledgerMetadata.getPassword(), "UTF-8") : "");
+        b.setPassword(ledgerMetadata.hasPassword() ? new String(ledgerMetadata.getPassword(), StandardCharsets.UTF_8) : "");
         b.setDigestType(ledgerMetadata.getDigestType() + "");
         b.setCtime(ledgerMetadata.getCtime());
         b.setClosed(ledgerMetadata.isClosed());
@@ -86,7 +95,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
         private long id;
         private Map<String, String> metadata = new HashMap<>();
-
+        private long age;
         private int ensembleSize;
         private int writeQuorumSize;
         private int ackQuorumSize;
@@ -99,6 +108,14 @@ public class LedgersResource extends AbstractBookkeeperResource {
         private String state;
         private int metadataFormatVersion;
         private List<String> bookies;
+
+        public long getAge() {
+            return age;
+        }
+
+        public void setAge(long age) {
+            this.age = age;
+        }
 
         public long getId() {
             return id;
@@ -116,11 +133,11 @@ public class LedgersResource extends AbstractBookkeeperResource {
             this.metadata = metadata;
         }
 
-        public void setMetadataValue(String key, byte[] value) throws UnsupportedEncodingException {
-            this.metadata.put(key, new String(value, "UTF-8"));
+        public void setMetadataValue(String key, byte[] value)  {
+            this.metadata.put(key, new String(value, StandardCharsets.UTF_8));
         }
 
-        public void setLedgerMetadata(LedgerMetadata metadata) throws UnsupportedEncodingException {
+        public void setLedgerMetadata(LedgerMetadata metadata)  {
             Map<String, byte[]> customMetadata = metadata.getCustomMetadata();
             for (Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
                 setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
@@ -228,6 +245,17 @@ public class LedgersResource extends AbstractBookkeeperResource {
             return "LedgerBean{" + "id=" + id + ", metadata=" + metadata + '}';
         }
 
+    }
+
+    private Integer convertParam(String s) {
+        if (s == null || s.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException err) {
+            return null;
+        }
     }
 
 }

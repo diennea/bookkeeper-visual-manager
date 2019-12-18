@@ -3,6 +3,7 @@
         <span>Ledger {{item.id}}
         Size {{item.length}} bytes<br />
         Replication {{item.writeQuorumSize}}<br />
+        Age {{item.age}} hours<br />
         </span>
     </div>
 </template>
