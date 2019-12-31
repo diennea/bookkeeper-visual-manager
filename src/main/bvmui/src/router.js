@@ -1,14 +1,17 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-import ErrorPage from '@/views/ErrorPage'
+import ErrorPage from "@/views/ErrorPage";
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
+import Login from '@/views/Login'
 import Cache from '@/views/Cache'
+
+import store from './store'
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
     mode: 'hash',
     base: process.env.BASE_URL,
     routes: [
@@ -21,6 +24,11 @@ export default new Router({
             path: '/error',
             name: 'error',
             component: ErrorPage
+        },
+        {
+            path: '/login',
+            name: 'login',
+            component: Login
         },
         {
             path: '/bookies',
@@ -63,3 +71,18 @@ export default new Router({
         }
     ]
 })
+
+router.beforeEach((to, from, next) => {
+    const isLogin = to.name === 'login';
+    if (isLogin && store.getters.isLogged) { // login logged > home
+        next("/");
+        return;
+    }
+    if (isLogin || store.getters.isLogged) {
+        next();
+        return;
+    }
+    next("/login");
+});
+
+export default router;

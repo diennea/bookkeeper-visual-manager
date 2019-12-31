@@ -13,28 +13,18 @@ import vuetify from './plugins/vuetify';
 import '@mdi/font/css/materialdesignicons.css';
 import "@/styles/main.scss";
 
+import axios from "axios";
+import auth from './lib/auth'
+
 Vue.config.productionTip = false
 Vue.prototype.$request = request;
 Vue.prototype.$library = library;
 
-// Requiring all components in the /components folder
-const requireComponent = require.context(
-    './components', false, /[A-Z]\w+\.(vue|js)$/
-)
-
-// Importing globally each one of them
-requireComponent.keys().forEach(fileName => {
-    const componentConfig = requireComponent(fileName)
-    const componentName = upperFirst(
-        camelCase(
-            fileName.split('/').pop().replace(/\.\w+$/, '')
-        )
-    )
-    Vue.component(
-        componentName,
-        componentConfig.default || componentConfig
-    )
-})
+// Session token
+if (auth.isLogged()) {
+    const token = localStorage.getItem("user-token");
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
 
 // New instance of Vue with Router and Store
 new Vue({

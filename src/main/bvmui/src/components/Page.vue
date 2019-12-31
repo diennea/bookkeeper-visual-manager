@@ -7,7 +7,11 @@
     </v-content>
 </template>
 <script>
+import Title from "./Title";
 export default {
+    components: {
+        Title
+    },
     data() {
         return {
             pageTitle: this.$route.meta.title,

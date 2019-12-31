@@ -9,7 +9,11 @@
     </div>
 </template>
 <script>
+import Card from "./Card";
 export default {
+    components: {
+        Card
+    },
     props: {
         items: Array
     }

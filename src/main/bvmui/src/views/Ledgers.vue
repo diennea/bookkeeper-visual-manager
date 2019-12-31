@@ -59,7 +59,15 @@
     </div>
 </template>
 <script>
+import MetadataContainer from "@/components/MetadataContainer";
+import TileContainer from "@/components/TileContainer";
+import Spinner from "@/components/Spinner";
 export default {
+    components: {
+        MetadataContainer,
+        TileContainer,
+        Spinner
+    },
     data() {
         return {
             searchTerm: '',
@@ -75,8 +83,7 @@ export default {
     methods: {
         showMetadata(ledgerId) {
             const url = `api/ledger/metadata/${ledgerId}`;
-            this.$request.get(
-                url,
+            this.$request.get(url,
                 ledger => {
                     this.currentLedger = ledger;
                     this.showLedgerMetadata = true;
@@ -121,12 +128,8 @@ export default {
             ledgers => {
                 this.ledgersLoaded = true;
                 this.ledgers = ledgers;
-            },
-            error => {
-                this.$router.push({
-                    name: "error"
-                });
-        });
+            }
+        );
     }
 }
 </script>

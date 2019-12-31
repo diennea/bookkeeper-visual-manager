@@ -41,6 +41,7 @@ import org.bookkeepervisualmanager.cache.Ledger;
 public class LedgersResource extends AbstractBookkeeperResource {
 
     @GET
+    @Secured
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<LedgerBean> getLedgers(@QueryParam("term") String term,
@@ -63,6 +64,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
     }
 
     @GET
+    @Secured
     @Path("metadata/{ledgerId}")
     @Produces(MediaType.APPLICATION_JSON)
     public LedgerBean getLedgerMetadata(@PathParam("ledgerId") long ledgerId) throws Exception {

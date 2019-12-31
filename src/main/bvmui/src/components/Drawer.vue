@@ -11,10 +11,17 @@
                     </v-list-item-content>
                 </v-list-item>
             </template>
+            <v-list-item @click="performLogout()">
+                <v-list-item-action>
+                    <v-icon>mdi-logout</v-icon>
+                </v-list-item-action>
+                <v-list-item-content>
+                    <v-list-item-title class="grey--text">Logout</v-list-item-title>
+                </v-list-item-content>
+            </v-list-item>
         </v-list>
     </v-navigation-drawer>
 </template>
-
 <script>
 export default {
     data() {
@@ -26,9 +33,13 @@ export default {
                 { icon: "mdi-cached", text: "System", path: "/cache" }
             ]
         };
+    },
+    methods: {
+        performLogout() {
+            this.$store.dispatch("logout").then(() => {
+                this.$router.push("/login");
+            });
+        }
     }
 };
 </script>
-
-<style>
-</style>
