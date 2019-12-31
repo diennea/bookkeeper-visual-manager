@@ -20,6 +20,7 @@
 package org.bookkeepervisualmanager.api.resources;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
 
@@ -27,7 +28,7 @@ public abstract class AbstractBookkeeperResource {
 
     @Context
     private ServletContext servletContext;
-
+    
     protected BookkeeperManager getBookkeeperManger() {
         return (BookkeeperManager) servletContext.getAttribute("bookkeeper");
     }
