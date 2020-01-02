@@ -11,7 +11,8 @@
                     </v-list-item-content>
                 </v-list-item>
             </template>
-        </v-list>
+        </v-list>        
+        <span @click="logout()">Logout</span>    
     </v-navigation-drawer>
 </template>
 
@@ -26,6 +27,21 @@ export default {
                 { icon: "mdi-cached", text: "System", path: "/cache" }
             ]
         };
+    }, methods: {        
+        logout() {
+            let url = "api/auth/logout";
+            this.$request.get(url,
+            res => {
+                this.$store.commit('loggedOut');
+                this.$router.push({name: "login"});
+            }, error => {                
+              this.$store.commit('loggedOut');
+              this.$router.push({
+                name: "login"
+              });
+              }
+            );
+        }
     }
 };
 </script>

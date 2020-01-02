@@ -1,24 +1,26 @@
 <template>
-    <div>
-    <div>Search: Keywork: <input v-model="searchTerm">
-                 Min Length: <input v-model="minLength" type="number">
-                 Max Length:  <input v-model="maxLength" type="number">
-                 Age:  <input v-model="minAge" type="number" >
-                <button v-on:click="performSearch" >Search</button></div>
-    <div class="bvm-ledger">            
-        <TileContainer 
-            v-if="ledgersLoaded" 
-            :items="ledgers" 
-            @item-clicked="showMetadata"
-        />
-        <Spinner v-else/>
-        <MetadataContainer
-            v-if="showLedgerMetadata"
-            :currentLedger="currentLedger"
-            @close="closeMetadata"
-        />
-    </div>
-    </div>
+    <v-form>
+            <v-text-field
+                v-model="username"
+                label="Username">
+            </v-text-field>
+            <v-text-field
+                v-model="password"
+                label="Password"
+                tile
+                flat
+                hide-details>
+            </v-text-field>
+            <v-btn
+                depressed
+                large
+                tile
+                class="mt-1"
+                color="blue lighten-1 white--text"
+                @click="performLogin">
+                Login
+            </v-btn>
+        </v-form>
 </template>
 <script>
 export default {
@@ -29,15 +31,20 @@ export default {
         };
     },
     methods: {        
-       login: function() {
-        let url = "api/login";        
+       performLogin: function() {
+        let url = "api/auth/login?username="+this.username+"&password="+this.password;
         this.$request.get(url,
             res => {
-                this.$router.push({
+                if (res.ok) {
+                   this.$store.commit('loggedIn');
+                   this.$router.push({
                                     name: "bookies"
-                                });
-                            }
-                    ,
+                                });                                                   
+                } else {
+                    this.password = "";
+                    alert('bad username or password');
+                }
+            },
             error => {
                 this.$router.push({
                                     name: "bookies"
@@ -45,25 +52,6 @@ export default {
                             }
                     );
                 }
-    },
-    created: function() {
-        let url = "api/ledger/all";
-        if (this.$route.meta.type === "bookie") {
-            const bookieId = this.$route.params.bookieId;
-            url = "api/ledger/all?bookie="+encodeURIComponent(bookieId);
-        }
-        this.$request.get(url,
-            ledgers => {
-                this.ledgersLoaded = true;
-                this.ledgers = ledgers;
-                 console.log(ledgers);
-            },
-            error => {
-                this.$router.push({
-                    name: "error"
-                });
-            }
-        );
     }
 };
 </script>

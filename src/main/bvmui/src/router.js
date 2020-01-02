@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import ErrorPage from '@/views/ErrorPage'
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
+import Login from '@/views/Login'
 import Cache from '@/views/Cache'
 
 Vue.use(Router);
@@ -15,12 +16,17 @@ export default new Router({
         {
             path: '/',
             name: 'home',
-            redirect: "/bookies",
+            redirect: "/login",
         },
         {
             path: '/error',
             name: 'error',
             component: ErrorPage
+        },
+        {
+            path: '/login',
+            name: 'login',
+            component: Login
         },
         {
             path: '/bookies',

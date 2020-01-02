@@ -40,9 +40,13 @@ public class AuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        System.out.println("URI" + requestContext.getUriInfo().getPath());
+        System.out.println("MATCHED:" + requestContext.getUriInfo().getMatchedResources());
+                
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("loggedUser") == null) {
-            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+//            System.out.println("NOT LOGGED !");
+//            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
         }
     }
 

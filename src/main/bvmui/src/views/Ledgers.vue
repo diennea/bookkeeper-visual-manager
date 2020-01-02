@@ -112,6 +112,12 @@ export default {
         }
     },
     created() {
+        if (!this.$store.state.logged) {
+            this.$router.push({
+                name: "login"
+            });
+            return;
+        }
         let url = "api/ledger/all";
         if (this.$route.meta.type === "bookie") {
             const bookieId = this.$route.params.bookieId;

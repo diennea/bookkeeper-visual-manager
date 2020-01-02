@@ -22,30 +22,55 @@ package org.bookkeepervisualmanager.api.resources;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 
 /**
  * Login
  */
-@Path("ledger")
+@Path("auth")
 public class LoginResource extends AbstractBookkeeperResource {
-    
+
     @Context
     private HttpServletRequest request;
-    
-    @POST    
-    public void login(String username, String password) {
+
+    public static class LoginResult {
+
+        private boolean ok;
+
+        public boolean isOk() {
+            return ok;
+        }
+
+        public void setOk(boolean ok) {
+            this.ok = ok;
+        }
+
+    }
+
+    @GET
+    @Path("login")
+    public LoginResult login(@QueryParam("username") String username,
+            @QueryParam("password") String password) {
+        LoginResult result = new LoginResult();
         if ("admin".equalsIgnoreCase(username)
                 && "admin".equals(password)) {
             HttpSession session = request.getSession(true);
             session.setAttribute("loggedUser", username);
+            result.setOk(true);
+        } else {
+            result.setOk(false);
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
         }
+        return result;
     }
-    
-    
-    @GET    
+
+    @GET
+    @Path("logout")
     public void logout() {
         HttpSession session = request.getSession(false);
         if (session != null) {
