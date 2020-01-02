@@ -1,12 +1,14 @@
 <template>
-    <main class="bvm-page-container">
-        <Title v-if="pageTitle" :title="pageTitle" :params="this.$route.params"/>
-        <router-view :key="$route.path" class="bvm-view"/>
-    </main>
+    <v-content>
+        <v-container>
+            <Title v-if="pageTitle" :title="pageTitle" :params="this.$route.params" />
+            <router-view :key="$route.path" class="bvm-view" />
+        </v-container>
+    </v-content>
 </template>
 <script>
 export default {
-    data: function() {
+    data() {
         return {
             pageTitle: this.$route.meta.title,
             pageParams: this.$route.params

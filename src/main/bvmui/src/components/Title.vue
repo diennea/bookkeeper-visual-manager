@@ -1,7 +1,5 @@
 <template>
-    <div class="bvm-title">
-        <h1>{{computedTitle}}</h1>
-    </div>
+    <h1 class="bvm-title display-1 mb-3">{{computedTitle}}</h1>
 </template>
 <script>
 export default {

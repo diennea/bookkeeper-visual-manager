@@ -8,6 +8,10 @@ import library from './lib/library'
 
 import upperFirst from 'lodash/upperFirst'
 import camelCase from 'lodash/camelCase'
+import vuetify from './plugins/vuetify';
+
+import '@mdi/font/css/materialdesignicons.css';
+import "@/styles/main.scss";
 
 Vue.config.productionTip = false
 Vue.prototype.$request = request;
@@ -36,5 +40,6 @@ requireComponent.keys().forEach(fileName => {
 new Vue({
     router,
     store,
+    vuetify,
     render: h => h(App)
 }).$mount('#app')

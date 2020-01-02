@@ -1,4 +1,7 @@
 .bvm-title {
-    margin: 30px 0;
     font-weight: bold;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
