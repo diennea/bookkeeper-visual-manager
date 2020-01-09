@@ -19,12 +19,16 @@
  */
 package org.bookkeepervisualmanager.api.resources;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.GET;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Login
@@ -32,12 +36,61 @@ import javax.ws.rs.core.Context;
 @Path("auth")
 public class LoginResource extends AbstractBookkeeperResource {
 
+    private static final Map<String, String> USERS;
+
+    static {
+        USERS = new HashMap<>();
+        USERS.put("admin", "admin");
+    }
+
     @Context
     private HttpServletRequest request;
 
-    public static class LoginResult {
+    @POST
+    @Path("login")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public LoginResponse login(LoginRequest loginRequest) {
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
+
+        LoginResponse response = new LoginResponse();
+        if (USERS.containsKey(username)
+                && USERS.get(username).equals(password)) {
+            HttpSession session = request.getSession(true);
+            String sessionId = session.getId();
+            session.setAttribute("user-token", sessionId);
+
+            response.setOk(true);
+            response.setToken(sessionId);
+        } else {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            response.setOk(false);
+        }
+
+        return response;
+    }
+
+    @POST
+    @Secured
+    @Path("logout")
+    public void logout() {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+    }
+
+    public static class LoginResponse implements java.io.Serializable {
 
         private boolean ok;
+        private String token;
+
+        public LoginResponse() {
+        }
 
         public boolean isOk() {
             return ok;
@@ -47,34 +100,40 @@ public class LoginResource extends AbstractBookkeeperResource {
             this.ok = ok;
         }
 
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
     }
 
-    @GET
-    @Path("login")
-    public LoginResult login(@QueryParam("username") String username,
-            @QueryParam("password") String password) {
-        LoginResult result = new LoginResult();
-        if ("admin".equalsIgnoreCase(username)
-                && "admin".equals(password)) {
-            HttpSession session = request.getSession(true);
-            session.setAttribute("loggedUser", username);
-            result.setOk(true);
-        } else {
-            result.setOk(false);
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.invalidate();
-            }
+    public static class LoginRequest implements java.io.Serializable {
+
+        private String username;
+        private String password;
+
+        public LoginRequest() {
         }
-        return result;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
     }
 
-    @GET
-    @Path("logout")
-    public void logout() {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-    }
 }

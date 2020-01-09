@@ -34,6 +34,7 @@ import org.bookkeepervisualmanager.cache.Bookie;
 public class BookiesResource extends AbstractBookkeeperResource {
 
     @GET
+    @Secured
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<BookieBean> getBookies() throws Exception {

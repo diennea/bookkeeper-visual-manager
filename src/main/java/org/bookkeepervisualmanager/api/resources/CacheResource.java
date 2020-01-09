@@ -67,6 +67,7 @@ public class CacheResource extends AbstractBookkeeperResource {
     }
 
     @GET
+    @Secured
     @Path("info")
     @Produces(MediaType.APPLICATION_JSON)
     public CacheInfo getInfo() throws Exception {
@@ -74,6 +75,7 @@ public class CacheResource extends AbstractBookkeeperResource {
     }
 
     @GET
+    @Secured
     @Path("refresh")
     @Produces(MediaType.APPLICATION_JSON)
     public CacheInfo refresh() throws Exception {

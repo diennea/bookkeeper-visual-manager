@@ -27,7 +27,11 @@
     </div>
 </template>
 <script>
+import Spinner from "@/components/Spinner"
 export default {
+    components: {
+        Spinner
+    },
     data() {
         return {
             pageLoaded: false,
@@ -71,12 +75,6 @@ export default {
         }
     },
     created() {
-        if (!this.$store.state.logged) {
-            this.$router.push({
-                name: "login"
-            });
-            return;
-        }
         this.$request.get(
             "api/cache/info",
             cacheInfo => {

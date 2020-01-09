@@ -20,21 +20,21 @@
 package org.bookkeepervisualmanager.api;
 
 import java.util.Set;
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
-import org.bookkeepervisualmanager.api.listeners.AuthFilter;
 
-@javax.ws.rs.ApplicationPath("api")
+@ApplicationPath("api")
 public class ApplicationConfig extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new java.util.HashSet<>();
-        resources.add(AuthFilter.class);
         addRestResourceClasses(resources);
         return resources;
     }
 
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(org.bookkeepervisualmanager.api.listeners.AuthFilter.class);
         resources.add(org.bookkeepervisualmanager.api.resources.BookiesResource.class);
         resources.add(org.bookkeepervisualmanager.api.resources.CacheResource.class);
         resources.add(org.bookkeepervisualmanager.api.resources.LedgersResource.class);

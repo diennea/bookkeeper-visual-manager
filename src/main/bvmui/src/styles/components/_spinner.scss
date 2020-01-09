@@ -20,6 +20,7 @@
     border-radius: 50%;
     border-top-color: #fff;
     animation: spin 1s ease-in-out infinite;
+    animation-delay: 500ms;
   }
   
   @keyframes spin {

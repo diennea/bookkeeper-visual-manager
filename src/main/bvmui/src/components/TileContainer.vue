@@ -11,7 +11,11 @@
     </div>
 </template>
 <script>
+import Tile from "./Tile";
 export default {
+    components: {
+        Tile
+    },
     props: {
         items: Array
     }

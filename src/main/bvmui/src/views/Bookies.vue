@@ -1,11 +1,17 @@
 <template>
     <div class="bvm-bookie">
-        <CardContainer v-if="pageLoaded" :items="bookies" @item-clicked="itemClicked"/>
-        <Spinner v-else/>
+        <CardContainer v-if="pageLoaded" :items="bookies" @item-clicked="itemClicked" />
+        <Spinner v-else />
     </div>
 </template>
 <script>
+import CardContainer from "@/components/CardContainer";
+import Spinner from "@/components/Spinner";
 export default {
+    components: {
+        CardContainer,
+        Spinner
+    },
     data() {
         return {
             pageLoaded: false,
@@ -13,9 +19,6 @@ export default {
         };
     },
     methods: {
-        redirectToPage(page, params) {
-            const _params = !params ? {} : params;
-        },
         itemClicked(item) {
             this.$router.push({
                 name: "bookie-ledgers",
@@ -24,24 +27,10 @@ export default {
         }
     },
     created() {
-        if (!this.$store.state.logged) {
-            this.$router.push({
-                name: "login"
-            });
-            return;
-        }
-        this.$request.get(
-            "api/bookie/all",
-            bookies => {
-                this.pageLoaded = true;
-                this.bookies = bookies;
-            },
-            error => {
-                this.$router.push({
-                    name: "error"
-                });
-            }
-        );
+        this.$request.get("api/bookie/all", bookies => {
+            this.pageLoaded = true;
+            this.bookies = bookies;
+        });
     }
 };
 </script>
