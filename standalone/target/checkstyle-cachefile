@@ -1,6 +1,0 @@
-#Sat Jan 11 17:09:42 CET 2020
-/home/eolivelli/dev/bookkeeper-visual-manager/standalone/src/main/java/org/bookkeepervisualmanager/server/Server.java=1578758929000
-/home/eolivelli/dev/bookkeeper-visual-manager/standalone/src/main/java/org/bookkeepervisualmanager/daemons/PidFileLocker.java=1578758865000
-/home/eolivelli/dev/bookkeeper-visual-manager/standalone/src/main/java/org/bookkeepervisualmanager/server/ServerMain.java=1578758946000
-module-resource*?\:/home/eolivelli/dev/bookkeeper-visual-manager/standalone/target/checkstyle-suppressions.xml=FCD56C99D8BC5909FFDA271CE8242068AC4BA365
-configuration*?=6353542D0FECE60C2E6BCF238A72B203AF3D57AE

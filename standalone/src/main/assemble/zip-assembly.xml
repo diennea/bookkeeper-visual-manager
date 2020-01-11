@@ -4,6 +4,7 @@
     <id>release</id>
     <formats>
         <format>zip</format>
+        <format>dir</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
     <fileSets>
@@ -23,30 +24,21 @@
                 <include>service</include>
                 <include>bookkeeper</include>
             </includes>
-        </fileSet>
-        <fileSet>
-            <directory>target/generated-sources/license</directory>
-            <outputDirectory>license</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-        </fileSet>
-
+        </fileSet>      
     </fileSets>
     <dependencySets>
         <dependencySet>
             <useProjectArtifact>true</useProjectArtifact>
             <useStrictFiltering>true</useStrictFiltering>
-            <unpack>false</unpack>           
+            <unpack>true</unpack>           
             <includes>                
-                <include>org.blobit:blobit-cli:*</include>
+                <include>bookkeeper-visual-manager:bookkeeper-visual-manager:war</include>
             </includes>            
-            <outputDirectory>.</outputDirectory>
-            <outputFileNameMapping>blobit-cli.jar</outputFileNameMapping>
+            <outputDirectory>web</outputDirectory>
         </dependencySet>
         <dependencySet>
             <excludes>
-                <exclude>org.blobit:blobit-cli:*</exclude>
+                <exclude>bookkeeper-visual-manager:bookkeeper-visual-manager:war</exclude>
             </excludes>
             <useProjectArtifact>true</useProjectArtifact>
             <useStrictFiltering>true</useStrictFiltering>

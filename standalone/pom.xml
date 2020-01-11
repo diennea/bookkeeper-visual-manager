@@ -23,6 +23,13 @@
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
+<!--        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>bookkeeper-visual-manager</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+            <type>jar</type>
+        </dependency>-->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -36,6 +43,16 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-annotations</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-plus</artifactId>
             <version>${jetty.version}</version>
         </dependency>
         <dependency>

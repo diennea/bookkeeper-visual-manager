@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<checkstyle version="8.19">
-<file name="/home/eolivelli/dev/bookkeeper-visual-manager/standalone/src/main/java/org/bookkeepervisualmanager/daemons/PidFileLocker.java">
-</file>
-<file name="/home/eolivelli/dev/bookkeeper-visual-manager/standalone/src/main/java/org/bookkeepervisualmanager/server/ServerMain.java">
-</file>
-<file name="/home/eolivelli/dev/bookkeeper-visual-manager/standalone/src/main/java/org/bookkeepervisualmanager/server/Server.java">
-</file>
-</checkstyle>

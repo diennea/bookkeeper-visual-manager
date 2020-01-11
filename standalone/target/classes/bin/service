@@ -48,12 +48,8 @@ MAINCLASS=
 
 case "$SERVICE" in
   server)
-    MAINCLASS=blobit.server.ServerMain
-    ;;
-  zookeeper)
-    MAINCLASS=blobit.server.ZooKeeperMainWrapper
-    ;;
-   
+    MAINCLASS=org.bookkeepervisualmanager.server.ServerMain
+    ;;  
       
   *)
     echo $"Usage: $0 server|zookeeper {start|stop|restart|console|kill|stacktrace|status}"
