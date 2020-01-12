@@ -23,13 +23,6 @@
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
-<!--        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>bookkeeper-visual-manager</artifactId>
-            <version>${project.version}</version>
-            <classifier>classes</classifier>
-            <type>jar</type>
-        </dependency>-->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -59,12 +52,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
             <version>${jetty.version}</version>
-        </dependency>               
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <version>${libs.curator}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -82,9 +69,10 @@
                 <version>3.1.1</version>
                 <configuration>
                     <appendAssemblyId>false</appendAssemblyId>
+                    <finalName>bookkeeper-visual-manager-${project.version}</finalName>
                     <descriptors>
                         <descriptor>src/main/assemble/zip-assembly.xml</descriptor>
-                    </descriptors>                    
+                    </descriptors>
                 </configuration>
                 <executions>
                     <execution>

@@ -54,28 +54,18 @@ public class ServerMain implements AutoCloseable {
                 if (!arg.startsWith("-")) {
                     File configFile = new File(args[i]).getAbsoluteFile();
                     LOG.severe("Reading configuration from " + configFile);
+                    System.setProperty("bookkeeper.visual.manager.config.path", configFile.getAbsolutePath());
                     try (InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile),
                             StandardCharsets.UTF_8)) {
                         configuration.load(reader);
                     }
                     configFileFromParameter = true;
-                } else if (arg.equals("--use-env")) {
-                    System.getenv().forEach((key, value) -> {
-                        System.out.println("Considering env as system property " + key + " -> " + value);
-                        System.setProperty(key, value);
-                    });
-                } else if (arg.startsWith("-D")) {
-                    int equals = arg.indexOf('=');
-                    if (equals > 0) {
-                        String key = arg.substring(2, equals);
-                        String value = arg.substring(equals + 1);
-                        System.setProperty(key, value);
-                    }
                 }
             }
             if (!configFileFromParameter) {
                 File configFile = new File("conf/server.properties").getAbsoluteFile();
                 System.out.println("Reading configuration from " + configFile);
+                System.setProperty("bookkeeper.visual.manager.config.path", configFile.getAbsolutePath());
                 if (configFile.isFile()) {
                     try (InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile),
                             StandardCharsets.UTF_8)) {
@@ -83,13 +73,6 @@ public class ServerMain implements AutoCloseable {
                     }
                 }
             }
-
-            System.getProperties().forEach((k, v) -> {
-                String key = k + "";
-                if (!key.startsWith("java") && !key.startsWith("user")) {
-                    configuration.put(k, v);
-                }
-            });
 
             LogManager.getLogManager().readConfiguration();
 

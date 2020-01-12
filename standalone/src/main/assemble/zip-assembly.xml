@@ -4,7 +4,6 @@
     <id>release</id>
     <formats>
         <format>zip</format>
-        <format>dir</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
     <fileSets>
@@ -22,7 +21,6 @@
             <includes>
                 <include>*.sh</include>
                 <include>service</include>
-                <include>bookkeeper</include>
             </includes>
         </fileSet>      
     </fileSets>
