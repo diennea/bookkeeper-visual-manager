@@ -166,7 +166,7 @@ public class ServerMain implements AutoCloseable {
         int httpport = Integer.parseInt(configuration.getProperty("http.port", "4500"));
 
         httpserver = new org.eclipse.jetty.server.Server(new InetSocketAddress(httphost, httpport));
-        
+
         org.eclipse.jetty.webapp.Configuration.ClassList classlist =
                 org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(httpserver);
         classlist.addAfter(org.eclipse.jetty.webapp.FragmentConfiguration.class.getName(),

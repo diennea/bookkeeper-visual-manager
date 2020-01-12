@@ -38,7 +38,7 @@ import org.bookkeepervisualmanager.config.ServerConfiguration;
 public class ContextInitializer implements ServletContextListener {
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) {        
+    public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
         context.log("starting");
 
