@@ -34,9 +34,6 @@ import org.bookkeepervisualmanager.daemons.PidFileLocker;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-/**
- * Created by enrico.olivelli on 23/03/2015.
- */
 public class ServerMain implements AutoCloseable {
 
     private static ServerMain runningInstance;
