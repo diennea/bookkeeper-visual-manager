@@ -1,28 +1,48 @@
 <template>
-    <div class="bvm-card" @click="$emit('click', $event)">
-        <div class="bvm-card-description">{{data.description}}</div>
-        <div class="bvm-card-status">
-            <h1 >{{data.state}}</h1>
-        </div>
-        <div class="bvm-card-content">
-            <ul>
-                <li v-if="data.totalDiskSpace > 0">
-                    <span>Free space: {{$library.formatBytes(data.freeDiskSpace)}} - {{$library.formatPercent(data.freeDiskSpace, data.totalDiskSpace)}} %</span>
-                </li>
-                <li v-if="data.totalDiskSpace > 0">
-                    <span>Total space: {{$library.formatBytes(data.totalDiskSpace)}}</span>
-                </li>
-                <li>
-                    <span>Sampled at {{new Date(data.lastScan)}}.</span>
-                </li>
-            </ul>
-        </div>
-    </div>
+    <v-card class="mx-auto" :color="statuscolor" raised dark @click="$emit('click', $event)">
+        <v-list-item two-line>
+        <v-list-item-content>
+            <v-list-item-title class="headline">{{data.bookieId}}</v-list-item-title>
+            <v-list-item-subtitle>{{$library.formatDate(data.lastScan)}}</v-list-item-subtitle>
+        </v-list-item-content>
+        </v-list-item>
+        <v-card-text>
+            <p class="text-center text-uppercase display-1">{{data.state}}</p>            
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-list class="transparent">
+            <v-list-item>
+                <v-list-item-title>Usage</v-list-item-title>
+                <v-list-item-subtitle class="text-right">{{$library.formatPercent(data.totalDiskSpace - data.freeDiskSpace, data.totalDiskSpace)}}&#37;</v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item>
+                <v-list-item-title>Free space</v-list-item-title>
+                <v-list-item-subtitle class="text-right">{{$library.formatBytes(data.freeDiskSpace)}}</v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item>
+                <v-list-item-title>Total space</v-list-item-title>
+                <v-list-item-subtitle class="text-right">{{$library.formatBytes(data.totalDiskSpace)}}</v-list-item-subtitle>
+            </v-list-item>
+        </v-list> 
+    </v-card>
 </template>
 <script>
 export default {
     props: {
         data: Object
+    },    
+    computed: {
+        statuscolor(){
+            switch(this.data.state){
+                case 'available':
+                    return 'light-blue darken-1';                   
+                case 'down':               
+                    return 'blue-grey darken-4';     
+                case 'readonly':
+                    return 'blue-grey darken-1';     
+                default:
+            }            
+        }  
     }
 };
 </script>
