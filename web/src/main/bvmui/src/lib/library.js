@@ -24,5 +24,18 @@ export default {
             );
         }
         return string;
+    },
+    formatDate(ts){
+        if (ts){
+            const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];            
+            let current_datetime = new Date()
+            let formatted_date = current_datetime.getDate()  + " "
+            + (months[current_datetime.getMonth()]) + " " 
+            + current_datetime.getFullYear() + " " 
+            + current_datetime.getHours() + ":" 
+            + (current_datetime.getMinutes() < 10 ? "0" + current_datetime.getMinutes() : current_datetime.getMinutes()) 
+            console.log("formatted_date",formatted_date);
+            return formatted_date;
+        }
     }
 }
