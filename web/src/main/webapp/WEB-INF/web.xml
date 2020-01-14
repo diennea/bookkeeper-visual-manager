@@ -9,6 +9,10 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    <servlet-mapping>
+        <servlet-name>api-servlet</servlet-name>
+        <url-pattern>/api</url-pattern>        
+    </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
