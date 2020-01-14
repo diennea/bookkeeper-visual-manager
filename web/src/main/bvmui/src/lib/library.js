@@ -34,7 +34,6 @@ export default {
             + current_datetime.getFullYear() + " " 
             + current_datetime.getHours() + ":" 
             + (current_datetime.getMinutes() < 10 ? "0" + current_datetime.getMinutes() : current_datetime.getMinutes()) 
-            console.log("formatted_date",formatted_date);
             return formatted_date;
         }
     }

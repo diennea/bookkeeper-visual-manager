@@ -29,7 +29,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.bookkeepervisualmanager.cache.Bookie;
 
-
 @Path("bookie")
 public class BookiesResource extends AbstractBookkeeperResource {
 
@@ -57,6 +56,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
             }
 
+            b.setBookieId(bookie.getBookieId());
             b.setFreeDiskSpace(bookie.getFreeDiskspace());
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
             b.setLastScan(bookie.getScanTime().getTime());
@@ -69,11 +69,20 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public static final class BookieBean implements Serializable {
 
         private String state;
+        private String bookieId;
         private String description;
 
         private long freeDiskSpace;
         private long totalDiskSpace;
         private long lastScan;
+
+        public String getBookieId() {
+            return bookieId;
+        }
+
+        public void setBookieId(String bookieId) {
+            this.bookieId = bookieId;
+        }
 
         public long getLastScan() {
             return lastScan;
@@ -82,7 +91,6 @@ public class BookiesResource extends AbstractBookkeeperResource {
         public void setLastScan(long lastScan) {
             this.lastScan = lastScan;
         }
-
 
         public String getState() {
             return state;
