@@ -1,9 +1,35 @@
-.bvm-page-container {
-    padding: 20px 30px;
-    margin-top: 50px;
+.bvm-ledger-search {
+    display: flex;
+    margin-bottom: 30px;
 }
 
 .bvm-ledger {
     display: flex;
-    flex-flow: row;
+
+    .bvm-metadata-container {
+        position: sticky;
+        top: 10%;
+
+        flex-grow: 0;
+        flex-shrink: 0;
+
+        width: 600px;
+        height: 600px;
+
+        overflow: auto;
+    }
+
+    .bvm-tile-container {
+        display: flex;
+        flex-wrap: wrap;
+
+        flex-grow: 1;
+        margin: 0 -5px;
+
+        .bvm-tile {
+            padding: 5px 15px;
+            margin: 0 5px;
+            margin-bottom: 5px;
+        }
+    }
 }

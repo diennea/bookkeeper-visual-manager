@@ -1,37 +1,19 @@
-.bvm-tile-container {
-    flex: 3;
-
-    display: flex;
-    flex-flow: row;
-    flex-wrap: wrap;
-
-    .bvm-tile {
-        margin-right: 5px;
-        margin-bottom: 5px;
-
-        padding: 5px 15px;
-    }
-}
-
 .bvm-tile {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 150px;
+    max-width: 150px;
 
-    width: 150px;
     height: 100px;
     border-radius: 4px;
 
-    color: #FFFFFF;
-    background-color: color('primary');
+    color: #ffffff;
+    background-color: color("primary");
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
     &:hover {
-        background-color: lighten(color('primary'), 3);
+        background-color: lighten(color("primary"), 3);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 
         cursor: pointer;
-        transition: .15s;
+        transition: 0.15s;
     }
-
 }

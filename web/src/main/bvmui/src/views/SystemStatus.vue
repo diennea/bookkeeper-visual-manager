@@ -1,22 +1,19 @@
 <template>
     <div class="bvm-bookie">
-        <div v-if="pageLoaded">            
-            
-        
             <v-tabs
-                background-color="light-blue"
+                background-color="blue lighten-1"
                 center-active
                 dark>
                 <v-tab>Cluster Status on ZooKeeper</v-tab>
                 <v-tab>Client Configuration</v-tab>
                 <v-tab>Cache Status</v-tab>
                 <v-tab-item>
-                    <v-simple-table>
+                    <v-simple-table class="mt-2 elevation-1">
                         <template v-slot:default>
                             <thead>
                                 <tr>
-                                <th class="text-left">Property</th>
-                                <th class="text-left">Value</th>
+                                    <th class="text-left">Property</th>
+                                    <th class="text-left">Value</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -30,25 +27,22 @@
                         </template>
                     </v-simple-table>
                 </v-tab-item>
-    
                 <v-tab-item>
-                    <p>Client configuration used by this BookKeeper Visual Manager instance</p>
-                    <v-textarea v-model="bookkeeperConfiguration" readonly />            
+                    <span class="caption mt-2">Client configuration used by this BookKeeper Visual Manager instance</span>
+                    <v-data-table
+                        :headers="headers"
+                        :items="computedBookkeeperConfiguration"
+                        multi-sort
+                        hide-default-footer
+                        class="mt-2 elevation-1"
+                    ></v-data-table>
                 </v-tab-item>
-
                 <v-tab-item>
-                    <p>
+                    <p class="caption my-2">
                         BookKeeper Visual Manager caches data on a local database
                         in order to save resources on the Metadata Service (ZooKeeper).
                         You have to manually request a reload from ZooKeeper.
                     </p>
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{ on }">
-                            <span v-on="on">Background worked status <b>{{status}}</b></span>
-                        </template>
-                        <span>Last reload from ZooKeeper was at <b>{{new Date(lastCacheRefresh)}}</b></span>
-                    </v-tooltip>
-                    <v-divider />
                     <v-btn
                         depressed
                         large
@@ -57,7 +51,6 @@
                         @click="refreshPage">
                         Reload page
                     </v-btn>
-
                     <v-btn
                         depressed
                         large
@@ -66,10 +59,15 @@
                         @click="refreshCache">
                         Reload metadata from ZooKeeper
                     </v-btn>
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                            <span class="ml-2" v-on="on">Background worked status <b>{{status}}</b></span>
+                        </template>
+                        <span>Last reload from ZooKeeper was at <b>{{new Date(lastCacheRefresh)}}</b></span>
+                    </v-tooltip>
                 </v-tab-item>
             </v-tabs>
         </div>
-        <Spinner v-else/>
     </div>
 </template>
 <script>
@@ -80,7 +78,10 @@ export default {
     },
     data() {
         return {
-            pageLoaded: false,
+            headers: [
+                { text: "Property", value: "name" },
+                { text: "Value", value: "value" }
+            ],
             lastCacheRefresh: 0,
             status: "unknown",
             bookkeeperConfiguration: "",
@@ -94,10 +95,8 @@ export default {
     },
     methods: {
         refreshCache() {
-            this.$request.get(
-            "api/cache/refresh",
+            this.$request.get("api/cache/refresh").then(
             cacheInfo => {
-                this.pageLoaded = true;
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
                 this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
@@ -107,19 +106,11 @@ export default {
                 this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
                 this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
                 this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
-            },
-            error => {
-                this.$router.push({
-                    name: "error"
-                });
-            }
-        );
+            });
         },
         refreshPage() {
-            this.$request.get(
-            "api/cache/info",
+            this.$request.get("api/cache/info").then(
             cacheInfo => {
-                this.pageLoaded = true;
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
                 this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
@@ -129,18 +120,26 @@ export default {
                 this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
                 this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
                 this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
-            },
-            error => {
-                this.$router.push({
-                    name: "error"
+            });
+        }
+    },
+    computed: {
+        computedBookkeeperConfiguration() {
+            if (!this.bookkeeperConfiguration) {
+                return [];
+            }
+            let conf = [];
+            for (let keyValue in this.bookkeeperConfiguration) {
+                conf.push({
+                    name: keyValue,
+                    value: this.bookkeeperConfiguration[keyValue]
                 });
-            }        
-        );
+            }
+            return conf;
         }
     },
     created() {
-        this.$request.get(
-            "api/cache/info",
+        this.$request.get("api/cache/info").then(
             cacheInfo => {
                 this.pageLoaded = true;
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
@@ -152,11 +151,6 @@ export default {
                 this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
                 this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
                 this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
-            },
-            error => {
-                this.$router.push({
-                    name: "error"
-                });
             }
         );
     }

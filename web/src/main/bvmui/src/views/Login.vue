@@ -42,16 +42,14 @@ export default {
     },
     methods: {
         performLogin() {
-            const username = this.username;
-            const password = this.password;
-            this.$store
-                .dispatch("login", { username, password })
+            const {username, password} = this;
+            this.$store.dispatch("login", { username, password })
                 .then(response => {
                     if (!response.ok) {
                         this.hasError = true;
-                        return;
+                    } else {
+                        this.$router.push("/");
                     }
-                    this.$router.push("/");
                 })
                 .catch(err => {
                     this.hasError = true;

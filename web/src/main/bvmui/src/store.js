@@ -9,7 +9,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {
         drawerExpanded: false,
-        token: auth.getSession(),
+        token: '',
         status: '',
     },
     mutations: {
@@ -19,9 +19,9 @@ export default new Vuex.Store({
         authRequest(state) {
             state.status = 'loading';
         },
-        authSuccess(state) {
+        authSuccess(state, token) {
             state.status = 'success';
-            state.token = 'dummy';
+            state.token = token;
         },
         authError(state) {
             state.status = 'error';
@@ -32,44 +32,38 @@ export default new Vuex.Store({
         },
     },
     getters: {
-        isLogged: state => {
-            if (!state.token) {
-                return false;
-            }
-            return true;
-        },
-        authStatus: state => state.status,
+        isLogged: state => !state.token ? false : true,
     },
     actions: {
         login({ commit }, loginInfo) {
             return new Promise((resolve, reject) => {
                 commit('authRequest');
-                request.post(auth.LOGIN_ENDPOINT, loginInfo,
-                    res => {
-                        auth.createSession();
-                        commit('authSuccess');
+                request.post(auth.LOGIN_ENDPOINT, loginInfo)
+                    .then(res => {
+                        auth.createSession('dummy');
+                        commit('authSuccess', 'dummy');
                         resolve(res);
-                    },
-                    err => {
+                    })
+                    .catch(err => {
                         commit('authError');
                         reject(err);
-                    }
-                );
+                    });
             })
         },
         logout({ commit }) {
             return new Promise((resolve, reject) => {
-                request.post(auth.LOGOUT_ENDPOINT, {},
-                    res => {
+                request.post(auth.LOGOUT_ENDPOINT)
+                    .then(res => {
                         resolve(res);
-                    },
-                    err => {
+                    })
+                    .catch(err => {
                         reject(err);
-                    }
-                );
-                auth.destroySession();
-                commit('logout');
-                resolve();
+                    })
+                    .finally(() => {
+                        auth.destroySession();
+                        commit('logout');
+                        resolve();
+                    });
             });
         }
     }

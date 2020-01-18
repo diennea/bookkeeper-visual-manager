@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-auto" :color="statuscolor" raised dark @click="$emit('click', $event)">
+    <v-card class="d-inline-block mx-2 mb-10" width="400" max-width="400" :color="statuscolor" raised dark @click="$emit('click', $event)">
         <v-list-item two-line>
         <v-list-item-content>
             <v-list-item-title class="headline">{{data.bookieId}}</v-list-item-title>

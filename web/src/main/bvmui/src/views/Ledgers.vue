@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-form class="d-flex mb-5" 
+        <v-form class="bvm-ledger-search"
             @submit.prevent="performSearch" >
             <v-text-field
                 v-model="searchTerm"
@@ -44,29 +44,32 @@
                 Search
             </v-btn>
         </v-form>
-        <div class="bvm-ledger">
-            <TileContainer 
-                v-if="ledgersLoaded" 
-                :items="ledgers" 
-                @item-clicked="showMetadata" />
-            <Spinner v-else/>
-            <MetadataContainer
-                v-if="showLedgerMetadata"
-                :currentLedger="currentLedger"
-                @close="closeMetadata"
-            />
+        <div class="bvm-ledger" :class="{'metadata': showLedgerMetadata}">
+            <div class="bvm-tile-container">
+                <Tile
+                    v-for="item in ledgers"
+                    :item="item"
+                    :key="item.id"
+                    @click="showMetadata(item.id)"
+                />
+            </div>
+            <div v-if="showLedgerMetadata"
+                class="bvm-metadata-container">
+                <MetadataContainer
+                    :currentLedger="currentLedger"
+                    @close="closeMetadata"
+                />
+            </div>
         </div>
     </div>
 </template>
 <script>
 import MetadataContainer from "@/components/MetadataContainer";
-import TileContainer from "@/components/TileContainer";
-import Spinner from "@/components/Spinner";
+import Tile from "@/components/Tile";
 export default {
     components: {
         MetadataContainer,
-        TileContainer,
-        Spinner
+        Tile,
     },
     data() {
         return {
@@ -76,22 +79,15 @@ export default {
             minAge: 0,
             showLedgerMetadata: false,
             currentLedger: null,
-            ledgersLoaded: false,
             ledgers: []
         };
     },
     methods: {
         showMetadata(ledgerId) {
-            const url = `api/ledger/metadata/${ledgerId}`;
-            this.$request.get(url,
+            this.$request.get(`api/ledger/metadata/${ledgerId}`).then(
                 ledger => {
                     this.currentLedger = ledger;
                     this.showLedgerMetadata = true;
-                },
-                error => {
-                    this.$router.push({
-                        name: "error"
-                    });
                 }
             );
         },
@@ -99,7 +95,8 @@ export default {
             this.metadata = null;
             this.showLedgerMetadata = false;
         },
-        performSearch: function() {
+        performSearch() {
+            this.closeMetadata();
             let url = "api/ledger/all?term="+encodeURIComponent(this.searchTerm)
                         +"&minLength="+encodeURIComponent(this.minLength)
                         +"&maxLength="+encodeURIComponent(this.maxLength)
@@ -108,14 +105,11 @@ export default {
                 const bookieId = this.$route.params.bookieId;
                 url = url + "&bookie="+encodeURIComponent(bookieId);
             }
-            this.$request.get(url,
+            this.$request.get(url).then(
                 ledgers => {
-                    this.ledgersLoaded = true;
                     this.ledgers = ledgers;
-                },
-                error => {
-                    this.$router.push({ name: "error" });
-            });
+                }
+            );
         }
     },
     created() {
@@ -124,9 +118,8 @@ export default {
             const bookieId = this.$route.params.bookieId;
             url = "api/ledger/all?bookie="+encodeURIComponent(bookieId);
         }
-        this.$request.get(url,
+        this.$request.get(url).then(
             ledgers => {
-                this.ledgersLoaded = true;
                 this.ledgers = ledgers;
             }
         );

@@ -2,7 +2,7 @@
     <v-content>
         <v-container>
             <Title v-if="pageTitle" :title="pageTitle" :params="this.$route.params" />
-            <router-view :key="$route.path" class="bvm-view" />
+            <router-view class="bvm-view" :key="$route.path" />
         </v-container>
     </v-content>
 </template>

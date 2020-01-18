@@ -18,7 +18,7 @@ const router = new Router({
         {
             path: '/',
             name: 'home',
-            redirect: "/login"
+            redirect: '/bookies'
         },
         {
             path: '/error',
@@ -67,14 +67,14 @@ const router = new Router({
         },
         {
             path: "*",
-            redirect: "/error"
+            redirect: "/error",
         }
     ]
 })
 
 router.beforeEach((to, from, next) => {
     const isLogin = to.name === 'login';
-    if (isLogin && store.getters.isLogged) { // login logged > home
+    if (isLogin && store.getters.isLogged) {
         next("/");
         return;
     }

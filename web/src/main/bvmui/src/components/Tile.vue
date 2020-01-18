@@ -1,10 +1,17 @@
 <template>
-    <div class="bvm-tile light-blue" @click="$emit('click', $event)">
-        <span>Ledger {{item.id}}<br />
-        Size {{$library.formatBytes(item.length)}}<br />
-        Replication {{item.writeQuorumSize}}<br />
-        Age {{item.age}} hours<br />
-        </span>
+    <div class="bvm-tile" @click="$emit('click', $event)">
+        <div class="bvm-tile__row">
+            <span>Ledger {{ item.id }}</span>
+        </div>
+        <div class="bvm-tile__row">
+            <span>Size {{ $library.formatBytes(item.length) }}</span>
+        </div>
+        <div class="bvm-tile__row">
+            <span>Replication {{ item.writeQuorumSize }}</span>
+        </div>
+        <div class="bvm-tile__row">
+            <span>Age {{ item.age }} hours</span>
+        </div>
     </div>
 </template>
 <script>
@@ -14,5 +21,3 @@ export default {
     }
 };
 </script>
-
-

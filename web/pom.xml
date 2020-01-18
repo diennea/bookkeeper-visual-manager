@@ -195,15 +195,6 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>yarn no strict ssl</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>config set strict-ssl false</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>yarn install</id>
                         <goals>
                             <goal>yarn</goal>

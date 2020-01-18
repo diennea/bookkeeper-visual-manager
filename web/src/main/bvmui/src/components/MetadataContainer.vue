@@ -1,5 +1,5 @@
 <template>
-    <div class="bvm-metadata-container">
+    <div class="bvm-metadata">
         <button class="bvm-metadata-close" @click="$emit('close', $event)">✕</button>
         <h3>Ledger {{currentLedger.id}}</h3>
         <div>Age: {{currentLedger.age}} hours</div>

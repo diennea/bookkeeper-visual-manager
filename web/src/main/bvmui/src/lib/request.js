@@ -1,16 +1,12 @@
 import axios from "axios";
 
 export default {
-    get(url, successCallback, errorCallback) {
-        axios
-            .get(url)
-            .then(response => successCallback(response.data))
-            .catch(errorCallback);
+    async get(url) {
+        const response = await axios.get(url);
+        return response.data;
     },
-    post(url, data = {}, successCallback, errorCallback) {
-        axios
-            .post(url, data)
-            .then(response => successCallback(response.data))
-            .catch(errorCallback);
+    async post(url, data = {}) {
+        const response = await axios.post(url, data);
+        return response.data;
     }
 };
