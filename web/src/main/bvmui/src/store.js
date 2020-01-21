@@ -19,9 +19,9 @@ export default new Vuex.Store({
         authRequest(state) {
             state.status = 'loading';
         },
-        authSuccess(state, token) {
+        authSuccess(state) {
             state.status = 'success';
-            state.token = token;
+            state.token = 'dummy';
         },
         authError(state) {
             state.status = 'error';

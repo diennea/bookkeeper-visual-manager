@@ -5,7 +5,7 @@ export default {
         return localStorage.getItem("user-token") || '';
     },
     createSession() {
-        localStorage.setItem("user-token", "dummy");
+        localStorage.setItem("user-token", 'dummy');
     },
     destroySession() {
         localStorage.removeItem("user-token");
