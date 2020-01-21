@@ -21,6 +21,7 @@ package org.bookkeepervisualmanager.api.resources;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
@@ -29,6 +30,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import org.bookkeepervisualmanager.auth.AuthManager;
 
 /**
  * Login
@@ -46,6 +48,9 @@ public class LoginResource extends AbstractBookkeeperResource {
     @Context
     private HttpServletRequest request;
 
+    @Context
+    private ServletContext application;
+
     @POST
     @Path("login")
     @Produces(MediaType.APPLICATION_JSON)
@@ -53,16 +58,12 @@ public class LoginResource extends AbstractBookkeeperResource {
     public LoginResponse login(LoginRequest loginRequest) {
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
+        AuthManager authManager = (AuthManager) application.getAttribute("authManager");
 
         LoginResponse response = new LoginResponse();
-        if (USERS.containsKey(username)
-                && USERS.get(username).equals(password)) {
+        if (authManager.login(username, password)) {
             HttpSession session = request.getSession(true);
-            String sessionId = session.getId();
-            session.setAttribute("user-token", sessionId);
-
             response.setOk(true);
-            response.setToken(sessionId);
         } else {
             HttpSession session = request.getSession(false);
             if (session != null) {
@@ -87,7 +88,6 @@ public class LoginResource extends AbstractBookkeeperResource {
     public static class LoginResponse implements java.io.Serializable {
 
         private boolean ok;
-        private String token;
 
         public LoginResponse() {
         }
@@ -99,15 +99,6 @@ public class LoginResource extends AbstractBookkeeperResource {
         public void setOk(boolean ok) {
             this.ok = ok;
         }
-
-        public String getToken() {
-            return token;
-        }
-
-        public void setToken(String token) {
-            this.token = token;
-        }
-
     }
 
     public static class LoginRequest implements java.io.Serializable {

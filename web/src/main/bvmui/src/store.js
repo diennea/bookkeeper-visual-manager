@@ -46,9 +46,8 @@ export default new Vuex.Store({
                 commit('authRequest');
                 request.post(auth.LOGIN_ENDPOINT, loginInfo,
                     res => {
-                        const { token } = res;
-                        auth.createSession(token);
-                        commit('authSuccess', token);
+                        auth.createSession();
+                        commit('authSuccess');
                         resolve(res);
                     },
                     err => {
