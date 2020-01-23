@@ -62,7 +62,8 @@ public class LoginResource extends AbstractBookkeeperResource {
 
         LoginResponse response = new LoginResponse();
         if (authManager.login(username, password)) {
-            HttpSession session = request.getSession(true);
+            // force Session creation
+            request.getSession(true);
             response.setOk(true);
         } else {
             HttpSession session = request.getSession(false);
