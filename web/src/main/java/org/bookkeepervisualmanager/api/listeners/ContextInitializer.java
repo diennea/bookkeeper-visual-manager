@@ -26,6 +26,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import org.bookkeepervisualmanager.auth.AuthManager;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
 import org.bookkeepervisualmanager.cache.MetadataCache;
 import org.bookkeepervisualmanager.config.ConfigurationNotValidException;
@@ -45,22 +46,29 @@ public class ContextInitializer implements ServletContextListener {
         // force register calcite driver
         new org.apache.calcite.jdbc.Driver();
 
-        HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();
-        // In the future we will make this configurable
-        datasource.setUrl("jdbc:herddb:local");
-
         try {
+            ConfigurationStore configStore = buildInitialConfiguration(context);
+            context.setAttribute("config", configStore);
+
+            HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();
+            // In the future we will make this configurable
+            String jdbcUrl = configStore.getProperty("jdbc.url", "jdbc:herddb:local");
+            datasource.setUrl(jdbcUrl);
+
             context.setAttribute("datasource", datasource);
+
+            AuthManager authManager = new AuthManager(configStore);
+            context.setAttribute("authManager", authManager);
 
             MetadataCache metadataCache = new MetadataCache(datasource);
 
             context.setAttribute("metadataCache", metadataCache);
-            // boot the server
-            datasource.setStartServer(true);
-            datasource.getConnection().close();
-
-            ConfigurationStore configStore = buildInitialConfiguation(context);
-            context.setAttribute("config", configStore);
+            boolean startEmbeddedDatabase = Boolean.parseBoolean(configStore.getProperty("jdbc.startDatabase", "true"));
+            if (startEmbeddedDatabase) {
+                // boot the server
+                datasource.setStartServer(true);
+                datasource.getConnection().close();
+            }
 
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
@@ -123,7 +131,7 @@ public class ContextInitializer implements ServletContextListener {
      * configuration
      * @throws ConfigurationNotValidException
      */
-    public ConfigurationStore buildInitialConfiguation(ServletContext context) throws ConfigurationNotValidException {
+    public ConfigurationStore buildInitialConfiguration(ServletContext context) throws ConfigurationNotValidException {
         try {
             Properties properties = new Properties();
 

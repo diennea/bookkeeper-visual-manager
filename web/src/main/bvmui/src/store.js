@@ -19,9 +19,9 @@ export default new Vuex.Store({
         authRequest(state) {
             state.status = 'loading';
         },
-        authSuccess(state, token) {
+        authSuccess(state) {
             state.status = 'success';
-            state.token = token;
+            state.token = 'dummy';
         },
         authError(state) {
             state.status = 'error';
@@ -46,9 +46,8 @@ export default new Vuex.Store({
                 commit('authRequest');
                 request.post(auth.LOGIN_ENDPOINT, loginInfo,
                     res => {
-                        const { token } = res;
-                        auth.createSession(token);
-                        commit('authSuccess', token);
+                        auth.createSession();
+                        commit('authSuccess');
                         resolve(res);
                     },
                     err => {

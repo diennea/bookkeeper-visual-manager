@@ -20,12 +20,6 @@ Vue.config.productionTip = false
 Vue.prototype.$request = request;
 Vue.prototype.$library = library;
 
-// Session token
-if (auth.isLogged()) {
-    const token = localStorage.getItem("user-token");
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-}
-
 // New instance of Vue with Router and Store
 new Vue({
     router,
