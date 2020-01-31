@@ -96,4 +96,9 @@ public class LedgerBookie implements Serializable {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "LedgerBookie{" + "ledgerId=" + ledgerId + ", bookieId=" + bookieId + '}';
+    }
+
 }
