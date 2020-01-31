@@ -21,6 +21,7 @@ package org.bookkeepervisualmanager.cache;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -78,4 +79,37 @@ public class LedgerMetadataEntry implements Serializable {
         this.entryValue = entryValue;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 57 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
+        hash = 57 * hash + Objects.hashCode(this.entryName);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final LedgerMetadataEntry other = (LedgerMetadataEntry) obj;
+        if (this.ledgerId != other.ledgerId) {
+            return false;
+        }
+        if (!Objects.equals(this.entryName, other.entryName)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "LedgerMetadataEntry{" + "ledgerId=" + ledgerId + ", entryName=" + entryName;
+    }
 }

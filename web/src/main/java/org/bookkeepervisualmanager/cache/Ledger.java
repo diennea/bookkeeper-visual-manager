@@ -150,4 +150,8 @@ public class Ledger implements Serializable {
         return Duration.between(this.ctime.toInstant(), Instant.now()).toMinutes();
     }
 
+    @Override
+    public String toString() {
+        return "Ledger{" + "ledgerId=" + ledgerId + '}';
+    }
 }

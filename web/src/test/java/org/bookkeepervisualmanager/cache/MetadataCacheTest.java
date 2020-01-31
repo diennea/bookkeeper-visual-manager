@@ -37,7 +37,7 @@ public class MetadataCacheTest {
                 Ledger ledger = new Ledger(1, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb = new ArrayList<>();
                 lb.add(new LedgerBookie(1, "localhost:1234"));
-                lb.add(new LedgerBookie(2, "localhost:1235"));
+                lb.add(new LedgerBookie(1, "localhost:1235"));
                 List<LedgerMetadataEntry> entries = new ArrayList<>();
                 entries.add(new LedgerMetadataEntry(1, "application", "pulsar"));
                 entries.add(new LedgerMetadataEntry(1, "component", "foo"));
@@ -63,8 +63,28 @@ public class MetadataCacheTest {
                 assertEquals(1, ledgers2.size());
                 assertEquals(2048, ledgers2.get(0).getSize());
 
+                List<LedgerBookie> mappings = metadataCache.getBookieForLedger(ledger2.getLedgerId());
+                System.out.println("mappings:" + mappings);
+                assertEquals(2, mappings.size());
+
+                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1234").size());
+                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1235").size());
+                assertEquals(0, metadataCache.getLedgersForBookie("localhost:1236").size());
+
+                // UPDATE, re-replication moved data to another bookie
+                Ledger ledger2rewritten = new Ledger(1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                List<LedgerBookie> lb2 = new ArrayList<>();
+                lb2.add(new LedgerBookie(1, "localhost:1234"));
+                lb2.add(new LedgerBookie(1, "localhost:1236"));
+                metadataCache.updateLedger(ledger2rewritten, lb2, entries);
+
+                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1234").size());
+                assertEquals(0, metadataCache.getLedgersForBookie("localhost:1235").size());
+                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1236").size());
+
                 System.out.println("ledgers: " + ledgers2);
 
+                // TESTS OVER BOOKIES
                 Bookie bookie = new Bookie("bookie:123", "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // insert
                 metadataCache.updateBookie(bookie);
