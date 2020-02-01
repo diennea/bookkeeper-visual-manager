@@ -1,6 +1,6 @@
 <template>
-    <div class="bvm-tile" @click="$emit('click', $event)">
-        <span>Ledger {{item.id}}
+    <div class="bvm-tile light-blue" @click="$emit('click', $event)">
+        <span>Ledger {{item.id}}<br />
         Size {{$library.formatBytes(item.length)}}<br />
         Replication {{item.writeQuorumSize}}<br />
         Age {{item.age}} hours<br />

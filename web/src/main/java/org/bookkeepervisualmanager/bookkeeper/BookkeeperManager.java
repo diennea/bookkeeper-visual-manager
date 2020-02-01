@@ -50,10 +50,19 @@ import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.conf.ClientConfiguration;
+import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.discover.RegistrationClient;
+import org.apache.bookkeeper.discover.ZKRegistrationClient;
+import org.apache.bookkeeper.meta.LedgerLayout;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerMetadataSerDe;
+import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
+import org.apache.bookkeeper.meta.exceptions.MetadataException;
 import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.bookkeeper.replication.AuditorElector;
+import org.apache.bookkeeper.replication.ReplicationException;
+import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
+import org.apache.zookeeper.KeeperException;
 import org.bookkeepervisualmanager.cache.Bookie;
 import org.bookkeepervisualmanager.cache.Ledger;
 import org.bookkeepervisualmanager.cache.LedgerBookie;
@@ -86,6 +95,7 @@ public class BookkeeperManager implements AutoCloseable {
     }
     private volatile long lastMetadataCacheRefresh;
     private final String bookkeeperClientConfiguration;
+    private volatile ClusterWideConfiguration lastClusterWideConfiguration;
     private volatile AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperException {
@@ -130,6 +140,7 @@ public class BookkeeperManager implements AutoCloseable {
             this.bkAdmin = new BookKeeperAdmin(bkClient);
 
             this.metadataCache = metadataCache;
+            this.lastClusterWideConfiguration = getClusterWideConfiguration();
         } catch (IOException | InterruptedException | BKException | ConfigurationNotValidException t) {
             throw new BookkeeperException(t);
         }
@@ -140,11 +151,18 @@ public class BookkeeperManager implements AutoCloseable {
         private final RefreshStatus status;
         private final long lastMetadataCacheRefresh;
         private final String bookkkeeperClientConfiguration;
+        private final ClusterWideConfiguration lastClusterWideConfiguration;
 
-        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, String bookkkeeperClientConfiguration) {
+        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, String bookkkeeperClientConfiguration,
+                ClusterWideConfiguration lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
             this.bookkkeeperClientConfiguration = bookkkeeperClientConfiguration;
+            this.lastClusterWideConfiguration = lastClusterWideConfiguration;
+        }
+
+        public ClusterWideConfiguration getLastClusterWideConfiguration() {
+            return lastClusterWideConfiguration;
         }
 
         public String getBookkkeeperClientConfiguration() {
@@ -173,12 +191,13 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public RefreshCacheWorkerStatus getRefreshWorkerStatus() {
-        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh, bookkeeperClientConfiguration);
+        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh, bookkeeperClientConfiguration, lastClusterWideConfiguration);
     }
 
     public void doRefreshMetadataCache() {
         LOG.info("Refreshing Metadata Cache");
         try {
+            lastClusterWideConfiguration = getClusterWideConfiguration();
             final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
             RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
             final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
@@ -362,10 +381,10 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Long> searchLedgers(String term,
-                                    String bookie,
-                                    Integer minLength,
-                                    Integer maxLength,
-                                    Integer minAge) throws BookkeeperException {
+            String bookie,
+            Integer minLength,
+            Integer maxLength,
+            Integer minAge) throws BookkeeperException {
         return metadataCache
                 .searchLedgers(term, bookie)
                 .stream()
@@ -388,6 +407,91 @@ public class BookkeeperManager implements AutoCloseable {
 
     public Collection<Bookie> getAllBookies() throws BookkeeperException {
         return metadataCache.listBookies();
+    }
+
+    public ClusterWideConfiguration getClusterWideConfiguration() throws BookkeeperException {
+        LOG.log(Level.INFO, "starting getClusterWideConfiguration");
+        try {
+            int lostBookieRecoveryDelay = 0;
+            BookieSocketAddress auditor = null;
+            boolean autoRecoveryEnabled = false;
+            int layoutFormatVersion = 0;
+            String layoutManagerFactoryClass = "";
+            int layoutManagerVersion = 0;
+            LedgerLayout ledgerLayout = bkClient.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
+            layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
+            layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
+            layoutManagerVersion = ledgerLayout.getManagerVersion();
+            ZKRegistrationClient metadataClient = (ZKRegistrationClient) bkClient.getMetadataClientDriver().getRegistrationClient();
+            try {
+                auditor = AuditorElector.getCurrentAuditor(new ServerConfiguration(conf), metadataClient.getZk());
+                try (LedgerUnderreplicationManager underreplicationManager = bkClient.getMetadataClientDriver().getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
+                    autoRecoveryEnabled = underreplicationManager.isLedgerReplicationEnabled();
+                    lostBookieRecoveryDelay = underreplicationManager.getLostBookieRecoveryDelay();
+                }
+            } catch (ReplicationException.UnavailableException | KeeperException
+                    | ReplicationException.CompatibilityException notConfigured) {
+                // auto replication stuff never initialized
+                LOG.log(Level.INFO, "Cannot get auditor info: {0}", notConfigured);
+            }
+            String auditorDescription = "";
+            if (auditor != null) {
+                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor);
+            }
+
+            return new ClusterWideConfiguration(auditorDescription, autoRecoveryEnabled, lostBookieRecoveryDelay,
+                    layoutFormatVersion, layoutManagerFactoryClass, layoutManagerVersion);
+        } catch (InterruptedException
+                | MetadataException | IOException ex) {
+            LOG.log(Level.SEVERE, "Error", ex);
+            throw new BookkeeperException(ex);
+        } finally {
+            LOG.log(Level.INFO, "finished getClusterWideConfiguration");
+        }
+    }
+
+    public static final class ClusterWideConfiguration {
+
+        private final String auditor;
+        private final boolean autorecoveryEnabled;
+        private final int lostBookieRecoveryDelay;
+        private final int layoutFormatVersion;
+        private final String layoutManagerFactoryClass;
+        private final int layoutManagerVersion;
+
+        public ClusterWideConfiguration(String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion, String layoutManagerFactoryClass, int layoutManagerVersion) {
+            this.auditor = auditor;
+            this.autorecoveryEnabled = autorecoveryEnabled;
+            this.lostBookieRecoveryDelay = lostBookieRecoveryDelay;
+            this.layoutFormatVersion = layoutFormatVersion;
+            this.layoutManagerFactoryClass = layoutManagerFactoryClass;
+            this.layoutManagerVersion = layoutManagerVersion;
+        }
+
+        public String getAuditor() {
+            return auditor;
+        }
+
+        public boolean isAutorecoveryEnabled() {
+            return autorecoveryEnabled;
+        }
+
+        public int getLostBookieRecoveryDelay() {
+            return lostBookieRecoveryDelay;
+        }
+
+        public int getLayoutFormatVersion() {
+            return layoutFormatVersion;
+        }
+
+        public String getLayoutManagerFactoryClass() {
+            return layoutManagerFactoryClass;
+        }
+
+        public int getLayoutManagerVersion() {
+            return layoutManagerVersion;
+        }
+
     }
 
 }

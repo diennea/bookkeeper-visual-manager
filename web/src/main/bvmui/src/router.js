@@ -52,7 +52,7 @@ const router = new Router({
             name: 'cache',
             component: Cache,
             meta: {
-                title: "Cache",
+                title: "System status",
                 type: "all"
             }
         },

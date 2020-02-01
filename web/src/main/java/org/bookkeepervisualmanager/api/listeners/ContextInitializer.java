@@ -77,7 +77,7 @@ public class ContextInitializer implements ServletContextListener {
             bookkeeperManager.refreshMetadataCache();
         } catch (Throwable ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Unexpected error occurred " + ex);
+            throw new RuntimeException("Unexpected error occurred " + ex, ex);
         }
 
     }

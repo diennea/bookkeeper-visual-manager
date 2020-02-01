@@ -131,5 +131,4 @@ public class BookiesResource extends AbstractBookkeeperResource {
         }
 
     }
-
 }

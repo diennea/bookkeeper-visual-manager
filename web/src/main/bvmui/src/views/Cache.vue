@@ -1,27 +1,73 @@
 <template>
     <div class="bvm-bookie">
-        <div v-if="pageLoaded">
-            <p>
-                BookKeeper Visual Manager caches data on a local database in order to save resources on the Metadata Service (ZooKeeper).
-            </p>
-            <p>
-                Last cache refresh was at <b>{{new Date(lastCacheRefresh)}}</b>.
-            </p>
-            <p>
-                Cache status <b>{{status}}</b> (<a @click="refreshPage" style="cursor: pointer;">Refresh</a>)
-            </p>
-             <v-btn
-                depressed
-                large
-                tile
-                color="blue lighten-1 white--text"
-                @click="refreshCache">
-                Refresh now
-            </v-btn>
-            <div>
-                <span>Current BookKeeper Client Configuration:</span>
-                <textarea v-model='bookkeeperConfiguration' style='width: 100%; min-height: 200px;'></textarea>
-            </div>
+        <div v-if="pageLoaded">            
+            
+        
+            <v-tabs
+                background-color="light-blue"
+                center-active
+                dark>
+                <v-tab>Cluster Status on ZooKeeper</v-tab>
+                <v-tab>Client Configuration</v-tab>
+                <v-tab>Cache Status</v-tab>
+                <v-tab-item>
+                    <v-simple-table>
+                        <template v-slot:default>
+                            <thead>
+                                <tr>
+                                <th class="text-left">Property</th>
+                                <th class="text-left">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr> <td>autorecoveryEnabled</td> <td>{{autorecoveryEnabled}}</td></tr>
+                                <tr> <td>Auditor</td> <td>{{auditor}}</td></tr>
+                                <tr> <td>lostBookieRecoveryDelay</td> <td>{{lostBookieRecoveryDelay}}</td></tr>
+                                <tr> <td>layoutManagerFactoryClass</td> <td>{{layoutManagerFactoryClass}}</td></tr>
+                                <tr> <td>layoutFormatVersion</td> <td>{{layoutFormatVersion}}</td></tr>
+                                <tr> <td>layoutManagerVersion</td> <td>{{layoutManagerVersion}}</td></tr>
+                            </tbody>
+                        </template>
+                    </v-simple-table>
+                </v-tab-item>
+    
+                <v-tab-item>
+                    <p>Client configuration used by this BookKeeper Visual Manager instance</p>
+                    <v-textarea v-model="bookkeeperConfiguration" readonly />            
+                </v-tab-item>
+
+                <v-tab-item>
+                    <p>
+                        BookKeeper Visual Manager caches data on a local database
+                        in order to save resources on the Metadata Service (ZooKeeper).
+                        You have to manually request a reload from ZooKeeper.
+                    </p>
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                            <span v-on="on">Background worked status <b>{{status}}</b></span>
+                        </template>
+                        <span>Last reload from ZooKeeper was at <b>{{new Date(lastCacheRefresh)}}</b></span>
+                    </v-tooltip>
+                    <v-divider />
+                    <v-btn
+                        depressed
+                        large
+                        tile
+                        color="blue lighten-1 white--text"
+                        @click="refreshPage">
+                        Reload page
+                    </v-btn>
+
+                    <v-btn
+                        depressed
+                        large
+                        tile
+                        color="green lighten-1 white--text"
+                        @click="refreshCache">
+                        Reload metadata from ZooKeeper
+                    </v-btn>
+                </v-tab-item>
+            </v-tabs>
         </div>
         <Spinner v-else/>
     </div>
@@ -37,7 +83,13 @@ export default {
             pageLoaded: false,
             lastCacheRefresh: 0,
             status: "unknown",
-            bookkeeperConfiguration: ""
+            bookkeeperConfiguration: "",
+            auditor: "",
+            autorecoveryEnabled: false,
+            lostBookieRecoveryDelay: 0,
+            layoutFormatVersion: -1,
+            layoutManagerFactoryClass: "",
+            layoutManagerVersion: -1
         };
     },
     methods: {
@@ -49,6 +101,12 @@ export default {
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
                 this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
+                this.auditor = cacheInfo.auditor;
+                this.autorecoveryEnabled = cacheInfo.autorecoveryEnabled;
+                this.lostBookieRecoveryDelay = cacheInfo.lostBookieRecoveryDelay;
+                this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
+                this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
+                this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
             },
             error => {
                 this.$router.push({
@@ -65,6 +123,12 @@ export default {
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
                 this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
+                this.auditor = cacheInfo.auditor;
+                this.autorecoveryEnabled = cacheInfo.autorecoveryEnabled;
+                this.lostBookieRecoveryDelay = cacheInfo.lostBookieRecoveryDelay;
+                this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
+                this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
+                this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
             },
             error => {
                 this.$router.push({
@@ -82,6 +146,12 @@ export default {
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
                 this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
+                this.auditor = cacheInfo.auditor;
+                this.autorecoveryEnabled = cacheInfo.autorecoveryEnabled;
+                this.lostBookieRecoveryDelay = cacheInfo.lostBookieRecoveryDelay;
+                this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
+                this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
+                this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
             },
             error => {
                 this.$router.push({
