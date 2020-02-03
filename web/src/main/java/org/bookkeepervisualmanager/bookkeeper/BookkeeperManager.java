@@ -25,6 +25,7 @@ import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZO
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
 import static org.bookkeepervisualmanager.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -409,6 +410,7 @@ public class BookkeeperManager implements AutoCloseable {
         return metadataCache.listBookies();
     }
 
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
     public ClusterWideConfiguration getClusterWideConfiguration() throws BookkeeperException {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
