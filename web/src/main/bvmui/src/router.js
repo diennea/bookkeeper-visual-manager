@@ -5,7 +5,7 @@ import ErrorPage from "@/views/ErrorPage";
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
 import Login from '@/views/Login'
-import Cache from '@/views/Cache'
+import SystemStatus from '@/views/SystemStatus'
 
 import store from './store'
 
@@ -18,7 +18,7 @@ const router = new Router({
         {
             path: '/',
             name: 'home',
-            redirect: "/bookies",
+            redirect: "/login"
         },
         {
             path: '/error',
@@ -48,11 +48,11 @@ const router = new Router({
             }
         },
         {
-            path: '/cache',
-            name: 'cache',
-            component: Cache,
+            path: '/systemstatus',
+            name: 'systemstatus',
+            component: SystemStatus,
             meta: {
-                title: "Cache",
+                title: "System status",
                 type: "all"
             }
         },

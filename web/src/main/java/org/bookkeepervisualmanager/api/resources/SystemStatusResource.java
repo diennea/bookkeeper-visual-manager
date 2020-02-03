@@ -23,21 +23,59 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager;
 import org.bookkeepervisualmanager.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 
 @Path("cache")
-public class CacheResource extends AbstractBookkeeperResource {
+public class SystemStatusResource extends AbstractBookkeeperResource {
 
-    public static final class CacheInfo {
+    public static final class SystemStatus {
 
         private long lastCacheRefresh;
         private String status;
         private String bookkeeperConfiguration;
+        private final String auditor;
+        private final boolean autorecoveryEnabled;
+        private final int lostBookieRecoveryDelay;
+        private final int layoutFormatVersion;
+        private final String layoutManagerFactoryClass;
+        private final int layoutManagerVersion;
 
-        public CacheInfo(RefreshCacheWorkerStatus status) {
+        public SystemStatus(RefreshCacheWorkerStatus status) {
             this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
             this.status = status.getStatus().toString();
             this.bookkeeperConfiguration = status.getBookkkeeperClientConfiguration();
+            BookkeeperManager.ClusterWideConfiguration clusterWideConfiguration = status.getLastClusterWideConfiguration();
+            this.auditor = clusterWideConfiguration.getAuditor();
+            this.autorecoveryEnabled = clusterWideConfiguration.isAutorecoveryEnabled();
+            this.lostBookieRecoveryDelay = clusterWideConfiguration.getLostBookieRecoveryDelay();
+            this.layoutFormatVersion = clusterWideConfiguration.getLayoutFormatVersion();
+            this.layoutManagerFactoryClass = clusterWideConfiguration.getLayoutManagerFactoryClass();
+            this.layoutManagerVersion = clusterWideConfiguration.getLayoutManagerVersion();
+        }
+
+        public String getAuditor() {
+            return auditor;
+        }
+
+        public boolean isAutorecoveryEnabled() {
+            return autorecoveryEnabled;
+        }
+
+        public int getLostBookieRecoveryDelay() {
+            return lostBookieRecoveryDelay;
+        }
+
+        public int getLayoutFormatVersion() {
+            return layoutFormatVersion;
+        }
+
+        public String getLayoutManagerFactoryClass() {
+            return layoutManagerFactoryClass;
+        }
+
+        public int getLayoutManagerVersion() {
+            return layoutManagerVersion;
         }
 
         public String getBookkeeperConfiguration() {
@@ -70,15 +108,15 @@ public class CacheResource extends AbstractBookkeeperResource {
     @Secured
     @Path("info")
     @Produces(MediaType.APPLICATION_JSON)
-    public CacheInfo getInfo() throws Exception {
-        return new CacheInfo(getBookkeeperManger().getRefreshWorkerStatus());
+    public SystemStatus getInfo() throws Exception {
+        return new SystemStatus(getBookkeeperManger().getRefreshWorkerStatus());
     }
 
     @GET
     @Secured
     @Path("refresh")
     @Produces(MediaType.APPLICATION_JSON)
-    public CacheInfo refresh() throws Exception {
+    public SystemStatus refresh() throws Exception {
         getBookkeeperManger().refreshMetadataCache();
         return getInfo();
     }
