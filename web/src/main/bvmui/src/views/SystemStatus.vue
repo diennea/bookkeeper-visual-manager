@@ -71,11 +71,7 @@
     </div>
 </template>
 <script>
-import Spinner from "@/components/Spinner"
 export default {
-    components: {
-        Spinner
-    },
     data() {
         return {
             headers: [
