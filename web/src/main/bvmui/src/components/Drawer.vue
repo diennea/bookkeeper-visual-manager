@@ -11,7 +11,7 @@
                     </v-list-item-content>
                 </v-list-item>
             </template>
-            <v-list-item @click="performLogout()">
+            <v-list-item @click="performLogout">
                 <v-list-item-action>
                     <v-icon>mdi-logout</v-icon>
                 </v-list-item-action>
@@ -36,7 +36,7 @@ export default {
     },
     methods: {
         performLogout() {
-            this.$store.dispatch("logout").then(() => {
+            this.$store.dispatch("logout").finally(() => {
                 this.$router.push("/login");
             });
         }

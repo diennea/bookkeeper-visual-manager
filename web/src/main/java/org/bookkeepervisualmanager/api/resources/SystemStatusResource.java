@@ -19,6 +19,7 @@
  */
 package org.bookkeepervisualmanager.api.resources;
 
+import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -33,7 +34,7 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
 
         private long lastCacheRefresh;
         private String status;
-        private String bookkeeperConfiguration;
+        private Map<String, String> bookkeeperConfiguration;
         private final String auditor;
         private final boolean autorecoveryEnabled;
         private final int lostBookieRecoveryDelay;
@@ -78,11 +79,11 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
             return layoutManagerVersion;
         }
 
-        public String getBookkeeperConfiguration() {
+        public Map<String, String> getBookkeeperConfiguration() {
             return bookkeeperConfiguration;
         }
 
-        public void setBookkeeperConfiguration(String bookkeeperConfiguration) {
+        public void setBookkeeperConfiguration(Map<String, String> bookkeeperConfiguration) {
             this.bookkeeperConfiguration = bookkeeperConfiguration;
         }
 

@@ -1,25 +1,26 @@
 <template>
     <div class="bvm-bookie">
-        <CardContainer v-if="pageLoaded" :items="bookies" @item-clicked="itemClicked" />
-        <Spinner v-else />
+        <Card
+            v-for="(item, index) in bookies"
+            :data="item"
+            :key="index"
+            @click="clicked(item)"
+        />
     </div>
 </template>
 <script>
-import CardContainer from "@/components/CardContainer";
-import Spinner from "@/components/Spinner";
+import Card from "@/components/Card";
 export default {
     components: {
-        CardContainer,
-        Spinner
+        Card
     },
     data() {
         return {
-            pageLoaded: false,
             bookies: []
         };
     },
     methods: {
-        itemClicked(item) {
+        clicked(item) {
             this.$router.push({
                 name: "bookie-ledgers",
                 params: { bookieId: item.description }
@@ -27,10 +28,10 @@ export default {
         }
     },
     created() {
-        this.$request.get("api/bookie/all", bookies => {
-            this.pageLoaded = true;
-            this.bookies = bookies;
-        });
+        this.$request.get("api/bookie/all")
+            .then(bookies => {
+                this.bookies = bookies;
+            });
     }
 };
 </script>

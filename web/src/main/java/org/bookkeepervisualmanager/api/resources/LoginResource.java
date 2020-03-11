@@ -77,7 +77,6 @@ public class LoginResource extends AbstractBookkeeperResource {
     }
 
     @POST
-    @Secured
     @Path("logout")
     public void logout() {
         HttpSession session = request.getSession(false);

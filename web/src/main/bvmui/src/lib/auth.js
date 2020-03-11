@@ -1,11 +1,6 @@
-import axios from "axios";
-
 export default {
-    getSession() {
-        return localStorage.getItem("user-token") || '';
-    },
-    createSession() {
-        localStorage.setItem("user-token", 'dummy');
+    createSession(token) {
+        localStorage.setItem("user-token", token);
     },
     destroySession() {
         localStorage.removeItem("user-token");

@@ -23,7 +23,7 @@
         <!-- we need 0.14.0-SNAPSHOT as it supports BK 4.10.0 -->
         <herddb.version>0.14.0-SNAPSHOT</herddb.version>
 
-        <yarn.version>v1.19.1</yarn.version>
+        <yarn.version>v1.21.1</yarn.version>
         <node.version>v11.8.0</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
         <maven.frontend.plugin.version>1.8.0</maven.frontend.plugin.version>

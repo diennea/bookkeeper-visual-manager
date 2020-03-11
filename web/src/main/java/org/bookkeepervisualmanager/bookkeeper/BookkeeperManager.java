@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class BookkeeperManager implements AutoCloseable {
         WORKING
     }
     private volatile long lastMetadataCacheRefresh;
-    private final String bookkeeperClientConfiguration;
+    private final Map<String, String> bookkeeperClientConfiguration;
     private volatile ClusterWideConfiguration lastClusterWideConfiguration;
     private volatile AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
@@ -131,11 +132,11 @@ public class BookkeeperManager implements AutoCloseable {
             LOG.log(Level.INFO, "Starting bookkeeper client with connection string = {0}", zkMetadataServiceUri);
             this.bkClient = BookKeeper.forConfig(conf).build();
 
-            StringBuilder bkConfigDumper = new StringBuilder();
+            Map<String, String> remainingKeys = new HashMap<>();
             this.conf.getKeys().forEachRemaining(key -> {
-                bkConfigDumper.append(key + "=" + conf.getProperty(key) + "\n");
+                remainingKeys.put(key, String.valueOf(conf.getProperty(key)));
             });
-            this.bookkeeperClientConfiguration = bkConfigDumper.toString();
+            this.bookkeeperClientConfiguration = remainingKeys;
 
             LOG.log(Level.INFO, "Starting bookkeeper admin.");
             this.bkAdmin = new BookKeeperAdmin(bkClient);
@@ -151,10 +152,10 @@ public class BookkeeperManager implements AutoCloseable {
 
         private final RefreshStatus status;
         private final long lastMetadataCacheRefresh;
-        private final String bookkkeeperClientConfiguration;
+        private final Map<String, String> bookkkeeperClientConfiguration;
         private final ClusterWideConfiguration lastClusterWideConfiguration;
 
-        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, String bookkkeeperClientConfiguration,
+        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, Map<String, String> bookkkeeperClientConfiguration,
                 ClusterWideConfiguration lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
@@ -166,7 +167,7 @@ public class BookkeeperManager implements AutoCloseable {
             return lastClusterWideConfiguration;
         }
 
-        public String getBookkkeeperClientConfiguration() {
+        public Map<String, String> getBookkkeeperClientConfiguration() {
             return bookkkeeperClientConfiguration;
         }
 
