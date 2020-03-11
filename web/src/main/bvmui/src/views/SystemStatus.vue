@@ -61,7 +61,7 @@
                     </v-btn>
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on }">
-                            <span class="ml-2" v-on="on">Background worked status <b>{{status}}</b></span>
+                            <span class="ml-2" v-on="on">Background worker status <b>{{status}}</b></span>
                         </template>
                         <span>Last reload from ZooKeeper was at <b>{{new Date(lastCacheRefresh)}}</b></span>
                     </v-tooltip>
