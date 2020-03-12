@@ -42,13 +42,14 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<LedgerBean> getLedgers(@QueryParam("term") String term,
                                        @QueryParam("bookie") String bookie,
+                                       @QueryParam("ledgerIds") String ledgerIds,
                                        @QueryParam("minLength") String minLength,
                                        @QueryParam("maxLength") String maxLength,
                                        @QueryParam("minAge") String minAge
-                                       ) throws Exception {
+    ) throws Exception {
 
-        List<Long> ids =  getBookkeeperManger().searchLedgers(term, bookie, convertParam(minLength),
-                convertParam(maxLength), convertParam(minAge));
+        List<Long> ids = getBookkeeperManger().searchLedgers(term, bookie, convertParamLongList(ledgerIds), convertParamInt(minLength),
+                convertParamInt(maxLength), convertParamInt(minAge));
         List<LedgerBean> res = new ArrayList<>();
         for (long id : ids) {
             LedgerBean bean = getLedgerMetadata(id);
@@ -89,8 +90,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         return b;
     }
 
-
-    private Integer convertParam(String s) {
+    private Integer convertParamInt(String s) {
         if (s == null || s.trim().isEmpty()) {
             return null;
         }
@@ -99,6 +99,32 @@ public class LedgersResource extends AbstractBookkeeperResource {
         } catch (NumberFormatException err) {
             return null;
         }
+    }
+
+    /**
+     * Split a string into a Long list. If any value is invalid, return empty list
+     *
+     * @param s
+     * @return List
+     */
+    private List<Long> convertParamLongList(String s) {
+        if (s == null || s.trim().isEmpty()) {
+            return null;
+        }
+        List<Long> res = new ArrayList<>();
+        for (String _s : s.split(",")) {
+            _s = _s.trim();
+            if (!_s.isEmpty()) {
+                try {
+                    Long l = Long.parseLong(_s);
+                    res.add(l);
+                } catch (NumberFormatException ex) {
+                    res.clear();
+                    break;
+                }
+            }
+        }
+        return res;
     }
 
 }

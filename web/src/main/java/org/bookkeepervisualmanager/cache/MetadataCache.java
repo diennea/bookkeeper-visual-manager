@@ -20,6 +20,7 @@
 package org.bookkeepervisualmanager.cache;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class MetadataCache implements AutoCloseable {
     }
 
     public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
-            List<LedgerMetadataEntry> metadataEntries) {
+                             List<LedgerMetadataEntry> metadataEntries) {
         try (CloseableEntityManager emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
@@ -127,34 +128,77 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public List<Ledger> searchLedgers(String metadataTerm, String bookie) {
+    public List<Ledger> searchLedgers(String metadataTerm, String bookie, List<Long> ledgerIds) {
         try (CloseableEntityManager emw = getEntityManager()) {
             EntityManager em = emw.em;
-            if (metadataTerm != null && !metadataTerm.isEmpty() && bookie != null && !bookie.isEmpty()) {
-                Query q = em.createQuery("select DISTINCT(l) from ledger l "
-                        + "               INNER JOIN ledger_metadata lm on lm.ledgerId = l.ledgerId"
-                        + "               INNER JOIN ledger_bookie ln on ln.ledgerId = l.ledgerId "
-                        + " where lm.entryValue like :term and ln.bookieId = :bookieId"
-                        + " order by l.ledgerId", Ledger.class);
-                q.setParameter("term", "%" + metadataTerm + "%");
-                q.setParameter("bookieId", bookie);
-                return q.getResultList();
-            } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
-                Query q = em.createQuery("select DISTINCT(l) from ledger l INNER JOIN ledger_metadata lm on lm.ledgerId = l.ledgerId"
-                        + " where lm.entryValue like :term"
-                        + " order by l.ledgerId", Ledger.class);
-                q.setParameter("term", "%" + metadataTerm + "%");
-                return q.getResultList();
-            } else if (bookie != null && !bookie.isEmpty()) {
-                Query q = em.createQuery("select DISTINCT(l) from ledger l "
-                        + "               INNER JOIN ledger_bookie ln on ln.ledgerId = l.ledgerId "
-                        + " where ln.bookieId = :bookieId"
-                        + " order by l.ledgerId", Ledger.class);
-                q.setParameter("bookieId", bookie);
-                return q.getResultList();
+            if (ledgerIds == null) {
+                if (metadataTerm != null && !metadataTerm.isEmpty() && bookie != null && !bookie.isEmpty()) {
+                    Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
+                            + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
+                            + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
+                            + " WHERE lm.entryValue LIKE :term"
+                            + " AND ln.bookieId = :bookieId"
+                            + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("term", "%" + metadataTerm + "%");
+                    q.setParameter("bookieId", bookie);
+                    return q.getResultList();
+                } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
+                    Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
+                            + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
+                            + " WHERE lm.entryValue LIKE :term"
+                            + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("term", "%" + metadataTerm + "%");
+                    return q.getResultList();
+                } else if (bookie != null && !bookie.isEmpty()) {
+                    Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
+                            + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
+                            + " WHERE ln.bookieId = :bookieId"
+                            + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("bookieId", bookie);
+                    return q.getResultList();
+                } else {
+                    Query q = em.createQuery("SELECT l FROM ledger l ", Ledger.class);
+                    return q.getResultList();
+                }
+            } else if (!ledgerIds.isEmpty()) {
+                if (metadataTerm != null && !metadataTerm.isEmpty() && bookie != null && !bookie.isEmpty()) {
+                    Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
+                            + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
+                            + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
+                            + " WHERE l.ledgerId IN :ledgerIds"
+                            + " AND lm.entryValue LIKE :term"
+                            + " AND ln.bookieId = :bookieId"
+                            + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("ledgerIds", ledgerIds);
+                    q.setParameter("term", "%" + metadataTerm + "%");
+                    q.setParameter("bookieId", bookie);
+                    return q.getResultList();
+                } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
+                    Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
+                            + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
+                            + " WHERE l.ledgerId IN :ledgerIds"
+                            + " AND lm.entryValue LIKE :term"
+                            + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("ledgerIds", ledgerIds);
+                    q.setParameter("term", "%" + metadataTerm + "%");
+                    return q.getResultList();
+                } else if (bookie != null && !bookie.isEmpty()) {
+                    Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
+                            + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
+                            + " WHERE l.ledgerId IN :ledgerIds"
+                            + " AND ln.bookieId = :bookieId"
+                            + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("ledgerIds", ledgerIds);
+                    q.setParameter("bookieId", bookie);
+                    return q.getResultList();
+                } else {
+                    Query q = em.createQuery("SELECT l FROM ledger l "
+                            + " WHERE l.ledgerId IN :ledgerIds", Ledger.class);
+                    q.setParameter("ledgerIds", ledgerIds);
+                    return q.getResultList();
+                }
             } else {
-                Query q = em.createQuery("select l from ledger l ", Ledger.class);
-                return q.getResultList();
+                return new ArrayList<>();
             }
         }
     }

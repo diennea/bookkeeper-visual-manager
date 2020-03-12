@@ -384,11 +384,12 @@ public class BookkeeperManager implements AutoCloseable {
 
     public List<Long> searchLedgers(String term,
             String bookie,
+            List<Long> ledgerIds,
             Integer minLength,
             Integer maxLength,
             Integer minAge) throws BookkeeperException {
         return metadataCache
-                .searchLedgers(term, bookie)
+                .searchLedgers(term, bookie, ledgerIds)
                 .stream()
                 .filter(l -> {
                     if (minLength != null && l.getSize() < minLength) {
