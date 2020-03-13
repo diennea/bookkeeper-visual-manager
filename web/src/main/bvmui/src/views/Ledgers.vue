@@ -11,6 +11,14 @@
                 hide-details>
             </v-text-field>
             <v-text-field
+                v-model="ledgerIds"
+                class="pr-5"
+                label="Ledger Id"
+                tile
+                flat
+                hide-details>
+            </v-text-field>
+            <v-text-field
                 v-model="minLength"
                 class="pr-5"
                 label="Min Length"
@@ -74,6 +82,7 @@ export default {
     data() {
         return {
             searchTerm: '',
+            ledgerIds: '',
             minLength: '',
             maxLength: '',
             minAge: 0,
@@ -98,6 +107,7 @@ export default {
         performSearch() {
             this.closeMetadata();
             let url = "api/ledger/all?term="+encodeURIComponent(this.searchTerm)
+                        +"&ledgerIds="+encodeURIComponent(this.ledgerIds)
                         +"&minLength="+encodeURIComponent(this.minLength)
                         +"&maxLength="+encodeURIComponent(this.maxLength)
                         +"&minAge="+encodeURIComponent(this.minAge);

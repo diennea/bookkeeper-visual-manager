@@ -24,6 +24,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import herddb.jdbc.HerdDBEmbeddedDataSource;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 
@@ -49,12 +51,20 @@ public class MetadataCacheTest {
                 List<Long> ledgersInBookie = metadataCache.getLedgersForBookie("localhost:1234");
                 assertEquals(1, ledgersInBookie.size());
 
-                List<Ledger> ledgersByMeta = metadataCache.searchLedgers("foo", null);
+                List<Ledger> ledgersByMeta = metadataCache.searchLedgers("foo", null, null);
                 assertEquals(1, ledgersByMeta.size());
-                List<Ledger> ledgersByBookie = metadataCache.searchLedgers(null, "localhost:1234");
+                List<Ledger> ledgersByBookie = metadataCache.searchLedgers(null, "localhost:1234", null);
                 assertEquals(1, ledgersByBookie.size());
-                List<Ledger> ledgersByBookieAndMeta = metadataCache.searchLedgers("pulsar", "localhost:1234");
+                List<Ledger> ledgersByBookieAndMeta = metadataCache.searchLedgers("pulsar", "localhost:1234", null);
                 assertEquals(1, ledgersByBookieAndMeta.size());
+                List<Ledger> ledgersByBookieAndMetaAndIdOk = metadataCache.searchLedgers("pulsar", "localhost:1234", Arrays.asList(1L));
+                assertEquals(1, ledgersByBookieAndMetaAndIdOk.size());
+                List<Ledger> ledgersByBookieAndMetaAndMixedId = metadataCache.searchLedgers("pulsar", "localhost:1234", Arrays.asList(new Long[]{1L, 2L}));
+                assertEquals(1, ledgersByBookieAndMetaAndMixedId.size());
+                List<Ledger> ledgersByBookieAndMetaAndIdKo = metadataCache.searchLedgers("pulsar", "localhost:1234", Arrays.asList(2L));
+                assertEquals(0, ledgersByBookieAndMetaAndIdKo.size());
+                List<Ledger> ledgersByBookieAndMetaAndEmtyList = metadataCache.searchLedgers("pulsar", "localhost:1234", Collections.EMPTY_LIST);
+                assertEquals(0, ledgersByBookieAndMetaAndEmtyList.size());
 
                 // UPDATE, just the size
                 Ledger ledger2 = new Ledger(1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
