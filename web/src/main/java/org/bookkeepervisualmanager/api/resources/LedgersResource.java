@@ -47,8 +47,15 @@ public class LedgersResource extends AbstractBookkeeperResource {
                                        @QueryParam("maxLength") String maxLength,
                                        @QueryParam("minAge") String minAge
     ) throws Exception {
-
-        List<Long> ids = getBookkeeperManger().searchLedgers(term, bookie, convertParamLongList(ledgerIds), convertParamInt(minLength),
+        List<Long> _ledgersIds = null;
+        if (ledgerIds != null && !ledgerIds.trim().isEmpty()) {
+            try {
+                _ledgersIds = convertParamLongList(ledgerIds);
+            } catch (NumberFormatException ex) {
+                _ledgersIds = new ArrayList<>();
+            }
+        }
+        List<Long> ids = getBookkeeperManger().searchLedgers(term, bookie, _ledgersIds, convertParamInt(minLength),
                 convertParamInt(maxLength), convertParamInt(minAge));
         List<LedgerBean> res = new ArrayList<>();
         for (long id : ids) {
@@ -102,25 +109,22 @@ public class LedgersResource extends AbstractBookkeeperResource {
     }
 
     /**
-     * Split a string into a Long list. If any value is invalid, return empty list
+     * Split a string into a Long list. If any value is invalid throws NumberFormatException
      *
      * @param s
      * @return List
+     * @throws NumberFormatException
      */
-    private List<Long> convertParamLongList(String s) {
-        if (s == null || s.trim().isEmpty()) {
-            return null;
-        }
+    private static List<Long> convertParamLongList(String s) throws NumberFormatException {
         List<Long> res = new ArrayList<>();
-        for (String _s : s.split(",")) {
-            _s = _s.trim();
-            if (!_s.isEmpty()) {
-                try {
+        if (s != null && !s.trim().isEmpty()) {
+            for (String _s : s.split(",")) {
+                _s = _s.trim();
+                if (!_s.isEmpty()) {
                     Long l = Long.parseLong(_s);
                     res.add(l);
-                } catch (NumberFormatException ex) {
-                    res.clear();
-                    break;
+                } else {
+                    throw new NumberFormatException("Empty string.");
                 }
             }
         }
