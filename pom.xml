@@ -11,17 +11,16 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <zookpeeper.version>3.5.5</zookpeeper.version>
+        <zookpeeper.version>3.5.7</zookpeeper.version>
         <bookkeeper.version>4.10.0</bookkeeper.version>
         <slf4j.version>1.7.29</slf4j.version>
-        <netty.version>4.1.43.Final</netty.version>
-        <netty.boringssl.version>2.0.26.Final</netty.boringssl.version>
+        <netty.version>4.1.48.Final</netty.version>
+        <netty.boringssl.version>2.0.29.Final</netty.boringssl.version>
         <curator.version>4.2.0</curator.version>
         <junit.version>4.13</junit.version>
         <mockito.version>1.10.19</mockito.version>
         <jetty.version>9.4.18.v20190429</jetty.version>
-        <!-- we need 0.14.0-SNAPSHOT as it supports BK 4.10.0 -->
-        <herddb.version>0.14.0-SNAPSHOT</herddb.version>
+        <herddb.version>0.15.0</herddb.version>
 
         <yarn.version>v1.21.1</yarn.version>
         <node.version>v11.8.0</node.version>
@@ -29,7 +28,7 @@
         <maven.frontend.plugin.version>1.8.0</maven.frontend.plugin.version>
 
         <jersey.version>2.29</jersey.version>
-        <libs.jetty>9.4.19.v20190610</libs.jetty>
+        <libs.jetty>9.4.27.v20200227</libs.jetty>
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.12.2</libs.spotbugs>
         <eclipselink.version>2.7.5</eclipselink.version>
