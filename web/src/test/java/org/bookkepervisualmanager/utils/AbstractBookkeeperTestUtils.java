@@ -1,32 +1,37 @@
 /*
- Licensed to Diennea S.r.l. under one
- or more contributor license agreements. See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership. Diennea S.r.l. licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
-
- http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
-
+ * Licensed to Diennea S.r.l. under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. Diennea S.r.l. licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
  */
 package org.bookkepervisualmanager.utils;
 
+import static junit.framework.Assert.fail;
+import static org.apache.zookeeper.Watcher.Event.KeeperState.SaslAuthenticated;
+import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.zookeeper.ZooKeeperClient;
-import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -37,6 +42,8 @@ import org.junit.rules.TemporaryFolder;
  */
 public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
 
+    private static final int CONNECTION_TIMEOUT = 30000;
+
     static {
         System.setProperty("zookeeper.admin.enableServer", "false");
         System.setProperty("zookeeper.forceSync", "no");
@@ -45,7 +52,8 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     @Rule
     public final TemporaryFolder folder = new TemporaryFolder();
 
-    TestingServer zkServer;
+    LocalZookeeperServer zkServerMain;
+    ZooKeeper zkServer;
     BookieServer bookie;
     Path path;
 
@@ -54,7 +62,24 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
 
     public void startZookeeper() throws Exception {
         path = folder.newFolder().toPath();
-        zkServer = new TestingServer(1282, path.toFile(), true);
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        String dataDir = path.toAbsolutePath().toString();
+        zkServerMain = new LocalZookeeperServer(getPort(), dataDir);
+
+        zkServer = new ZooKeeper(getAddress(), CONNECTION_TIMEOUT, (e) -> {
+            switch (e.getState()) {
+                case SyncConnected:
+                case SaslAuthenticated:
+                    countDownLatch.countDown();
+                    break;
+            }
+        });
+
+        boolean connected = countDownLatch.await(CONNECTION_TIMEOUT, TimeUnit.SECONDS);
+        if (!connected) {
+            fail("Could not connect to zookeeper at " + getAddress() + " within " + 10000 + " ms");
+        }
 
         try (ZooKeeperClient zkc = ZooKeeperClient
                 .newBuilder()
@@ -113,12 +138,16 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         }
     }
 
-    public TestingServer getZookeeperServer() {
+    public ZooKeeper getZookeeperServer() {
         return zkServer;
     }
 
+    public int getPort() {
+        return 1282;
+    }
+
     public String getAddress() {
-        return "localhost:1282";
+        return "localhost:" + getPort();
     }
 
     public int getTimeout() {
@@ -140,6 +169,12 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         try {
             if (zkServer != null) {
                 zkServer.close();
+            }
+        } catch (Throwable t) {
+        }
+        try {
+            if (zkServerMain != null) {
+                zkServerMain.close();
             }
         } catch (Throwable t) {
         }
