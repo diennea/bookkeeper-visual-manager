@@ -51,7 +51,7 @@ public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
         metadataCache = new MetadataCache(datasource);
         final Properties properties = new Properties();
         properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
-                "zk+null://" + zkServer.getConnectString() + "/ledgers");
+                "zk+null://" + getAddress() + "/ledgers");
 
         ConfigurationStore config = new PropertiesConfigurationStore(properties);
         bookkeeperManager = new BookkeeperManager(config, metadataCache);
