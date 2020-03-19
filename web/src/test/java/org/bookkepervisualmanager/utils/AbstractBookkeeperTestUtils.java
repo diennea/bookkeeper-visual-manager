@@ -52,6 +52,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     @Rule
     public final TemporaryFolder folder = new TemporaryFolder();
 
+    LocalZookeeperServer zkServerMain;
     ZooKeeper zkServer;
     BookieServer bookie;
     Path path;
@@ -64,7 +65,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
         String dataDir = path.toAbsolutePath().toString();
-        LocalZookeeperServer zkServerMain = new LocalZookeeperServer(getPort(), dataDir);
+        zkServerMain = new LocalZookeeperServer(getPort(), dataDir);
 
         zkServer = new ZooKeeper(getAddress(), CONNECTION_TIMEOUT, (e) -> {
             switch (e.getState()) {
@@ -168,6 +169,12 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         try {
             if (zkServer != null) {
                 zkServer.close();
+            }
+        } catch (Throwable t) {
+        }
+        try {
+            if (zkServerMain != null) {
+                zkServerMain.close();
             }
         } catch (Throwable t) {
         }

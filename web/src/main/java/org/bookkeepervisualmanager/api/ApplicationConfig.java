@@ -39,6 +39,7 @@ public class ApplicationConfig extends Application {
         resources.add(org.bookkeepervisualmanager.api.resources.LedgersResource.class);
         resources.add(org.bookkeepervisualmanager.api.resources.LoginResource.class);
         resources.add(org.bookkeepervisualmanager.api.resources.SystemStatusResource.class);
+        resources.add(org.glassfish.jersey.server.wadl.internal.WadlResource.class);
     }
 
 }

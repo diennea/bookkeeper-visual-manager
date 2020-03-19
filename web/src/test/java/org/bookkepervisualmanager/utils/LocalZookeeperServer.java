@@ -19,6 +19,7 @@
  */
 package org.bookkepervisualmanager.utils;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.zookeeper.server.ServerConfig;
@@ -30,9 +31,9 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
  *
  * @author matteo.minardi
  */
-public class LocalZookeeperServer {
+public class LocalZookeeperServer implements Closeable {
 
-    ZooKeeperServerMain zooKeeperServer;
+    CloseableZooKeeperServerMain zooKeeperServer;
 
     public LocalZookeeperServer(int port, String dataDir) throws IOException {
         QuorumPeerConfig quorumConfiguration = new QuorumPeerConfig();
@@ -45,7 +46,7 @@ public class LocalZookeeperServer {
             throw new RuntimeException(e);
         }
 
-        zooKeeperServer = new ZooKeeperServerMain();
+        zooKeeperServer = new CloseableZooKeeperServerMain();
         final ServerConfig configuration = new ServerConfig();
         configuration.readFrom(quorumConfiguration);
 
@@ -61,4 +62,24 @@ public class LocalZookeeperServer {
         }.start();
     }
 
+    @Override
+    public void close() {
+        if (zooKeeperServer != null) {
+            zooKeeperServer.close();
+        }
+    }
+
+    private final class CloseableZooKeeperServerMain extends ZooKeeperServerMain implements Closeable {
+
+        @Override
+        public void close() {
+            try {
+                shutdown();
+            } catch (Exception t) {
+                System.out.println("ZooKeeper failed to close");
+                t.printStackTrace(System.err);
+            }
+        }
+
+    }
 }
