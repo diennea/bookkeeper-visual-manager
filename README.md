@@ -21,23 +21,21 @@ cd bookkeeper-visual-manager
 mvn clean install -DskipTests
 ~~~~
 
-To pass the Metadata Service URI connection string you have to set the System property
-`bookkeeper.visual.manager.metadataServiceUri`.
+To pass the Metadata Service URI connection string you have to set the system property
+`bookkeeper.visual.manager.metadataServiceUri` or run the provided script in bin
+folder.
 
 ~~~~
 BVM_PORT=8080
 BVM_SERVICEURI=zk+null://localhost:2181/ledgers
 
-# System property configuration
-mvn jetty:run \
-    -Dbookkeeper.visual.manager.metadataServiceUri=$BVM_SERVICEURI \
-    -Djetty.http.port=$BVM_PORT
+./bin/run_dev.sh $BVM_SERVICEURI $BVM_PORT
 ~~~~
 
 #### Deploy the war application on container
 
 You can also deploy the `target/bookkeeper-visual-manager-XX.XX.war` on your
-container passing the `bookkeeper.visual.manager.metadataServiceUri` location in a System property.
+container passing the `bookkeeper.visual.manager.metadataServiceUri` location in a system property.
 
 #### Deploy the war application using Maven Jetty Runner
 
@@ -55,7 +53,7 @@ BVM_CONF_PATH=/path/to/conf java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM
 ### Advanced configuration
 
 In order to use a more advanced configuration you need to provide to the
-application a properties file.  
+application a key/value properties file. An example file is provided in the conf/ folder.
 **The provided file can also be your Bookkeeper Server configuration.**
 
 | Property             | Value                              |
@@ -88,3 +86,17 @@ You can provide this file to the application in three ways:
         <param-value>path/to/file</param-value>
     </context-param>
     ~~~~
+
+## Development
+
+0. Clone this repo
+0. Make sure you have installed node (v11.8.0) and yarn (1.19.1).
+0. Go into the frontend folder `src/main/bvmui` 
+0. Install dependencies (use `yarn install` command)
+0. Auto reload (use `yarn serve` command)
+    ~~~~
+    cd src/main/bvmui
+    yarn install
+    yarn serve
+    ~~~~
+0. Build (use `yarn build` command)
