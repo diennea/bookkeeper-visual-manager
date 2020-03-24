@@ -47,7 +47,7 @@ public final class LedgerBean implements Serializable {
     private boolean closed;
     private String state;
     private int metadataFormatVersion;
-    private List<String> bookies;
+    private Map<Long, List<String>> ensambles;
 
     public long getAge() {
         return age;
@@ -172,12 +172,12 @@ public final class LedgerBean implements Serializable {
         this.metadataFormatVersion = metadataFormatVersion;
     }
 
-    public List<String> getBookies() {
-        return bookies;
+    public Map<Long, List<String>> getEnsambles() {
+        return ensambles;
     }
 
-    public void setBookies(List<String> bookies) {
-        this.bookies = bookies;
+    public void setEnsambles(Map<Long, List<String>> ensambles) {
+        this.ensambles = ensambles;
     }
 
     @Override
