@@ -33,6 +33,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -303,7 +304,7 @@ public class BookkeeperManager implements AutoCloseable {
      * @return
      */
     public static Map<Long, List<String>> buildEnsembleMap(LedgerMetadata ledgerMetadata) {
-        Map<Long, List<String>> res = new HashMap<>();
+        Map<Long, List<String>> res = new LinkedHashMap<>();
         ledgerMetadata.getAllEnsembles().entrySet().
                 forEach((e) -> {
                     List<String> bookieAddresses = new ArrayList<>();

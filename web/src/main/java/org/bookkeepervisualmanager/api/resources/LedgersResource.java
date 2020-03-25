@@ -94,7 +94,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         b.setClosed(ledgerMetadata.isClosed());
         b.setState(ledgerMetadata.getState() + "");
         b.setMetadataFormatVersion(ledgerMetadata.getMetadataFormatVersion());
-        b.setEnsambles(new HashMap<>(BookkeeperManager.buildEnsembleMap(ledgerMetadata)));
+        b.setEnsembles(new HashMap<>(BookkeeperManager.buildEnsembleMap(ledgerMetadata)));
         return b;
     }
 
