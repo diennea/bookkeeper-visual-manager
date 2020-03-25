@@ -33,6 +33,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -156,7 +157,7 @@ public class BookkeeperManager implements AutoCloseable {
         private final ClusterWideConfiguration lastClusterWideConfiguration;
 
         public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, Map<String, String> bookkkeeperClientConfiguration,
-                ClusterWideConfiguration lastClusterWideConfiguration) {
+                                        ClusterWideConfiguration lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
             this.bookkkeeperClientConfiguration = bookkkeeperClientConfiguration;
@@ -268,7 +269,7 @@ public class BookkeeperManager implements AutoCloseable {
                     metadataEntries.add(new LedgerMetadataEntry(ledgerId, n, new String(v, StandardCharsets.UTF_8)));
                 });
                 List<LedgerBookie> bookies = new ArrayList<>();
-                Set<String> bookieAddresses = buildBookieList(ledgerMetadata);
+                Set<String> bookieAddresses = getBookieList(ledgerMetadata);
                 bookieAddresses.forEach(s -> {
                     bookies.add(new LedgerBookie(ledgerId, s));
                 });
@@ -286,7 +287,7 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public static Set<String> buildBookieList(LedgerMetadata ledgerMetadata) {
+    private static Set<String> getBookieList(LedgerMetadata ledgerMetadata) {
         Set<String> bookieAddresses = new HashSet<>();
         ledgerMetadata.getAllEnsembles().values().forEach(bookieList -> {
             bookieList.forEach(bookieAddress -> {
@@ -294,6 +295,26 @@ public class BookkeeperManager implements AutoCloseable {
             });
         });
         return bookieAddresses;
+    }
+
+    /**
+     * Build ensemble map
+     *
+     * @param ledgerMetadata
+     * @return
+     */
+    public static Map<Long, List<String>> buildEnsembleMap(LedgerMetadata ledgerMetadata) {
+        Map<Long, List<String>> res = new LinkedHashMap<>();
+        ledgerMetadata.getAllEnsembles().entrySet().
+                forEach((e) -> {
+                    List<String> bookieAddresses = new ArrayList<>();
+                    e.getValue().
+                            forEach((bsa) -> {
+                                bookieAddresses.add(bsa.toString());
+                            });
+                    res.put(e.getKey(), bookieAddresses);
+                });
+        return res;
     }
 
     @Override
@@ -383,11 +404,11 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Long> searchLedgers(String term,
-            String bookie,
-            List<Long> ledgerIds,
-            Integer minLength,
-            Integer maxLength,
-            Integer minAge) throws BookkeeperException {
+                                    String bookie,
+                                    List<Long> ledgerIds,
+                                    Integer minLength,
+                                    Integer maxLength,
+                                    Integer minAge) throws BookkeeperException {
         return metadataCache
                 .searchLedgers(term, bookie, ledgerIds)
                 .stream()

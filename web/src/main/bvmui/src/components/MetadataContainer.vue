@@ -14,6 +14,9 @@
         <div>DigestType: {{currentLedger.digestType}}</div>
         <div>Closed: {{currentLedger.closed}}</div>
         <div>MetadataFormatVersion: {{currentLedger.metadataFormatVersion}}</div>
+        <div class="bvm-metadata-row" v-for="(blist, key) in currentLedger.ensembles">
+            <b>Ensemble {{key}}</b>: <span v-for="item in blist">{{item}}; </span>
+        </div>
         <div class="bvm-metadata-row" v-for="(key, value) in  currentLedger.metadata" :key="key">
             <strong>{{value}}</strong>: {{key}}
         </div>

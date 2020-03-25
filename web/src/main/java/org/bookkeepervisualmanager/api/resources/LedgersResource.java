@@ -21,6 +21,7 @@ package org.bookkeepervisualmanager.api.resources;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -93,7 +94,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         b.setClosed(ledgerMetadata.isClosed());
         b.setState(ledgerMetadata.getState() + "");
         b.setMetadataFormatVersion(ledgerMetadata.getMetadataFormatVersion());
-        b.setBookies(new ArrayList<>(BookkeeperManager.buildBookieList(ledgerMetadata)));
+        b.setEnsembles(new HashMap<>(BookkeeperManager.buildEnsembleMap(ledgerMetadata)));
         return b;
     }
 
