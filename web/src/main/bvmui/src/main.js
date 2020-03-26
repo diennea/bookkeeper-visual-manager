@@ -19,7 +19,7 @@ axios.interceptors.request.use(
         return request;
     },
     err => {
-        return new Promise((resolve, reject) => {
+        return new Promise(() => {
             throw err;
         });
     }
@@ -30,7 +30,7 @@ axios.interceptors.response.use(
         return response;
     },
     err => {
-        return new Promise((resolve, reject) => {
+        return new Promise(() => {
             if (
                 // Unauthorized
                 err.response.status === 401 &&

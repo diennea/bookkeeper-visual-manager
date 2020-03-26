@@ -1,47 +1,42 @@
 <template>
     <div>
         <v-form class="bvm-ledger-search"
-            @submit.prevent="performSearch" >
+            @submit.prevent="performSearch">
             <v-text-field
                 v-model="searchTerm"
                 class="pr-5"
                 label="Search"
                 tile
                 flat
-                hide-details>
-            </v-text-field>
+                hide-details />
             <v-text-field
                 v-model="ledgerIds"
                 class="pr-5"
                 label="Ledger Id"
                 tile
                 flat
-                hide-details>
-            </v-text-field>
+                hide-details />
             <v-text-field
                 v-model="minLength"
                 class="pr-5"
                 label="Min Length"
                 tile
                 flat
-                hide-details>
-            </v-text-field>
+                hide-details />
             <v-text-field
                 v-model="maxLength"
                 class="pr-5"
                 label="Max Length"
                 tile
                 flat
-                hide-details>
-            </v-text-field>
+                hide-details />
              <v-text-field
                 v-model="minAge"
                 class="pr-5"
                 label="Age"
                 tile
                 flat
-                hide-details>
-            </v-text-field>
+                hide-details />
             <v-btn
                 depressed
                 large
@@ -64,7 +59,7 @@
             <div v-if="showLedgerMetadata"
                 class="bvm-metadata-container">
                 <MetadataContainer
-                    :currentLedger="currentLedger"
+                    :current-ledger="currentLedger"
                     @close="closeMetadata"
                 />
             </div>
@@ -91,6 +86,18 @@ export default {
             ledgers: []
         };
     },
+    created() {
+        let url = "api/ledger/all";
+        if (this.$route.meta.type === "bookie") {
+            const bookieId = this.$route.params.bookieId;
+            url = "api/ledger/all?bookie=" + encodeURIComponent(bookieId);
+        }
+        this.$request.get(url).then(
+            ledgers => {
+                this.ledgers = ledgers;
+            }
+        );
+    },
     methods: {
         showMetadata(ledgerId) {
             this.$request.get(`api/ledger/metadata/${ledgerId}`).then(
@@ -106,14 +113,14 @@ export default {
         },
         performSearch() {
             this.closeMetadata();
-            let url = "api/ledger/all?term="+encodeURIComponent(this.searchTerm)
-                        +"&ledgerIds="+encodeURIComponent(this.ledgerIds)
-                        +"&minLength="+encodeURIComponent(this.minLength)
-                        +"&maxLength="+encodeURIComponent(this.maxLength)
-                        +"&minAge="+encodeURIComponent(this.minAge);
+            let url = "api/ledger/all?term=" + encodeURIComponent(this.searchTerm)
+                + "&ledgerIds=" + encodeURIComponent(this.ledgerIds)
+                + "&minLength=" + encodeURIComponent(this.minLength)
+                + "&maxLength=" + encodeURIComponent(this.maxLength)
+                + "&minAge=" + encodeURIComponent(this.minAge);
             if (this.$route.meta.type === "bookie") {
                 const bookieId = this.$route.params.bookieId;
-                url = url + "&bookie="+encodeURIComponent(bookieId);
+                url = url + "&bookie=" + encodeURIComponent(bookieId);
             }
             this.$request.get(url).then(
                 ledgers => {
@@ -121,18 +128,6 @@ export default {
                 }
             );
         }
-    },
-    created() {
-        let url = "api/ledger/all";
-        if (this.$route.meta.type === "bookie") {
-            const bookieId = this.$route.params.bookieId;
-            url = "api/ledger/all?bookie="+encodeURIComponent(bookieId);
-        }
-        this.$request.get(url).then(
-            ledgers => {
-                this.ledgers = ledgers;
-            }
-        );
     }
 }
 </script>
