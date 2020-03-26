@@ -24,7 +24,7 @@
                 />
             </v-form>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider />
         <v-card-actions>
             <v-btn color="blue lighten-1 white--text" @click="performLogin">Login</v-btn>
         </v-card-actions>
@@ -51,11 +51,10 @@ export default {
                         this.$router.push("/");
                     }
                 })
-                .catch(err => {
+                .catch(() => {
                     this.hasError = true;
                 });
         }
     }
 };
 </script>
-

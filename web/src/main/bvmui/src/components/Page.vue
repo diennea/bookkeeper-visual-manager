@@ -19,11 +19,10 @@ export default {
         };
     },
     watch: {
-        $route: function(to, from) {
+        $route: function (to) {
             this.pageTitle = to.meta.title;
             this.pageParams = to.params;
         }
     }
 };
 </script>
-

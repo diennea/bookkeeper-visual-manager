@@ -19,6 +19,12 @@ export default {
             bookies: []
         };
     },
+    created() {
+        this.$request.get("api/bookie/all")
+            .then(bookies => {
+                this.bookies = bookies;
+            });
+    },
     methods: {
         clicked(item) {
             this.$router.push({
@@ -26,13 +32,6 @@ export default {
                 params: { bookieId: item.description }
             });
         }
-    },
-    created() {
-        this.$request.get("api/bookie/all")
-            .then(bookies => {
-                this.bookies = bookies;
-            });
     }
 };
 </script>
-
