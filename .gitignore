@@ -26,3 +26,4 @@ hs_err_pid*
 src/main/bvmui/dist/**
 /nbproject/
 target/
+**/.DS_Store
