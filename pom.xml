@@ -4,7 +4,7 @@
     <artifactId>bookkeeper-visual-manager-parent</artifactId>
     <packaging>pom</packaging>
     <groupId>bookkeeper-visual-manager</groupId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>BookKeeper Visual Manager - Parent</name>
 
@@ -47,7 +47,7 @@
     <scm>
         <url>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</url>
         <developerConnection>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</developerConnection>
-        <tag>release/1.0</tag>
+        <tag>v1.0.0</tag>
     </scm>
 
     <dependencyManagement>  

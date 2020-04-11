@@ -3,7 +3,7 @@
     <parent>
         <groupId>bookkeeper-visual-manager</groupId>
         <artifactId>bookkeeper-visual-manager-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>..</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
