@@ -9,10 +9,30 @@ Bookkeeper](https://bookkeeper.apache.org/).
 
 ### Requirements
 
-Before deploying the .war file of Bookkeeper Visual Manager you have to make
-sure that Zookkeeper and your Bookkeeper services are up and running.
+In order to run BookKeeper Visual Manager you just need a Linux Machine and Java 8 runtime.
+
+In order to develop BookKeeper Visual Maanger you need Maven 3.6.x and Yarn.
 
 ### Quickstart
+
+### Using the provided release packages
+
+Download a release package from github releases page.
+Unzip the package
+
+Configure the service by editing conf/server.properties
+By default we will connect to ZooKeeper at localhost, like when you are using BookKeeper standalone.
+
+Start the service
+
+~~~~
+bin/service server start
+~~~~
+
+Open your browser at
+http://localhost:4500
+
+Username and passwords are: admin/admin
 
 #### Deploy the war application using Maven Jetty Plugin
 ~~~~
@@ -87,7 +107,7 @@ You can provide this file to the application in three ways:
     </context-param>
     ~~~~
 
-## Development
+## Development of the front-end
 
 0. Clone this repo
 0. Make sure you have installed node (v11.8.0) and yarn (1.19.1).
