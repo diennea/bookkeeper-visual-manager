@@ -1,9 +1,29 @@
 # Bookkeeper Visual Manager
 
+[![Build Status](https://travis-ci.org/diennea/bookkeeper-visual-manager.svg?branch=master)](https://travis-ci.org/apache/bookkeeper)
+
 Bookkeeper Visual Manager is an open source visual interface for [Apache
 Bookkeeper](https://bookkeeper.apache.org/).
 
-[![Build Status](https://travis-ci.org/diennea/bookkeeper-visual-manager.svg?branch=master)](https://travis-ci.org/apache/bookkeeper)
+Features:
+- connect to one BookKeeper cluster (4.7+)
+- discover bookies and bookie status
+- search ledgers, using ledger metadata
+- inspect ledger metadata
+
+Usecases:
+- Inspect your BookKeeper cluster
+- Check health of Bookies
+- See which applications are using more resources
+- Validate configuration of each application (check replication)
+- See Clusterwide confiuguration
+
+Roadmap:
+- Support multi user access and multitenancy
+- Manage Bookies
+- Manager replication
+- Verify consistency of cluster
+- Add advanced query functions
 
 ## Guide
 
