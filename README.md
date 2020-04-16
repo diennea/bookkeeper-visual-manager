@@ -21,7 +21,7 @@ Usecases:
 Roadmap:
 - Support multi user access and multitenancy
 - Manage Bookies
-- Manager replication
+- Manage replication
 - Verify consistency of cluster
 - Add advanced query functions
 
@@ -140,3 +140,13 @@ You can provide this file to the application in three ways:
     yarn serve
     ~~~~
 0. Build (use `yarn build` command)
+
+## Getting Involved
+
+Feel free to create issues and pull request in order to interact with the community.
+
+Please let us know if you are trying out this project, we will be happy to hear about your user case and help you.
+
+## License
+
+Bookkeeper Visual Manager is under [Apache 2 license](http://www.apache.org/licenses/LICENSE-2.0.html).
