@@ -1,4 +1,4 @@
-# Bookkeeper Visual Manager
+# BKVM - Visual Manager for Apache BookKeeper
 
 [![Build Status](https://travis-ci.org/diennea/bookkeeper-visual-manager.svg?branch=master)](https://travis-ci.org/apache/bookkeeper)
 
@@ -103,7 +103,7 @@ application a key/value properties file. An example file is provided in the conf
 | zkTimeout            | Zookeeper session timeout.         |
 
 You can provide this file to the application in three ways:
-1. **System Property**: bookkeeper.visual.manager.config.path  
+1. **System Property**: bookkeeper.visual.manager.config.path
     ~~~~
     BVM_PORT=8080
     BVM_CONF_PATH=path/to/warfile
@@ -131,7 +131,7 @@ You can provide this file to the application in three ways:
 
 0. Clone this repo
 0. Make sure you have installed node (v11.8.0) and yarn (1.19.1).
-0. Go into the frontend folder `src/main/bvmui` 
+0. Go into the frontend folder `src/main/bvmui`
 0. Install dependencies (use `yarn install` command)
 0. Auto reload (use `yarn serve` command)
     ~~~~
