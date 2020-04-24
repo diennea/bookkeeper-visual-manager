@@ -4,10 +4,10 @@
     <artifactId>bookkeeper-visual-manager</artifactId>
     <packaging>war</packaging>
     <parent>
-       <groupId>bookkeeper-visual-manager</groupId>
-       <artifactId>bookkeeper-visual-manager-parent</artifactId>
-       <version>1.1.0-SNAPSHOT</version>
-       <relativePath>..</relativePath>
+        <groupId>org.bkvm</groupId>
+        <artifactId>bookkeeper-visual-manager-parent</artifactId>
+        <version>1.1.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
     </parent>
 
     <name>BookKeeper Visual Manager</name>
