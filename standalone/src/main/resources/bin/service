@@ -48,7 +48,7 @@ MAINCLASS=
 
 case "$SERVICE" in
   server)
-    MAINCLASS=org.bookkeepervisualmanager.server.ServerMain
+    MAINCLASS=org.bkvm.server.ServerMain
     ;;  
       
   *)
