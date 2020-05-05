@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <zookpeeper.version>3.5.7</zookpeeper.version>
+        <zookpeeper.version>3.6.0</zookpeeper.version>
         <bookkeeper.version>4.10.0</bookkeeper.version>
         <slf4j.version>1.7.29</slf4j.version>
         <netty.version>4.1.48.Final</netty.version>
@@ -160,12 +160,12 @@
             <dependency>     
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-core</artifactId>
-                <scope>test</scope>
+                <version>4.1.6</version>
             </dependency>
             <dependency>     
                 <groupId>org.xerial.snappy</groupId>
                 <artifactId>snappy-java</artifactId>
-                <scope>test</scope>
+                <version>1.1.7.3</version>
             </dependency>    
             <dependency>
                 <groupId>org.herddb</groupId>
@@ -287,7 +287,18 @@
     <modules>
         <module>web</module>
         <module>standalone</module>
+        <module>site</module>
+        <module>site-skin</module>
     </modules>
+    <profiles>
+        <profile>
+            <id>website</id>
+            <modules>
+                <module>site-skin</module>
+                <module>site</module>
+            </modules>
+        </profile>
+    </profiles>
     <repositories>
         <repository>
             <id>apache-snapshots</id>
