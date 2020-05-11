@@ -36,15 +36,12 @@
                 </item>
             </items>
         </navigationBar>
-        
         <hero>
-            <title>BKVM - Visual Manager for Apache BookKeeper</title>
+            <title>BookKeeper Visual Manager</title>
             <subtitle>Visual interface for Apache BookKeeper</subtitle>
-            <brand>Diennea engineering</brand>
+            <brand>Diennea Engineering</brand>
         </hero>
-                
     </custom>
-    
     <skin>
         <groupId>${project.groupId}</groupId>
         <artifactId>site-skin</artifactId>

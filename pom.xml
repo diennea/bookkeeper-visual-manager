@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <zookpeeper.version>3.6.0</zookpeeper.version>
+        <zookpeeper.version>3.5.7</zookpeeper.version>
         <bookkeeper.version>4.10.0</bookkeeper.version>
         <slf4j.version>1.7.29</slf4j.version>
         <netty.version>4.1.48.Final</netty.version>
@@ -50,18 +50,18 @@
         <tag>HEAD</tag>
     </scm>
 
-    <dependencyManagement>  
-        <dependencies> 
+    <dependencyManagement>
+        <dependencies>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
-            </dependency>     
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
-            </dependency>     
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.core</artifactId>
@@ -86,7 +86,7 @@
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.jpa.jpql</artifactId>
                 <version>${eclipselink.version}</version>
-            </dependency>        
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
@@ -157,16 +157,16 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency>     
+            <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-core</artifactId>
                 <version>4.1.6</version>
             </dependency>
-            <dependency>     
+            <dependency>
                 <groupId>org.xerial.snappy</groupId>
                 <artifactId>snappy-java</artifactId>
                 <version>1.1.7.3</version>
-            </dependency>    
+            </dependency>
             <dependency>
                 <groupId>org.herddb</groupId>
                 <artifactId>herddb-jdbc</artifactId>
@@ -180,7 +180,7 @@
                         <groupId>org.apache.zookeeper</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
-                </exclusions>       
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.bookkeeper</groupId>
@@ -226,7 +226,7 @@
     </dependencyManagement>
     <build>
         <pluginManagement>
-            <plugins>               
+            <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
@@ -241,8 +241,8 @@
                     <groupId>org.eclipse.jetty</groupId>
                     <artifactId>jetty-maven-plugin</artifactId>
                     <version>${libs.jetty}</version>
-                </plugin>                          
-            </plugins>        
+                </plugin>
+            </plugins>
         </pluginManagement>
         <plugins>
             <plugin>
