@@ -50,18 +50,18 @@
         <tag>HEAD</tag>
     </scm>
 
-    <dependencyManagement>  
-        <dependencies> 
+    <dependencyManagement>
+        <dependencies>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
-            </dependency>     
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
-            </dependency>     
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.core</artifactId>
@@ -86,7 +86,7 @@
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.jpa.jpql</artifactId>
                 <version>${eclipselink.version}</version>
-            </dependency>        
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
@@ -157,16 +157,16 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency>     
+            <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-core</artifactId>
-                <scope>test</scope>
+                <version>4.1.6</version>
             </dependency>
-            <dependency>     
+            <dependency>
                 <groupId>org.xerial.snappy</groupId>
                 <artifactId>snappy-java</artifactId>
-                <scope>test</scope>
-            </dependency>    
+                <version>1.1.7.3</version>
+            </dependency>
             <dependency>
                 <groupId>org.herddb</groupId>
                 <artifactId>herddb-jdbc</artifactId>
@@ -180,7 +180,7 @@
                         <groupId>org.apache.zookeeper</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
-                </exclusions>       
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.bookkeeper</groupId>
@@ -226,7 +226,7 @@
     </dependencyManagement>
     <build>
         <pluginManagement>
-            <plugins>               
+            <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
@@ -241,8 +241,8 @@
                     <groupId>org.eclipse.jetty</groupId>
                     <artifactId>jetty-maven-plugin</artifactId>
                     <version>${libs.jetty}</version>
-                </plugin>                          
-            </plugins>        
+                </plugin>
+            </plugins>
         </pluginManagement>
         <plugins>
             <plugin>
@@ -287,7 +287,18 @@
     <modules>
         <module>web</module>
         <module>standalone</module>
+        <module>site</module>
+        <module>site-skin</module>
     </modules>
+    <profiles>
+        <profile>
+            <id>website</id>
+            <modules>
+                <module>site-skin</module>
+                <module>site</module>
+            </modules>
+        </profile>
+    </profiles>
     <repositories>
         <repository>
             <id>apache-snapshots</id>
