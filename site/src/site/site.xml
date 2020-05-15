@@ -37,8 +37,8 @@
             </items>
         </navigationBar>
         <hero>
-            <title>BookKeeper Visual Manager</title>
-            <subtitle>Visual interface for Apache BookKeeper</subtitle>
+            <title>BKVM</title>
+            <subtitle>A visual interface for Apache BookKeeper</subtitle>
             <brand>Diennea Engineering</brand>
         </hero>
     </custom>
