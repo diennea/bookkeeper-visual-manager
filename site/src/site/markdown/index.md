@@ -8,7 +8,7 @@
 * Search ledgers, using ledger metadata
 * Inspect ledger metadata
 
-<h2>Usecases</h2>
+<h2>Use cases</h2>
 * Inspect your BookKeeper cluster
 * Check health of Bookies
 * See which applications are using more resources
