@@ -77,7 +77,7 @@
     <scm>
         <url>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</url>
         <developerConnection>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>release/1.1</tag>
     </scm>
 
     <dependencyManagement>
