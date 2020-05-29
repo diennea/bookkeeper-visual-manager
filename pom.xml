@@ -1,13 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>bookkeeper-visual-manager-parent</artifactId>
+    <artifactId>bkvm-parent</artifactId>
     <packaging>pom</packaging>
     <groupId>org.bkvm</groupId>
     <version>1.1.0-SNAPSHOT</version>
-
     <name>BookKeeper Visual Manager - Parent</name>
-
+    <url>https://bkvm.org</url>
+    <developers>
+        <developer>
+            <id>mino181295</id>
+            <name>Matteo Minardi</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>eolivelli</id>
+            <name>Enrico Olivelli</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>alessandro.luccaroni</id>
+            <name>Alessandro Luccaroni</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>dcdiennea</id>
+            <name>Diana clementi</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>piercarlobeghetto</id>
+            <name>Piercarlo Beghetto</name>
+            <organization>Diennea</organization>
+        </developer>
+    </developers>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -227,6 +253,14 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <configuration>
+                        <detectJavaApiLink>false</detectJavaApiLink>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
