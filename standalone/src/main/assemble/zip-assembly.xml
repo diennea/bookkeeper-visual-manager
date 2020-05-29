@@ -30,13 +30,13 @@
             <useStrictFiltering>true</useStrictFiltering>
             <unpack>true</unpack>           
             <includes>                
-                <include>org.bkvm:bookkeeper-visual-manager:war</include>
+                <include>org.bkvm:bkvm:war</include>
             </includes>            
             <outputDirectory>web</outputDirectory>
         </dependencySet>
         <dependencySet>
             <excludes>
-                <exclude>org.bkvm:bookkeeper-visual-manager:war</exclude>
+                <exclude>org.bkvm:bkvm:war</exclude>
             </excludes>
             <useProjectArtifact>true</useProjectArtifact>
             <useStrictFiltering>true</useStrictFiltering>
