@@ -20,4 +20,9 @@
         <param-name>bookkeeper.visual.manager.config.path</param-name>
         <param-value>/bvm_conf.properties</param-value>
     </context-param>
+    <listener>
+    <listener-class>
+        org.bkvm.api.listeners.ContextInitializer
+    </listener-class>
+</listener>
 </web-app>

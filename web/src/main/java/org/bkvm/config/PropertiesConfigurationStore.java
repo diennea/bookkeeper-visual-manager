@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 
 /**
@@ -35,6 +37,8 @@ import javax.servlet.ServletContext;
  */
 public class PropertiesConfigurationStore implements ConfigurationStore {
 
+    private static final Logger LOG = Logger.getLogger(PropertiesConfigurationStore.class.getName());
+    
     private final Properties properties;
 
     public PropertiesConfigurationStore(Properties properties) {
@@ -57,16 +61,19 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
 
         public static Properties buildFromSystemProperty(String propName) throws IOException {
             String configPath = System.getProperty(propName);
+            LOG.log(Level.INFO, "readPropertiesFromFile from system property {0} = {1}", new Object[]{propName, configPath});
             return readPropertiesFromFile(configPath);
         }
 
         public static Properties buildFromEnvironmentVariable(String envName) throws IOException {
             String configPath = System.getenv(envName);
+            LOG.log(Level.INFO, "buildFromEnvironmentVariable from env property {0} = {1}", new Object[]{envName, configPath});
             return readPropertiesFromFile(configPath);
         }
 
         public static Properties buildFromWebXML(ServletContext ctx, String propName) throws IOException {
             String configPath = ctx.getInitParameter(propName);
+            LOG.log(Level.INFO, "buildFromEnvironmentVariable from web.xml property {0} = {1}", new Object[]{propName, configPath});
             return readPropertiesFromFile(configPath);
         }
 
@@ -75,6 +82,7 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
                 return null;
             }
             File configFile = new File(path);
+            LOG.log(Level.INFO, "readPropertiesFromFile from {0}", configFile.getAbsolutePath());
             if (!configFile.isFile()) {
                 return null;
             }
@@ -86,6 +94,11 @@ public class PropertiesConfigurationStore implements ConfigurationStore {
             return properties;
         }
 
+    }
+
+    @Override
+    public String toString() {
+        return "PropertiesConfigurationStore{" + "properties=" + properties + '}';
     }
 
 }

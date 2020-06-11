@@ -25,7 +25,6 @@ import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
 import org.bkvm.auth.AuthManager;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.cache.MetadataCache;
@@ -35,7 +34,6 @@ import org.bkvm.config.PropertiesConfigurationStore;
 import org.bkvm.config.PropertiesConfigurationStore.PropertiesConfigurationFactory;
 import org.bkvm.config.ServerConfiguration;
 
-@WebListener
 public class ContextInitializer implements ServletContextListener {
 
     @Override
@@ -48,28 +46,32 @@ public class ContextInitializer implements ServletContextListener {
 
         try {
             ConfigurationStore configStore = buildInitialConfiguration(context);
+            context.log("configuration: "+configStore);
             context.setAttribute("config", configStore);
 
             HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();
-            // In the future we will make this configurable
             String jdbcUrl = configStore.getProperty("jdbc.url", "jdbc:herddb:local");
+            context.log("jdbc.url=" + jdbcUrl);
             datasource.setUrl(jdbcUrl);
 
             context.setAttribute("datasource", datasource);
+
+            boolean startEmbeddedDatabase = Boolean.parseBoolean(configStore.getProperty("jdbc.startDatabase", "true"));
+            context.log("jdbc.startDatabase=" + startEmbeddedDatabase);
+            if (startEmbeddedDatabase) {
+                context.log("Booting Embedded HerdDB Database");
+                // boot the server
+                datasource.setStartServer(true);
+                datasource.getConnection().close();
+            }
+            context.log("Datasource properties: " + datasource.getProperties());
 
             AuthManager authManager = new AuthManager(configStore);
             context.setAttribute("authManager", authManager);
 
             MetadataCache metadataCache = new MetadataCache(datasource);
-
+            
             context.setAttribute("metadataCache", metadataCache);
-            boolean startEmbeddedDatabase = Boolean.parseBoolean(configStore.getProperty("jdbc.startDatabase", "true"));
-            if (startEmbeddedDatabase) {
-                // boot the server
-                datasource.setStartServer(true);
-                datasource.getConnection().close();
-            }
-
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
 
