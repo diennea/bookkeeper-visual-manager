@@ -171,6 +171,22 @@
                         </resource>
                     </webResources>
                 </configuration>
+                <!-- create two separate bundles: WAR + classes
+                     this way you can embed the application into another web application
+                -->
+                <executions>
+                    <execution>
+                        <id>create-war-no-libs</id>
+                        <goals>
+                            <goal>war</goal>
+                        </goals>
+                        <configuration>
+                            <packagingExcludes>WEB-INF/lib/*.jar,WEB-INF/classes/**/*</packagingExcludes>
+                            <attachClasses>true</attachClasses>
+                            <classifier>war-no-libs</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
