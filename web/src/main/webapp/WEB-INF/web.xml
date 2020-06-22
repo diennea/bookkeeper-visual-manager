@@ -11,7 +11,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>api-servlet</servlet-name>
-        <url-pattern>/api</url-pattern>        
+        <url-pattern>/api</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
@@ -21,8 +21,6 @@
         <param-value>/bvm_conf.properties</param-value>
     </context-param>
     <listener>
-    <listener-class>
-        org.bkvm.api.listeners.ContextInitializer
-    </listener-class>
-</listener>
+        <listener-class>org.bkvm.api.listeners.ContextInitializer</listener-class>
+    </listener>
 </web-app>

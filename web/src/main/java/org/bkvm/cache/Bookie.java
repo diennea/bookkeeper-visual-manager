@@ -19,7 +19,6 @@
  */
 package org.bkvm.cache;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -32,7 +31,6 @@ import javax.persistence.Id;
  * @author eolivelli
  */
 @Entity(name = "bookie")
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Bookie implements Serializable {
 
     public static final int STATE_DOWN = 0;
@@ -42,6 +40,9 @@ public class Bookie implements Serializable {
     @Column(columnDefinition = "string")
     @Id
     private String bookieId;
+    
+    @Column(columnDefinition = "string")
+    private String clusterName;
 
     @Column(columnDefinition = "string")
     private String description;

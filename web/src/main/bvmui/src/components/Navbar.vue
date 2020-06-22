@@ -4,6 +4,10 @@
         <span class="title ml-3 mr-5 white--text">
             Bookkeeper&nbsp;<span class="font-weight-light">Visual Manager</span>
         </span>
+        <v-spacer></v-spacer>
+        <span class="subtitle-1 ml-3 mr-5 white--text">
+            {{ clusterName }}
+        </span>
     </v-app-bar>
 </template>
 <script>
@@ -11,6 +15,11 @@ export default {
     methods: {
         toggleDrawer() {
             this.$store.commit('toggleDrawer');
+        }
+    },
+    computed: {
+        clusterName() {
+            return this.$store.getters.clusterName;
         }
     }
 };

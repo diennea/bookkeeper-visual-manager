@@ -43,9 +43,9 @@ public class AuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-         if (request.getSession(false) == null) {
-             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
-         }
+        if (request.getSession(false) == null) {
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+        }
     }
 
 }

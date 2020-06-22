@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import ErrorPage from "@/views/ErrorPage";
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
+import Clusters from '@/views/Clusters'
 import Login from '@/views/Login'
 import SystemStatus from '@/views/SystemStatus'
 
@@ -54,6 +55,14 @@ const router = new Router({
             meta: {
                 title: "System status",
                 type: "all"
+            }
+        },
+        {
+            path: '/clusters',
+            name: 'clusters',
+            component: Clusters,
+            meta: {
+                title: "Clusters"
             }
         },
         {

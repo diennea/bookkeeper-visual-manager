@@ -70,6 +70,7 @@ import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
 import org.apache.zookeeper.KeeperException;
 import org.bkvm.cache.Bookie;
+import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Ledger;
 import org.bkvm.cache.LedgerBookie;
 import org.bkvm.cache.LedgerMetadataEntry;
@@ -89,8 +90,11 @@ public class BookkeeperManager implements AutoCloseable {
     private final ConfigurationStore configStore;
     private final ClientConfiguration conf;
 
-    private BookKeeper bkClient;
-    private BookKeeperAdmin bkAdmin;
+    @Deprecated
+    private final BookKeeper bkClient;
+    private final BookkeeperClusterPool bkClusterPool;
+    
+    private final BookKeeperAdmin bkAdmin;
     private final MetadataCache metadataCache;
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
     private final ScheduledExecutorService refreshThread;
@@ -123,8 +127,11 @@ public class BookkeeperManager implements AutoCloseable {
                     .setClientConnectTimeoutMillis(1000);
 
             LOG.log(Level.INFO, "Bookkeeper client connection string = {0}", zkMetadataServiceUri);
-
-
+            this.bkClient = BookKeeper.forConfig(conf).build();
+                
+            // TODO: inizialize the = new BookkeeperClusterPool()
+            this.bkClusterPool = new BookkeeperClusterPool();
+            
             Map<String, String> remainingKeys = new HashMap<>();
             this.conf.getKeys().forEachRemaining(key -> {
                 remainingKeys.put(key, String.valueOf(conf.getProperty(key)));
@@ -351,19 +358,22 @@ public class BookkeeperManager implements AutoCloseable {
         if (refreshThread != null) {
             refreshThread.shutdown();
         }
-        if (bkAdmin != null) {
-            try {
-                bkAdmin.close();
-            } catch (InterruptedException | BKException t) {
-                LOG.log(Level.SEVERE, "Error closing BKAdmin", t);
+        try {
+            // TODO: Close the cluster pool
+            if (bkClusterPool != null) {
+                LOG.log(Level.INFO, "Closing bookkeeper cluster pool");
+                bkClusterPool.close();
             }
-        }
-        if (bkClient != null) {
-            try {
+            if (bkClient != null) {
+                LOG.log(Level.INFO, "Closing bookkeeper connection");
                 bkClient.close();
-            } catch (InterruptedException | BKException t) {
-                LOG.log(Level.SEVERE, "Error closing BK client", t);
             }
+            if (bkAdmin != null) {
+                LOG.log(Level.INFO, "Closing bookkeeper admin connection");
+                bkAdmin.close();
+            }
+        } catch (InterruptedException | BKException t) {
+            LOG.log(Level.SEVERE, "Error closing BKAdmin", t);
         }
     }
 
@@ -454,6 +464,18 @@ public class BookkeeperManager implements AutoCloseable {
 
     public Collection<Bookie> getAllBookies() throws BookkeeperManagerException {
         return metadataCache.listBookies();
+    }
+
+    public Collection<Cluster> getAllClusters() throws BookkeeperException {
+        return metadataCache.listClusters();
+    }
+    
+    public void updateCluster(Cluster cluster) throws BookkeeperException {
+        metadataCache.updateCluster(cluster);
+    }
+    
+    public void deleteCluster(String name) throws BookkeeperException {
+        metadataCache.deleteCluster(name);
     }
 
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")

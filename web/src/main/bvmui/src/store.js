@@ -8,11 +8,15 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        clusterName: '',
         drawerExpanded: false,
         token: '',
         status: '',
     },
     mutations: {
+        updateCluster(state, payload) {
+            state.clusterName = payload.name
+        },
         toggleDrawer(state) {
             state.drawerExpanded = !state.drawerExpanded;
         },
@@ -33,6 +37,7 @@ export default new Vuex.Store({
     },
     getters: {
         isLogged: state => !state.token ? false : true,
+        clusterName: state => state.clusterName
     },
     actions: {
         login({ commit }, loginInfo) {

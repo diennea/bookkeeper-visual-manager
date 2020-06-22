@@ -26,6 +26,7 @@ import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 import org.bkvm.auth.AuthManager;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.cache.MetadataCache;
@@ -35,6 +36,7 @@ import org.bkvm.config.PropertiesConfigurationStore;
 import org.bkvm.config.PropertiesConfigurationStore.PropertiesConfigurationFactory;
 import org.bkvm.config.ServerConfiguration;
 
+@WebListener
 public class ContextInitializer implements ServletContextListener {
 
     @Override

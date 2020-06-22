@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-BVM_SERVICEURI=${1:-}
-BVM_PORT=${2:-8080}
+BVM_SERVICEURI=${1:-"zk+null://127.0.0.1:2181/ledgers"}
+BVM_PORT=${2:-8086}
 
 if [ -z "$BVM_SERVICEURI" ]; then
     echo "Usage: $0 \"metadataServiceUri\" [port]"
@@ -12,9 +12,5 @@ SCRIPTDIR=`dirname "$0"`
 BVM_HOME=`cd ${SCRIPTDIR}/..;pwd`
 
 # Start the backend without UI
-mvn jetty:run -f $BVM_HOME -DskipYarn -Dbookkeeper.visual.manager.metadataServiceUri=$BVM_SERVICEURI -Djetty.http.port=$BVM_PORT 
+mvn clean install -DskipTests jetty:run -f $BVM_HOME -DskipYarn -Dbookkeeper.visual.manager.metadataServiceUri=$BVM_SERVICEURI -Djetty.http.port=$BVM_PORT -Dcheckstyle.skip
 echo "Started Bookkeeper Visual Manager on port ${BVM_PORT}.."
-
-# Start the UI with hot-reload connected to the backend
-BVMUI_HOME=`cd ${BVM_HOME}/src/main/bvmui;pwd`
-yarn run serve --cwd $BVMUI_HOME -s "http://localhost:${BVM_PORT}"

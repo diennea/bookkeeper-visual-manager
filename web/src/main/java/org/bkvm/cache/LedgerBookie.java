@@ -19,7 +19,6 @@
  */
 package org.bkvm.cache;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.util.Objects;
 import javax.persistence.Column;
@@ -32,7 +31,6 @@ import javax.persistence.Id;
  * @author eolivelli
  */
 @Entity(name = "ledger_bookie")
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class LedgerBookie implements Serializable {
 
     @Column(columnDefinition = "long")
