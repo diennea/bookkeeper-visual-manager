@@ -7,7 +7,7 @@
         <relativePath>..</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>BookKeeper Visual Manager Standalone Runner</name>
+    <name>BKVM :: Standalone Runner</name>
     <artifactId>standalone</artifactId>
     <packaging>jar</packaging>
     <properties>

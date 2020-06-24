@@ -108,11 +108,11 @@ public class MetadataCache implements AutoCloseable {
                 if (cluster.getClusterId() == null) {
                     Integer max = em.createQuery("SELECT MAX(c.clusterId) FROM cluster c", Integer.class)
                             .getSingleResult();
-                    
+
                     int newClusterId = max == null ? 1 : max + 1;
                     cluster.setClusterId(newClusterId);
                 }
-                
+
                 em.persist(cluster);
                 return null;
             });

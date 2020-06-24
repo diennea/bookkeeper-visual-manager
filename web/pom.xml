@@ -10,7 +10,7 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <name>BookKeeper Visual Manager</name>
+    <name>BKVM :: Web</name>
 
     <dependencies>
         <dependency>

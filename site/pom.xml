@@ -25,15 +25,15 @@
         <relativePath>..</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>Bookkeeper Visual Manager Website</name>
+    <name>BKVM :: Website</name>
     <artifactId>website</artifactId>
     <packaging>jar</packaging>
-    <build>               
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.9.0</version>         
+                <version>3.9.0</version>
             </plugin>
         </plugins>
     </build>

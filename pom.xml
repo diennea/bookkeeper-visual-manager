@@ -4,8 +4,13 @@
     <artifactId>bkvm-parent</artifactId>
     <packaging>pom</packaging>
     <groupId>org.bkvm</groupId>
+<<<<<<< HEAD
     <version>2.1.0-SNAPSHOT</version>
     <name>BookKeeper Visual Manager - Parent</name>
+=======
+    <version>2.0.0-SNAPSHOT</version>
+    <name>BKVM :: Parent</name>
+>>>>>>> Introduce Clusters: Rename Parent
     <url>https://bkvm.org</url>
     <description>
         BKVM is a Visual Manager for Apache BookKeeper cluster administration.
