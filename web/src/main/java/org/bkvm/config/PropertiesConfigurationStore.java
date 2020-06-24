@@ -38,7 +38,7 @@ import javax.servlet.ServletContext;
 public class PropertiesConfigurationStore implements ConfigurationStore {
 
     private static final Logger LOG = Logger.getLogger(PropertiesConfigurationStore.class.getName());
-    
+
     private final Properties properties;
 
     public PropertiesConfigurationStore(Properties properties) {
