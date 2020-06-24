@@ -4,7 +4,7 @@
     <artifactId>bkvm-parent</artifactId>
     <packaging>pom</packaging>
     <groupId>org.bkvm</groupId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <name>BookKeeper Visual Manager - Parent</name>
     <url>https://bkvm.org</url>
     <description>
