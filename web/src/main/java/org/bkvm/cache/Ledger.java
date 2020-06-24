@@ -23,16 +23,19 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represent basic ledger metadata
  *
  * @author eolivelli
  */
+@Data
+@EqualsAndHashCode
 @Entity(name = "ledger")
 public class Ledger implements Serializable {
 
@@ -64,87 +67,6 @@ public class Ledger implements Serializable {
         this.ctime = ctime;
         this.scanTime = scanTime;
         this.serializedMetadata = serializedMetadata;
-    }
-
-    public long getLedgerId() {
-        return ledgerId;
-    }
-
-    public void setLedgerId(long ledgerId) {
-        this.ledgerId = ledgerId;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public void setSize(long size) {
-        this.size = size;
-    }
-
-    public Timestamp getCtime() {
-        return ctime;
-    }
-
-    public void setCtime(Timestamp ctime) {
-        this.ctime = ctime;
-    }
-
-    public Timestamp getScanTime() {
-        return scanTime;
-    }
-
-    public void setScanTime(Timestamp scanTime) {
-        this.scanTime = scanTime;
-    }
-
-    public String getSerializedMetadata() {
-        return serializedMetadata;
-    }
-
-    public void setSerializedMetadata(String serializedMetadata) {
-        this.serializedMetadata = serializedMetadata;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 29 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
-        hash = 29 * hash + (int) (this.size ^ (this.size >>> 32));
-        hash = 29 * hash + Objects.hashCode(this.ctime);
-        hash = 29 * hash + Objects.hashCode(this.scanTime);
-        hash = 29 * hash + Objects.hashCode(this.serializedMetadata);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Ledger other = (Ledger) obj;
-        if (this.ledgerId != other.ledgerId) {
-            return false;
-        }
-        if (this.size != other.size) {
-            return false;
-        }
-        if (!Objects.equals(this.serializedMetadata, other.serializedMetadata)) {
-            return false;
-        }
-        if (!Objects.equals(this.ctime, other.ctime)) {
-            return false;
-        }
-        if (!Objects.equals(this.scanTime, other.scanTime)) {
-            return false;
-        }
-        return true;
     }
 
     public long getAge() {

@@ -21,15 +21,18 @@ package org.bkvm.cache;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  *
  * @author eolivelli
  */
+@Data
+@EqualsAndHashCode
 @Entity(name = "bookie")
 public class Bookie implements Serializable {
 
@@ -37,10 +40,11 @@ public class Bookie implements Serializable {
     public static final int STATE_AVAILABLE = 1;
     public static final int STATE_READONLY = 2;
 
-    @Column(columnDefinition = "string")
     @Id
+    @Column(columnDefinition = "string")
     private String bookieId;
 
+//    @Id
     @Column(columnDefinition = "int")
     private Integer clusterId;
 
@@ -69,95 +73,6 @@ public class Bookie implements Serializable {
         this.scanTime = scanTime;
         this.freeDiskspace = freeDiskspace;
         this.totalDiskspace = totalDiskspace;
-    }
-
-    public String getBookieId() {
-        return bookieId;
-    }
-
-    public void setBookieId(String bookieId) {
-        this.bookieId = bookieId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getState() {
-        return state;
-    }
-
-    public void setState(int state) {
-        this.state = state;
-    }
-
-    public Timestamp getScanTime() {
-        return scanTime;
-    }
-
-    public void setScanTime(Timestamp scanTime) {
-        this.scanTime = scanTime;
-    }
-
-    public long getFreeDiskspace() {
-        return freeDiskspace;
-    }
-
-    public void setFreeDiskspace(long freeDiskspace) {
-        this.freeDiskspace = freeDiskspace;
-    }
-
-    public long getTotalDiskspace() {
-        return totalDiskspace;
-    }
-
-    public void setTotalDiskspace(long totalDiskspace) {
-        this.totalDiskspace = totalDiskspace;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 59 * hash + Objects.hashCode(this.bookieId);
-        hash = 59 * hash + this.state;
-        hash = 59 * hash + Objects.hashCode(this.scanTime);
-        hash = 59 * hash + (int) (this.freeDiskspace ^ (this.freeDiskspace >>> 32));
-        hash = 59 * hash + (int) (this.totalDiskspace ^ (this.totalDiskspace >>> 32));
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Bookie other = (Bookie) obj;
-        if (this.state != other.state) {
-            return false;
-        }
-        if (this.freeDiskspace != other.freeDiskspace) {
-            return false;
-        }
-        if (this.totalDiskspace != other.totalDiskspace) {
-            return false;
-        }
-        if (!Objects.equals(this.bookieId, other.bookieId)) {
-            return false;
-        }
-        if (!Objects.equals(this.scanTime, other.scanTime)) {
-            return false;
-        }
-        return true;
     }
 
 }

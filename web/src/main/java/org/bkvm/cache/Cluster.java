@@ -23,11 +23,13 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import lombok.Data;
 
 /**
  *
  * @author eolivelli
  */
+@Data
 @Entity(name = "cluster")
 public class Cluster implements Serializable {
 
@@ -51,38 +53,6 @@ public class Cluster implements Serializable {
     public Cluster(int clusterId, String name, String metadataServiceUri) {
         this.name = name;
         this.metadataServiceUri = metadataServiceUri;
-    }
-
-    public int getClusterId() {
-        return clusterId;
-    }
-
-    public void setClusterId(int clusterId) {
-        this.clusterId = clusterId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMetadataServiceUri() {
-        return metadataServiceUri;
-    }
-
-    public void setMetadataServiceUri(String metadataServiceUri) {
-        this.metadataServiceUri = metadataServiceUri;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
     }
 
 }

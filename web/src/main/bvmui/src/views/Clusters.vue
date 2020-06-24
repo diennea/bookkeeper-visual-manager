@@ -43,7 +43,7 @@
                                     v-model="clusterInfo.configuration"
                                     label="Configuration"
                                     hint="Properties file passed as configuration to the client connection"
-                                ></v-textarea>
+                                />
                             </v-col>
                         </v-row>
                     </v-container>
@@ -94,6 +94,9 @@ export default {
             return this.clusters.map(cluster => cluster.name);
         }
     },
+    created() {
+        this.refreshClusters();
+    },
     methods: {
         closeDialog() {
             this.dialog = false;
@@ -121,9 +124,6 @@ export default {
             this.clusters = await this.$request.get("api/cluster/all");
             this.$store.commit('showDrawer', this.clusters.length > 0);
         }
-    },
-    created() {
-        this.refreshClusters();
     }
 };
 </script>

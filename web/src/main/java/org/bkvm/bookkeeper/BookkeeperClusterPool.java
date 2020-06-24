@@ -23,7 +23,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import lombok.SneakyThrows;
+import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper;
+import org.apache.bookkeeper.conf.ClientConfiguration;
 
 /**
  *
@@ -31,27 +36,41 @@ import org.apache.bookkeeper.client.BookKeeper;
  */
 public class BookkeeperClusterPool implements Closeable {
 
-    private Map<String, BookKeeper> pool = new ConcurrentHashMap<>();
+    private static final Logger LOG = Logger.getLogger(BookkeeperClusterPool.class.getName());
 
-    public void addCluster(String name, String metadataServiceUri) {
+    private Map<Integer, BookKeeper> pool = new ConcurrentHashMap<>();
+
+    @SneakyThrows
+    public void addCluster(int clusterId, String metadataServiceUri) {
         BookKeeper bkClient = createBookKeeperClient(metadataServiceUri);
-        pool.put(name, bkClient);
+        LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
+
+        pool.put(clusterId, bkClient);
     }
 
     private BookKeeper createBookKeeperClient(String metadataServiceUri) {
-        // Establish a connection to metadataServiceUri
-        return null;
+        try {
+            ClientConfiguration conf = new ClientConfiguration()
+                    .setMetadataServiceUri(metadataServiceUri)
+                    .setEnableDigestTypeAutodetection(true)
+                    .setGetBookieInfoTimeout(1000)
+                    .setClientConnectTimeoutMillis(1000);
+            return BookKeeper.forConfig(conf).build();
+        } catch (IOException | InterruptedException | BKException ex) {
+            return null;
+        }
     }
 
-    public void removeCluster(String name, String metadataServiceUri) throws BookkeeperException {
-        BookKeeper bkClient = pool.remove(name);
+    public void removeCluster(int clusterId) throws BookkeeperException {
+        BookKeeper bkClient = pool.remove(clusterId);
         releaseBookKeeperClient(bkClient);
     }
 
+    @SneakyThrows
     private void releaseBookKeeperClient(BookKeeper bkClient) throws BookkeeperException {
-        // close the connection
         try {
             if (bkClient != null) {
+                LOG.log(Level.INFO, "Removed bkClient {0}", bkClient.getBookieInfo());
                 bkClient.close();
             }
         } catch (Throwable t) {

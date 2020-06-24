@@ -20,16 +20,19 @@
 package org.bkvm.cache;
 
 import java.io.Serializable;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * A record in this table means that a ledger is placed over a Bookie
  *
  * @author eolivelli
  */
+@Data
+@EqualsAndHashCode
 @Entity(name = "ledger_bookie")
 public class LedgerBookie implements Serializable {
 
@@ -47,51 +50,6 @@ public class LedgerBookie implements Serializable {
     public LedgerBookie(long ledgerId, String bookieAddress) {
         this.ledgerId = ledgerId;
         this.bookieId = bookieAddress;
-    }
-
-    public long getLedgerId() {
-        return ledgerId;
-    }
-
-    public void setLedgerId(long ledgerId) {
-        this.ledgerId = ledgerId;
-    }
-
-    public String getBookieId() {
-        return bookieId;
-    }
-
-    public void setBookieId(String bookieId) {
-        this.bookieId = bookieId;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
-        hash = 97 * hash + Objects.hashCode(this.bookieId);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final LedgerBookie other = (LedgerBookie) obj;
-        if (this.ledgerId != other.ledgerId) {
-            return false;
-        }
-        if (!Objects.equals(this.bookieId, other.bookieId)) {
-            return false;
-        }
-        return true;
     }
 
     @Override

@@ -20,29 +20,34 @@
 package org.bkvm.cache;
 
 import java.io.Serializable;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Custom ledger metadata, expanded to a table in order to perform queries
  *
  * @author eolivelli
  */
+@Data
+@EqualsAndHashCode
 @Entity(name = "ledger_metadata")
 public class LedgerMetadataEntry implements Serializable {
 
-    @Column(columnDefinition = "long")
     @Id
+    @Column(columnDefinition = "long")
     private long ledgerId;
 
+//    @Id
     @Column(columnDefinition = "int")
     private Integer clusterId;
 
-    @Column(columnDefinition = "string")
     @Id
+    @Column(columnDefinition = "string")
     private String entryName;
+
 
     @Column(columnDefinition = "string")
     private String entryValue;
@@ -54,59 +59,6 @@ public class LedgerMetadataEntry implements Serializable {
         this.ledgerId = ledgerId;
         this.entryName = entryName;
         this.entryValue = entryValue;
-    }
-
-    public long getLedgerId() {
-        return ledgerId;
-    }
-
-    public void setLedgerId(long ledgerId) {
-        this.ledgerId = ledgerId;
-    }
-
-    public String getEntryName() {
-        return entryName;
-    }
-
-    public void setEntryName(String entryName) {
-        this.entryName = entryName;
-    }
-
-    public String getEntryValue() {
-        return entryValue;
-    }
-
-    public void setEntryValue(String entryValue) {
-        this.entryValue = entryValue;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 57 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
-        hash = 57 * hash + Objects.hashCode(this.entryName);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final LedgerMetadataEntry other = (LedgerMetadataEntry) obj;
-        if (this.ledgerId != other.ledgerId) {
-            return false;
-        }
-        if (!Objects.equals(this.entryName, other.entryName)) {
-            return false;
-        }
-        return true;
     }
 
     @Override
