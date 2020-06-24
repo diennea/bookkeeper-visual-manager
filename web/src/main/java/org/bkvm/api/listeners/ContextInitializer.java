@@ -46,7 +46,7 @@ public class ContextInitializer implements ServletContextListener {
 
         try {
             ConfigurationStore configStore = buildInitialConfiguration(context);
-            context.log("configuration: "+configStore);
+            context.log("configuration: " + configStore);
             context.setAttribute("config", configStore);
 
             HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();
@@ -70,7 +70,7 @@ public class ContextInitializer implements ServletContextListener {
             context.setAttribute("authManager", authManager);
 
             MetadataCache metadataCache = new MetadataCache(datasource);
-            
+
             context.setAttribute("metadataCache", metadataCache);
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
