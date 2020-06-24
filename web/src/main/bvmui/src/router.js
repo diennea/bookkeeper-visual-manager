@@ -9,6 +9,7 @@ import Login from '@/views/Login'
 import SystemStatus from '@/views/SystemStatus'
 
 import store from './store'
+import request from './lib/request'
 
 Vue.use(Router);
 
@@ -81,13 +82,31 @@ const router = new Router({
     ]
 })
 
-router.beforeEach((to, from, next) => {
-    const isLogin = to.name === 'login';
-    if (isLogin && store.getters.isLogged) {
+router.beforeEach(async (to, from, next) => {
+    const pageLogin = to.name === 'login';
+    const userLogged = store.getters.isLogged;
+    if (pageLogin && userLogged) {
         next("/");
         return;
     }
-    if (isLogin || store.getters.isLogged) {
+    if (pageLogin) {
+        next();
+        return;
+    }
+    if (userLogged) {
+        const pageClusters = to.name === 'clusters';
+        if (pageClusters) {
+            next();
+            return;
+        }
+
+        const count = await request.get('api/cluster/count');
+        store.commit('showDrawer', count > 0);
+        if (count === 0) {
+            next('/clusters');
+            return;
+        }
+
         next();
         return;
     }

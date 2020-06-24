@@ -1,6 +1,6 @@
 <template>
     <div class="bvm-clusters">
-        <v-dialog v-model="dialog" persistent max-width="600px">
+        <v-dialog v-model="dialog" persistent max-width="700px">
             <template v-slot:activator="{ on, attrs }">
                 <v-btn
                     depressed
@@ -20,7 +20,7 @@
                 <v-card-text>
                     <v-container>
                         <v-row>
-                            <v-col cols="12">
+                            <v-col cols="4">
                                 <v-text-field
                                     v-model="clusterInfo.name"
                                     label="Name"
@@ -28,35 +28,33 @@
                                     dense
                                 />
                             </v-col>
-                        </v-row>
-                        <v-row>
-                            <v-col cols="12">
+                            <v-col cols="8">
                                 <v-text-field
                                     v-model="clusterInfo.metadataServiceUri"
                                     label="Metadata service URI"
-                                    hint="example of helper text only on focus"
                                     required
                                     dense
                                 />
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col cols="12">
+                                <v-textarea
+                                    v-model="clusterInfo.configuration"
+                                    label="Configuration"
+                                    hint="Properties file passed as configuration to the client connection"
+                                ></v-textarea>
                             </v-col>
                         </v-row>
                     </v-container>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-                    <v-btn color="blue darken-1" text @click="addCluster">Add</v-btn>
+                    <v-btn color="blue lighten-1" text @click="closeDialog">Close</v-btn>
+                    <v-btn color="blue lighten-1" text @click="addCluster">Add</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
-         <v-select
-            :value="$store.getters.clusterName"
-            @change="changeCluster"
-            :items="clusterNames"
-            label="Select the cluster"
-            dense
-            solo
-        ></v-select>
         <v-data-table
             :headers="headers"
             :items="clusters"
@@ -79,7 +77,8 @@ export default {
             clusters: [],
             clusterInfo: {
                 name: '',
-                metadataServiceUri: ''
+                metadataServiceUri: '',
+                configuration: ''
             }
         }
     },
@@ -96,27 +95,31 @@ export default {
         }
     },
     methods: {
-        addCluster() {
-            this.$request.post("api/cluster/add", {
-                name: this.clusterInfo.name,
-                metadataServiceUri: this.clusterInfo.metadataServiceUri,
-            }).then(() => {
-                this.dialog = false;
-                this.clusterInfo.name = '';
-                this.clusterInfo.metadataServiceUri = '';
-                this.refreshClusters();
-            })
+        closeDialog() {
+            this.dialog = false;
+            this.clusterInfo.name = '';
+            this.clusterInfo.metadataServiceUri = '';
+            this.clusterInfo.configuration = '';
         },
-        deleteCluster({name}) {
-            this.$request.post(`api/cluster/delete/${name}`)
-                .then(() => this.refreshClusters());
-
+        addCluster() {
+            this.$request.post("api/cluster/add", this.clusterInfo)
+                .then(() => {
+                    this.closeDialog();
+                    this.refreshClusters();
+                });
+        },
+        deleteCluster({ clusterId }) {
+            this.$request.post(`api/cluster/delete/${clusterId}`)
+                .then(() => {
+                    this.refreshClusters()
+                });
         },
         changeCluster(name) {
             this.$store.commit('updateCluster', { name })
         },
         async refreshClusters() {
             this.clusters = await this.$request.get("api/cluster/all");
+            this.$store.commit('showDrawer', this.clusters.length > 0);
         }
     },
     created() {

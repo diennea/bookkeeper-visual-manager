@@ -40,8 +40,8 @@ public class Ledger implements Serializable {
     @Id
     private long ledgerId;
 
-    @Column(columnDefinition = "string")
-    private String clusterName;
+    @Column(columnDefinition = "int")
+    private int clusterId;
 
     @Column(columnDefinition = "long")
     private long size;

@@ -37,8 +37,8 @@ public class LedgerMetadataEntry implements Serializable {
     @Id
     private long ledgerId;
 
-    @Column(columnDefinition = "string")
-    private String clusterName;
+    @Column(columnDefinition = "int")
+    private Integer clusterId;
 
     @Column(columnDefinition = "string")
     @Id
