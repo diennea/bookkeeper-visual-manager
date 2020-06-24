@@ -44,7 +44,6 @@ public class BookkeeperClusterPool implements Closeable {
     public void addCluster(int clusterId, String metadataServiceUri) {
         BookKeeper bkClient = createBookKeeperClient(metadataServiceUri);
         LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
-
         pool.put(clusterId, bkClient);
     }
 

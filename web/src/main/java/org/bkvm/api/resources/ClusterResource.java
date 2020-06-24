@@ -35,8 +35,6 @@ import org.bkvm.cache.Cluster;
 @Path("cluster")
 public class ClusterResource extends AbstractBookkeeperResource {
 
-    private static int clusterId = 1;
-
     @GET
     @Secured
     @Path("all")
@@ -72,7 +70,6 @@ public class ClusterResource extends AbstractBookkeeperResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void addCluster(ClusterBean bean) throws Exception {
         Cluster cluster = new Cluster();
-        cluster.setClusterId(clusterId++);
         cluster.setName(bean.getName());
         cluster.setMetadataServiceUri(bean.getMetadataServiceUri());
         cluster.setConfiguration(bean.getConfiguration());
