@@ -6,34 +6,57 @@ Bookkeeper Visual Manager is an open source visual interface for [Apache
 Bookkeeper](https://bookkeeper.apache.org/).
 
 Features:
-- connect to one BookKeeper cluster (4.7+)
-- discover bookies and bookie status
-- search ledgers, using ledger metadata
-- inspect ledger metadata
+- Connect to a BookKeeper cluster (4.7+)
+- Discover bookies and bookie status
+- Search ledgers, using ledger metadata
+- Inspect ledger metadata
 
 Usecases:
 - Inspect your BookKeeper cluster
 - Check health of Bookies
 - See which applications are using more resources
 - Validate configuration of each application (check replication)
-- See Clusterwide confiuguration
+- See Clusterwide configuration
 
 Roadmap:
-- Support multi user access and multitenancy
+- Support multi user access, multitenancy and multiple clusters
 - Manage Bookies
 - Manage replication
 - Verify consistency of cluster
 - Add advanced query functions
+- Add API
 
-## Guide
+## Overview
+
+### Log in
+
+Use the default account (`admin`) and the default password (`admin`) to log in.
+
+![bkvm-login](docs/img/bkvm-login.png)
+
+### Bookies status
+
+Bookies availability (AVAILABLE, DOWN, READONLY) and disk usage.
+
+![bkvm-bookies](docs/img/bkvm-bookies.png)
+
+### Ledgers monitoring
+
+Search for specific ledgers and ledgers metadata. Monitor ledger disk usage and replication factor.
+
+![bkvm-ledgers](docs/img/bkvm-ledgers.png)
+
+### Bookies configuration
+
+![bkvm-systemstatus](docs/img/bkvm-systemstatus.png)
+
+## Quickstart
 
 ### Requirements
 
 In order to run BookKeeper Visual Manager you just need a Linux Machine and Java 8 runtime.
 
 In order to develop BookKeeper Visual Maanger you need Maven 3.6.x and Yarn.
-
-### Quickstart
 
 ### Using the provided release packages
 
