@@ -25,26 +25,38 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper;
+import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.conf.ClientConfiguration;
+import org.apache.bookkeeper.meta.LedgerManager;
 
 /**
  *
  * @author matteo.minardi
  */
+@Getter
 public class BookkeeperClusterPool implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(BookkeeperClusterPool.class.getName());
 
-    private Map<Integer, BookKeeper> pool = new ConcurrentHashMap<>();
+    private Map<Integer, BookkeeperCluster> pool = new ConcurrentHashMap<>();
 
     @SneakyThrows
     public void addCluster(int clusterId, String metadataServiceUri) {
         BookKeeper bkClient = createBookKeeperClient(metadataServiceUri);
+        BookKeeperAdmin bkAdmin = new BookKeeperAdmin(bkClient);
         LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
-        pool.put(clusterId, bkClient);
+
+        BookkeeperCluster bkCluster = new BookkeeperCluster(bkClient, bkAdmin, bkAdmin.getConf());
+        pool.put(clusterId, bkCluster);
+    }
+
+    public BookkeeperCluster getCluster(int clusterId) {
+        return pool.get(clusterId);
     }
 
     private BookKeeper createBookKeeperClient(String metadataServiceUri) {
@@ -60,33 +72,55 @@ public class BookkeeperClusterPool implements Closeable {
         }
     }
 
-    public void removeCluster(int clusterId) throws BookkeeperException {
-        BookKeeper bkClient = pool.remove(clusterId);
-        releaseBookKeeperClient(bkClient);
+    public void removeCluster(int clusterId) throws BookkeeperManagerException {
+        BookkeeperCluster bkCluster = pool.remove(clusterId);
+        releaseBookKeeperCluster(bkCluster);
     }
 
     @SneakyThrows
-    private void releaseBookKeeperClient(BookKeeper bkClient) throws BookkeeperException {
+    private void releaseBookKeeperCluster(BookkeeperCluster bkCluster) throws BookkeeperManagerException {
         try {
-            if (bkClient != null) {
-                LOG.log(Level.INFO, "Removed bkClient {0}", bkClient.getBookieInfo());
-                bkClient.close();
+            if (bkCluster.getBkClient() != null) {
+                LOG.log(Level.INFO, "Removed bkClient {0}", bkCluster.getBkClient().getBookieInfo());
+                bkCluster.getBkClient().close();
+            }
+            if (bkCluster.getBkAdmin() != null) {
+                bkCluster.getBkAdmin().close();
             }
         } catch (Throwable t) {
-            throw new BookkeeperException(t);
+            throw new BookkeeperManagerException(t);
         }
+    }
+
+    public LedgerManager getLedgerManager(int clusterId) {
+        return this.pool.get(clusterId).getBkClient().getLedgerManager();
     }
 
     @Override
     public void close() throws IOException {
         try {
-            for (BookKeeper bkClient : pool.values()) {
-                releaseBookKeeperClient(bkClient);
+            for (BookkeeperCluster bkCluster : pool.values()) {
+                releaseBookKeeperCluster(bkCluster);
             }
             this.pool = null;
-        } catch (BookkeeperException ex) {
+        } catch (BookkeeperManagerException ex) {
             throw new IOException(ex);
         }
+    }
+
+    @Data
+    public static class BookkeeperCluster {
+
+        private BookKeeper bkClient;
+        private BookKeeperAdmin bkAdmin;
+        private ClientConfiguration conf;
+
+        public BookkeeperCluster(BookKeeper bkClient, BookKeeperAdmin bkAdmin, ClientConfiguration conf) {
+            this.bkClient = bkClient;
+            this.bkAdmin = bkAdmin;
+            this.conf = conf;
+        }
+
     }
 
 }

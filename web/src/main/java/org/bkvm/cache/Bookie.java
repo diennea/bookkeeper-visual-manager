@@ -66,8 +66,9 @@ public class Bookie implements Serializable {
     public Bookie() {
     }
 
-    public Bookie(String bookieId, String description, int state, Timestamp scanTime, long freeDiskspace, long totalDiskspace) {
+    public Bookie(String bookieId, int clusterId, String description, int state, Timestamp scanTime, long freeDiskspace, long totalDiskspace) {
         this.bookieId = bookieId;
+        this.clusterId = clusterId;
         this.description = description;
         this.state = state;
         this.scanTime = scanTime;

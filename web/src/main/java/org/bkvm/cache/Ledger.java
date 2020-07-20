@@ -61,8 +61,9 @@ public class Ledger implements Serializable {
     public Ledger() {
     }
 
-    public Ledger(long ledgerId, long size, Timestamp ctime, Timestamp scanTime, String serializedMetadata) {
+    public Ledger(long ledgerId, int clusterId, long size, Timestamp ctime, Timestamp scanTime, String serializedMetadata) {
         this.ledgerId = ledgerId;
+        this.clusterId = clusterId;
         this.size = size;
         this.ctime = ctime;
         this.scanTime = scanTime;

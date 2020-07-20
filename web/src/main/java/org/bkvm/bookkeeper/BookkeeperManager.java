@@ -19,21 +19,12 @@
  */
 package org.bkvm.bookkeeper;
 
-import static org.bkvm.config.ServerConfiguration.PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
-import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,7 +39,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BKException.BKNoSuchLedgerExistsOnMetadataServerException;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
@@ -69,15 +59,14 @@ import org.apache.bookkeeper.replication.AuditorElector;
 import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
 import org.apache.zookeeper.KeeperException;
+import org.bkvm.bookkeeper.BookkeeperClusterPool.BookkeeperCluster;
 import org.bkvm.cache.Bookie;
 import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Ledger;
 import org.bkvm.cache.LedgerBookie;
 import org.bkvm.cache.LedgerMetadataEntry;
 import org.bkvm.cache.MetadataCache;
-import org.bkvm.config.ConfigurationNotValidException;
 import org.bkvm.config.ConfigurationStore;
-import org.bkvm.config.ConfigurationStoreUtils;
 
 /**
  *
@@ -88,13 +77,8 @@ public class BookkeeperManager implements AutoCloseable {
     private static final Logger LOG = Logger.getLogger(BookkeeperManager.class.getName());
 
     private final ConfigurationStore configStore;
-    private final ClientConfiguration conf;
-
-    @Deprecated
-    private final BookKeeper bkClient;
     private final BookkeeperClusterPool bkClusterPool;
 
-    private final BookKeeperAdmin bkAdmin;
     private final MetadataCache metadataCache;
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
     private final ScheduledExecutorService refreshThread;
@@ -104,7 +88,6 @@ public class BookkeeperManager implements AutoCloseable {
         WORKING
     }
     private volatile long lastMetadataCacheRefresh;
-    private final Map<String, String> bookkeeperClientConfiguration;
     private volatile ClusterWideConfiguration lastClusterWideConfiguration;
     private final AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
@@ -169,37 +152,27 @@ public class BookkeeperManager implements AutoCloseable {
             } catch (IOException | InterruptedException | BKException ex) {
                 throw new BookkeeperManagerException(ex);
             }
-        }
-        return bkClient;
-    }
-    private synchronized BookKeeperAdmin getBookKeeperAdmin() throws BookkeeperManagerException {
-        if (bkAdmin == null) {
-            bkAdmin = new BookKeeperAdmin(getBookKeeperClient());
-        }
-        return bkAdmin;
+        });
+        this.configStore = configStore;
+        this.metadataCache = metadataCache;
+        this.bkClusterPool = new BookkeeperClusterPool();
     }
 
     public static final class RefreshCacheWorkerStatus {
 
         private final RefreshStatus status;
         private final long lastMetadataCacheRefresh;
-        private final Map<String, String> bookkkeeperClientConfiguration;
         private final ClusterWideConfiguration lastClusterWideConfiguration;
 
-        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh, Map<String, String> bookkkeeperClientConfiguration,
+        public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh,
                                         ClusterWideConfiguration lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
-            this.bookkkeeperClientConfiguration = bookkkeeperClientConfiguration;
             this.lastClusterWideConfiguration = lastClusterWideConfiguration;
         }
 
         public ClusterWideConfiguration getLastClusterWideConfiguration() {
             return lastClusterWideConfiguration;
-        }
-
-        public Map<String, String> getBookkkeeperClientConfiguration() {
-            return bookkkeeperClientConfiguration;
         }
 
         public RefreshStatus getStatus() {
@@ -228,89 +201,101 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public RefreshCacheWorkerStatus getRefreshWorkerStatus() {
-        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh, bookkeeperClientConfiguration, lastClusterWideConfiguration);
+        return new RefreshCacheWorkerStatus(refreshStatus.get(), lastMetadataCacheRefresh, lastClusterWideConfiguration);
     }
 
     public void doRefreshMetadataCache() {
         LOG.info("Refreshing Metadata Cache");
         try {
-            BookKeeper bookkeeper = getBookKeeperClient();
-            BookKeeperAdmin bookkeeperAdmin = getBookKeeperAdmin();
-            lastClusterWideConfiguration = getClusterWideConfiguration(bookkeeper);
-            final Map<BookieSocketAddress, BookieInfo> bookieInfo = bookkeeper.getBookieInfo();
-            RegistrationClient metadataClient = bookkeeper.getMetadataClientDriver().getRegistrationClient();
-            final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
-            final Collection<BookieSocketAddress> available = metadataClient.getWritableBookies().get().getValue();
-            final Collection<BookieSocketAddress> readonly = metadataClient.getReadOnlyBookies().get().getValue();
-            LOG.log(Level.INFO, "all Bookies {0}", bookiesCookie);
-            LOG.log(Level.INFO, "writable Bookies {0}", available);
-            LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
-            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-            List<Bookie> bookiesBefore = metadataCache.listBookies();
-            List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
-            for (BookieSocketAddress bookieAddress : bookiesCookie) {
-                LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
-                Bookie b = new Bookie();
-                b.setBookieId(bookieAddress.toString());
-                b.setDescription(bookieAddress.toString());
-                int state;
-                if (available.contains(bookieAddress)) {
-                    state = Bookie.STATE_AVAILABLE;
-                } else if (readonly.contains(bookieAddress)) {
-                    state = Bookie.STATE_READONLY;
-                } else {
-                    state = Bookie.STATE_DOWN;
-                }
-                LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieAddress, state});
-                b.setState(state);
-                b.setScanTime(now);
-                if (b.getState() != Bookie.STATE_DOWN) {
-                    BookieInfo info = bookieInfo.get(bookieAddress);
-                    LOG.log(Level.INFO, "Bookie info {0}", info);
-                    if (info != null) {
-                        b.setFreeDiskspace(info.getFreeDiskSpace());
-                        b.setTotalDiskspace(info.getTotalDiskSpace());
+            for (Cluster cluster : this.metadataCache.listClusters()) {
+                this.bkClusterPool.addCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
+
+                int clusterId = cluster.getClusterId();
+                BookkeeperCluster bkCluster = this.bkClusterPool.getCluster(clusterId);
+                ClientConfiguration conf = bkCluster.getConf();
+                BookKeeper bkClient = bkCluster.getBkClient();
+                BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
+
+                // TO--DO: Configuration every cluster
+                lastClusterWideConfiguration = getClusterWideConfiguration(bkClient, conf);
+
+                final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
+                RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
+                final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
+                final Collection<BookieSocketAddress> available = metadataClient.getWritableBookies().get().getValue();
+                final Collection<BookieSocketAddress> readonly = metadataClient.getReadOnlyBookies().get().getValue();
+                LOG.log(Level.INFO, "all Bookies {0}", bookiesCookie);
+                LOG.log(Level.INFO, "writable Bookies {0}", available);
+                LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
+                java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                List<Bookie> bookiesBefore = metadataCache.listBookies();
+                List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
+                for (BookieSocketAddress bookieAddress : bookiesCookie) {
+                    LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
+                    Bookie b = new Bookie();
+                    b.setClusterId(clusterId);
+                    b.setBookieId(bookieAddress.toString());
+                    b.setDescription(bookieAddress.toString());
+                    int state;
+                    if (available.contains(bookieAddress)) {
+                        state = Bookie.STATE_AVAILABLE;
+                    } else if (readonly.contains(bookieAddress)) {
+                        state = Bookie.STATE_READONLY;
                     } else {
-                        // bookie did not anwer to getBookieInfo, this is not good
                         state = Bookie.STATE_DOWN;
-                        b.setState(state);
+                    }
+                    LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieAddress, state});
+                    b.setState(state);
+                    b.setScanTime(now);
+                    if (b.getState() != Bookie.STATE_DOWN) {
+                        BookieInfo info = bookieInfo.get(bookieAddress);
+                        LOG.log(Level.INFO, "Bookie info {0}", info);
+                        if (info != null) {
+                            b.setFreeDiskspace(info.getFreeDiskSpace());
+                            b.setTotalDiskspace(info.getTotalDiskSpace());
+                        } else {
+                            // bookie did not anwer to getBookieInfo, this is not good
+                            state = Bookie.STATE_DOWN;
+                            b.setState(state);
+                        }
+                    }
+                    metadataCache.updateBookie(b);
+                    currentKnownBookiesOnMetadataServer.add(b.getBookieId());
+                }
+                for (Bookie b : bookiesBefore) {
+                    if (!currentKnownBookiesOnMetadataServer.contains(b.getBookieId())) {
+                        // bookie decommissioned
+                        LOG.log(Level.INFO, "Found decommissioned bookie {0}", b.getBookieId());
+                        metadataCache.deleteBookie(b.getBookieId());
                     }
                 }
-                metadataCache.updateBookie(b);
-                currentKnownBookiesOnMetadataServer.add(b.getBookieId());
-            }
-            for (Bookie b : bookiesBefore) {
-                if (!currentKnownBookiesOnMetadataServer.contains(b.getBookieId())) {
-                    // bookie decommissioned
-                    LOG.log(Level.INFO, "Found decommissioned bookie {0}", b.getBookieId());
-                    metadataCache.deleteBookie(b.getBookieId());
-                }
-            }
 
-            Iterable<Long> ledgersIds = bookkeeperAdmin.listLedgers();
-            for (long ledgerId : ledgersIds) {
-                LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId);
-                if (ledgerMetadata == null) {
-                    // ledger disappeared
-                    metadataCache.deleteLedger(ledgerId);
-                    return;
+                Iterable<Long> ledgersIds = bkAdmin.listLedgers();
+                for (long ledgerId : ledgersIds) {
+                    LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId, clusterId);
+                    if (ledgerMetadata == null) {
+                        // ledger disappeared
+                        metadataCache.deleteLedger(ledgerId);
+                        return;
+                    }
+                    Ledger ledger = new Ledger(ledgerId, clusterId,
+                            ledgerMetadata.getLength(),
+                            new java.sql.Timestamp(ledgerMetadata.getCtime()),
+                            new java.sql.Timestamp(System.currentTimeMillis()),
+                            Base64.getEncoder().encodeToString(serDe.serialize(ledgerMetadata)));
+                    List<LedgerMetadataEntry> metadataEntries = new ArrayList<>();
+                    ledgerMetadata.getCustomMetadata().forEach((n, v) -> {
+                        metadataEntries.add(new LedgerMetadataEntry(ledgerId, clusterId,
+                                n, new String(v, StandardCharsets.UTF_8)));
+                    });
+                    List<LedgerBookie> bookies = new ArrayList<>();
+                    Set<String> bookieAddresses = getBookieList(ledgerMetadata);
+                    bookieAddresses.forEach(s -> {
+                        bookies.add(new LedgerBookie(ledgerId, s));
+                    });
+                    LOG.log(Level.INFO, "Updating ledeger {0} metadata", ledgerId);
+                    metadataCache.updateLedger(ledger, bookies, metadataEntries);
                 }
-                Ledger ledger = new Ledger(ledgerId,
-                        ledgerMetadata.getLength(),
-                        new java.sql.Timestamp(ledgerMetadata.getCtime()),
-                        new java.sql.Timestamp(System.currentTimeMillis()),
-                        Base64.getEncoder().encodeToString(serDe.serialize(ledgerMetadata)));
-                List<LedgerMetadataEntry> metadataEntries = new ArrayList<>();
-                ledgerMetadata.getCustomMetadata().forEach((n, v) -> {
-                    metadataEntries.add(new LedgerMetadataEntry(ledgerId, n, new String(v, StandardCharsets.UTF_8)));
-                });
-                List<LedgerBookie> bookies = new ArrayList<>();
-                Set<String> bookieAddresses = getBookieList(ledgerMetadata);
-                bookieAddresses.forEach(s -> {
-                    bookies.add(new LedgerBookie(ledgerId, s));
-                });
-                LOG.log(Level.INFO, "Updating ledeger {0} metadata", ledgerId);
-                metadataCache.updateLedger(ledger, bookies, metadataEntries);
             }
 
             lastMetadataCacheRefresh = System.currentTimeMillis();
@@ -364,21 +349,9 @@ public class BookkeeperManager implements AutoCloseable {
                 LOG.log(Level.INFO, "Closing bookkeeper cluster pool");
                 bkClusterPool.close();
             }
-            if (bkClient != null) {
-                LOG.log(Level.INFO, "Closing bookkeeper connection");
-                bkClient.close();
-            }
-            if (bkAdmin != null) {
-                LOG.log(Level.INFO, "Closing bookkeeper admin connection");
-                bkAdmin.close();
-            }
-        } catch (InterruptedException | BKException t) {
+        } catch (IOException t) {
             LOG.log(Level.SEVERE, "Error closing BKAdmin", t);
         }
-    }
-
-    public LedgerManager getLedgerManager() throws BookkeeperManagerException {
-        return getBookKeeperClient().getLedgerManager();
     }
 
     public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperManagerException {
@@ -411,10 +384,11 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    private LedgerMetadata readLedgerMetadata(long ledgerId) throws BookkeeperManagerException {
+    private LedgerMetadata readLedgerMetadata(long ledgerId, int clusterId) throws BookkeeperManagerException {
         AtomicReference<LedgerMetadata> ledgerMetadata = new AtomicReference<>();
         try {
-            FutureUtils.result(getLedgerManager().readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
+            LedgerManager lm = this.bkClusterPool.getLedgerManager(clusterId);
+            FutureUtils.result(lm.readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
                 if (exception == null) {
                     ledgerMetadata.set(metadata.getValue());
                 }
@@ -466,22 +440,22 @@ public class BookkeeperManager implements AutoCloseable {
         return metadataCache.listBookies();
     }
 
-    public Collection<Cluster> getAllClusters() throws BookkeeperException {
+    public Collection<Cluster> getAllClusters() throws BookkeeperManagerException {
         return metadataCache.listClusters();
     }
 
-    public void updateCluster(Cluster cluster) throws BookkeeperException {
+    public void updateCluster(Cluster cluster) throws BookkeeperManagerException {
         metadataCache.updateCluster(cluster);
         bkClusterPool.addCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
     }
 
-    public void deleteCluster(int clusterId) throws BookkeeperException {
+    public void deleteCluster(int clusterId) throws BookkeeperManagerException {
         metadataCache.deleteCluster(clusterId);
         bkClusterPool.removeCluster(clusterId);
     }
 
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
-    private ClusterWideConfiguration getClusterWideConfiguration(BookKeeper bookkeeper) throws BookkeeperManagerException {
+    private ClusterWideConfiguration getClusterWideConfiguration(BookKeeper bookkeeper, ClientConfiguration conf) throws BookkeeperManagerException {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;

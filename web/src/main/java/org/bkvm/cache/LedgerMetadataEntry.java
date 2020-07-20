@@ -48,21 +48,21 @@ public class LedgerMetadataEntry implements Serializable {
     @Column(columnDefinition = "string")
     private String entryName;
 
-
     @Column(columnDefinition = "string")
     private String entryValue;
 
     public LedgerMetadataEntry() {
     }
 
-    public LedgerMetadataEntry(long ledgerId, String entryName, String entryValue) {
+    public LedgerMetadataEntry(long ledgerId, int clusterId, String entryName, String entryValue) {
         this.ledgerId = ledgerId;
+        this.clusterId = clusterId;
         this.entryName = entryName;
         this.entryValue = entryValue;
     }
 
     @Override
     public String toString() {
-        return "LedgerMetadataEntry{" + "ledgerId=" + ledgerId + ", entryName=" + entryName;
+        return "LedgerMetadataEntry{" + "ledgerId=" + ledgerId + ", clusterId=" + clusterId + ", entryName=" + entryName;
     }
 }

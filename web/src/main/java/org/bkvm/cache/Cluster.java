@@ -35,7 +35,7 @@ public class Cluster implements Serializable {
 
     @Id
     @Column(columnDefinition = "int")
-//  @GeneratedValue(strategy=GenerationType.AUTO)
+//    @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer clusterId;
 
     @Column(columnDefinition = "string", length = 255)

@@ -45,7 +45,8 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
         public SystemStatus(RefreshCacheWorkerStatus status) {
             this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
             this.status = status.getStatus().toString();
-            this.bookkeeperConfiguration = status.getBookkkeeperClientConfiguration();
+//            TO--DO
+//            this.bookkeeperConfiguration = status.getBookkkeeperClientConfiguration();
             BookkeeperManager.ClusterWideConfiguration clusterWideConfiguration = status.getLastClusterWideConfiguration();
             this.auditor = clusterWideConfiguration.getAuditor();
             this.autorecoveryEnabled = clusterWideConfiguration.isAutorecoveryEnabled();

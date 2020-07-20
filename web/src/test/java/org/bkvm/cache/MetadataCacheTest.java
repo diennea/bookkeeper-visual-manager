@@ -36,14 +36,14 @@ public class MetadataCacheTest {
         try (HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();) {
             datasource.setUrl("jdbc:herddb:local");
             try (MetadataCache metadataCache = new MetadataCache(datasource)) {
-                Ledger ledger = new Ledger(1, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger = new Ledger(1, 1, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb = new ArrayList<>();
                 lb.add(new LedgerBookie(1, "localhost:1234"));
                 lb.add(new LedgerBookie(1, "localhost:1235"));
                 List<LedgerMetadataEntry> entries = new ArrayList<>();
-                entries.add(new LedgerMetadataEntry(1, "application", "pulsar"));
-                entries.add(new LedgerMetadataEntry(1, "component", "foo"));
-                entries.add(new LedgerMetadataEntry(1, "other", "foo"));
+                entries.add(new LedgerMetadataEntry(1, 1, "application", "pulsar"));
+                entries.add(new LedgerMetadataEntry(1, 1, "component", "foo"));
+                entries.add(new LedgerMetadataEntry(1, 1, "other", "foo"));
                 metadataCache.updateLedger(ledger, lb, entries);
                 List<Ledger> ledgers = metadataCache.listLedgers();
                 assertEquals(1, ledgers.size());
@@ -67,7 +67,7 @@ public class MetadataCacheTest {
                 assertEquals(0, ledgersByBookieAndMetaAndEmtyList.size());
 
                 // UPDATE, just the size
-                Ledger ledger2 = new Ledger(1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger2 = new Ledger(1, 1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 metadataCache.updateLedger(ledger2, lb, entries);
                 List<Ledger> ledgers2 = metadataCache.listLedgers();
                 assertEquals(1, ledgers2.size());
@@ -82,7 +82,7 @@ public class MetadataCacheTest {
                 assertEquals(0, metadataCache.getLedgersForBookie("localhost:1236").size());
 
                 // UPDATE, re-replication moved data to another bookie
-                Ledger ledger2rewritten = new Ledger(1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger2rewritten = new Ledger(1, 1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb2 = new ArrayList<>();
                 lb2.add(new LedgerBookie(1, "localhost:1234"));
                 lb2.add(new LedgerBookie(1, "localhost:1236"));
@@ -95,7 +95,7 @@ public class MetadataCacheTest {
                 System.out.println("ledgers: " + ledgers2);
 
                 // TESTS OVER BOOKIES
-                Bookie bookie = new Bookie("bookie:123", "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
+                Bookie bookie = new Bookie("bookie:123", 1, "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // insert
                 metadataCache.updateBookie(bookie);
 
@@ -105,7 +105,7 @@ public class MetadataCacheTest {
                 Bookie lookup = metadataCache.getBookie(bookie.getBookieId());
                 assertEquals(bookie, lookup);
 
-                Bookie bookie2 = new Bookie("bookie:123", "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
+                Bookie bookie2 = new Bookie("bookie:123", 1,  "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // update
                 metadataCache.updateBookie(bookie2);
                 lookup = metadataCache.getBookie("bookie:123");
