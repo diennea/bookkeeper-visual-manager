@@ -75,7 +75,7 @@ public class ContextInitializer implements ServletContextListener {
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
 
-            boolean refreshAtBoot = Boolean.parseBoolean(configStore.getProperty("metdata.refreshAtBoot", "true"));
+            boolean refreshAtBoot = Boolean.parseBoolean(configStore.getProperty("metdata.refreshAtBoot", "false"));
             context.log("metdata.refreshAtBoot=" + refreshAtBoot);
             if (refreshAtBoot) {
                 // launch reload in background
