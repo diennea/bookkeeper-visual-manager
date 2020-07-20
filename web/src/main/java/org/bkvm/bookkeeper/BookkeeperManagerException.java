@@ -23,13 +23,13 @@ package org.bkvm.bookkeeper;
  *
  * @author matteo.minardi
  */
-public class BookkeeperException extends Exception {
+public class BookkeeperManagerException extends Exception {
 
-    public BookkeeperException(Throwable cause) {
+    public BookkeeperManagerException(Throwable cause) {
         super(cause);
     }
 
-    public BookkeeperException(String cause) {
+    public BookkeeperManagerException(String cause) {
         super(cause);
     }
 
