@@ -86,8 +86,8 @@ public class BookkeeperManager implements AutoCloseable {
     private final ConfigurationStore configStore;
     private final ClientConfiguration conf;
 
-    private final BookKeeper bkClient;
-    private final BookKeeperAdmin bkAdmin;
+    private BookKeeper bkClient;
+    private BookKeeperAdmin bkAdmin;
     private final MetadataCache metadataCache;
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
     private final ExecutorService refreshThread;
@@ -99,9 +99,9 @@ public class BookkeeperManager implements AutoCloseable {
     private volatile long lastMetadataCacheRefresh;
     private final Map<String, String> bookkeeperClientConfiguration;
     private volatile ClusterWideConfiguration lastClusterWideConfiguration;
-    private volatile AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
+    private final AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
-    public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperException {
+    public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperManagerException {
         try {
             this.refreshThread = Executors.newSingleThreadExecutor(new ThreadFactory() {
                 @Override
@@ -130,23 +130,36 @@ public class BookkeeperManager implements AutoCloseable {
                     .setGetBookieInfoTimeout(1000)
                     .setClientConnectTimeoutMillis(1000);
 
-            LOG.log(Level.INFO, "Starting bookkeeper client with connection string = {0}", zkMetadataServiceUri);
-            this.bkClient = BookKeeper.forConfig(conf).build();
+            LOG.log(Level.INFO, "Bookkeeper client connection string = {0}", zkMetadataServiceUri);
+
 
             Map<String, String> remainingKeys = new HashMap<>();
             this.conf.getKeys().forEachRemaining(key -> {
                 remainingKeys.put(key, String.valueOf(conf.getProperty(key)));
             });
             this.bookkeeperClientConfiguration = remainingKeys;
-
-            LOG.log(Level.INFO, "Starting bookkeeper admin.");
-            this.bkAdmin = new BookKeeperAdmin(bkClient);
-
             this.metadataCache = metadataCache;
-            this.lastClusterWideConfiguration = getClusterWideConfiguration();
-        } catch (IOException | InterruptedException | BKException | ConfigurationNotValidException t) {
-            throw new BookkeeperException(t);
+            this.lastClusterWideConfiguration = ClusterWideConfiguration.UNKNOWN;
+        } catch (ConfigurationNotValidException t) {
+            throw new BookkeeperManagerException(t);
         }
+    }
+
+    private synchronized BookKeeper getBookKeeperClient() throws BookkeeperManagerException {
+        if (bkClient == null) {
+            try {
+                bkClient = BookKeeper.forConfig(conf).build();
+            } catch (IOException | InterruptedException | BKException ex) {
+                throw new BookkeeperManagerException(ex);
+            }
+        }
+        return bkClient;
+    }
+    private synchronized BookKeeperAdmin getBookKeeperAdmin() throws BookkeeperManagerException {
+        if (bkAdmin == null) {
+            bkAdmin = new BookKeeperAdmin(getBookKeeperClient());
+        }
+        return bkAdmin;
     }
 
     public static final class RefreshCacheWorkerStatus {
@@ -182,7 +195,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public RefreshCacheWorkerStatus refreshMetadataCache() throws BookkeeperException {
+    public RefreshCacheWorkerStatus refreshMetadataCache() throws BookkeeperManagerException {
         if (refreshStatus.compareAndSet(RefreshStatus.IDLE, RefreshStatus.WORKING)) {
             this.refreshThread.submit(() -> {
                 doRefreshMetadataCache();
@@ -200,9 +213,11 @@ public class BookkeeperManager implements AutoCloseable {
     public void doRefreshMetadataCache() {
         LOG.info("Refreshing Metadata Cache");
         try {
-            lastClusterWideConfiguration = getClusterWideConfiguration();
-            final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
-            RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
+            BookKeeper bookkeeper = getBookKeeperClient();
+            BookKeeperAdmin bookkeeperAdmin = getBookKeeperAdmin();
+            lastClusterWideConfiguration = getClusterWideConfiguration(bookkeeper);
+            final Map<BookieSocketAddress, BookieInfo> bookieInfo = bookkeeper.getBookieInfo();
+            RegistrationClient metadataClient = bookkeeper.getMetadataClientDriver().getRegistrationClient();
             final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
             final Collection<BookieSocketAddress> available = metadataClient.getWritableBookies().get().getValue();
             final Collection<BookieSocketAddress> readonly = metadataClient.getReadOnlyBookies().get().getValue();
@@ -251,7 +266,7 @@ public class BookkeeperManager implements AutoCloseable {
                 }
             }
 
-            Iterable<Long> ledgersIds = bkAdmin.listLedgers();
+            Iterable<Long> ledgersIds = bookkeeperAdmin.listLedgers();
             for (long ledgerId : ledgersIds) {
                 LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId);
                 if (ledgerMetadata == null) {
@@ -318,54 +333,48 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     @Override
-    public void close() throws BookkeeperException {
-        try {
-            if (bkClient != null) {
-                LOG.log(Level.INFO, "Closing bookkeeper connection");
-                bkClient.close();
-            }
-            if (bkAdmin != null) {
-                LOG.log(Level.INFO, "Closing bookkeeper admin connection");
+    public synchronized void close() throws BookkeeperManagerException {
+        if (refreshThread != null) {
+            refreshThread.shutdown();
+        }
+        if (bkAdmin != null) {
+            try {
                 bkAdmin.close();
+            } catch (InterruptedException | BKException t) {
+                LOG.log(Level.SEVERE, "Error closing BKAdmin", t);
             }
-            if (refreshThread != null) {
-                refreshThread.shutdown();
+        }
+        if (bkClient != null) {
+            try {
+                bkClient.close();
+            } catch (InterruptedException | BKException t) {
+                LOG.log(Level.SEVERE, "Error closing BK client", t);
             }
-        } catch (Throwable t) {
-            throw new BookkeeperException(t);
         }
     }
 
-    public BookKeeper getBookkeeper() {
-        return bkClient;
+    public LedgerManager getLedgerManager() throws BookkeeperManagerException {
+        return getBookKeeperClient().getLedgerManager();
     }
 
-    public BookKeeperAdmin getBookkeeperAdmin() {
-        return bkAdmin;
-    }
-
-    public LedgerManager getLedgerManager() {
-        return bkClient.getLedgerManager();
-    }
-
-    public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperException {
+    public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperManagerException {
         return metadataCache.getLedgersForBookie(bookieId);
     }
 
-    public Ledger getLedger(long ledgerId) throws BookkeeperException {
+    public Ledger getLedger(long ledgerId) throws BookkeeperManagerException {
         return metadataCache.getLedgerMetadata(ledgerId);
     }
 
-    public LedgerMetadata getLedgerMetadata(Ledger ledger) throws BookkeeperException {
+    public LedgerMetadata getLedgerMetadata(Ledger ledger) throws BookkeeperManagerException {
         return convertLedgerMetadata(ledger);
     }
 
-    public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperException {
+    public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperManagerException {
         Ledger ledger = metadataCache.getLedgerMetadata(ledgerId);
         return convertLedgerMetadata(ledger);
     }
 
-    private LedgerMetadata convertLedgerMetadata(Ledger ledger) throws BookkeeperException {
+    private LedgerMetadata convertLedgerMetadata(Ledger ledger) throws BookkeeperManagerException {
         try {
             if (ledger == null) {
                 return null;
@@ -374,11 +383,11 @@ public class BookkeeperManager implements AutoCloseable {
                     Base64.getDecoder().decode(ledger.getSerializedMetadata()),
                     Optional.of(ledger.getCtime().getTime()));
         } catch (IOException ex) {
-            throw new BookkeeperException(ex);
+            throw new BookkeeperManagerException(ex);
         }
     }
 
-    private LedgerMetadata readLedgerMetadata(long ledgerId) throws BookkeeperException {
+    private LedgerMetadata readLedgerMetadata(long ledgerId) throws BookkeeperManagerException {
         AtomicReference<LedgerMetadata> ledgerMetadata = new AtomicReference<>();
         try {
             FutureUtils.result(getLedgerManager().readLedgerMetadata(ledgerId).whenComplete((metadata, exception) -> {
@@ -390,11 +399,11 @@ public class BookkeeperManager implements AutoCloseable {
         } catch (BKNoSuchLedgerExistsOnMetadataServerException e) {
             return null;
         } catch (Throwable e) {
-            throw new BookkeeperException(e);
+            throw new BookkeeperManagerException(e);
         }
     }
 
-    public List<Long> getAllLedgers() throws BookkeeperException {
+    public List<Long> getAllLedgers() throws BookkeeperManagerException {
         return metadataCache
                 .listLedgers()
                 .stream()
@@ -408,7 +417,7 @@ public class BookkeeperManager implements AutoCloseable {
                                     List<Long> ledgerIds,
                                     Integer minLength,
                                     Integer maxLength,
-                                    Integer minAge) throws BookkeeperException {
+                                    Integer minAge) throws BookkeeperManagerException {
         return metadataCache
                 .searchLedgers(term, bookie, ledgerIds)
                 .stream()
@@ -429,12 +438,12 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public Collection<Bookie> getAllBookies() throws BookkeeperException {
+    public Collection<Bookie> getAllBookies() throws BookkeeperManagerException {
         return metadataCache.listBookies();
     }
 
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
-    public ClusterWideConfiguration getClusterWideConfiguration() throws BookkeeperException {
+    private ClusterWideConfiguration getClusterWideConfiguration(BookKeeper bookkeeper) throws BookkeeperManagerException {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;
@@ -443,21 +452,21 @@ public class BookkeeperManager implements AutoCloseable {
             int layoutFormatVersion = 0;
             String layoutManagerFactoryClass = "";
             int layoutManagerVersion = 0;
-            LedgerLayout ledgerLayout = bkClient.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
+            LedgerLayout ledgerLayout = bookkeeper.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
             layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
             layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
             layoutManagerVersion = ledgerLayout.getManagerVersion();
-            ZKRegistrationClient metadataClient = (ZKRegistrationClient) bkClient.getMetadataClientDriver().getRegistrationClient();
+            ZKRegistrationClient metadataClient = (ZKRegistrationClient) bookkeeper.getMetadataClientDriver().getRegistrationClient();
             try {
                 auditor = AuditorElector.getCurrentAuditor(new ServerConfiguration(conf), metadataClient.getZk());
-                try (LedgerUnderreplicationManager underreplicationManager = bkClient.getMetadataClientDriver().getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
+                try (LedgerUnderreplicationManager underreplicationManager = bookkeeper.getMetadataClientDriver().getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
                     autoRecoveryEnabled = underreplicationManager.isLedgerReplicationEnabled();
                     lostBookieRecoveryDelay = underreplicationManager.getLostBookieRecoveryDelay();
                 }
             } catch (ReplicationException.UnavailableException | KeeperException
                     | ReplicationException.CompatibilityException notConfigured) {
                 // auto replication stuff never initialized
-                LOG.log(Level.INFO, "Cannot get auditor info: {0}", notConfigured);
+                LOG.log(Level.INFO, "Cannot get auditor info: {0}", notConfigured + ""); // do not write stacktrace
             }
             String auditorDescription = "";
             if (auditor != null) {
@@ -469,13 +478,15 @@ public class BookkeeperManager implements AutoCloseable {
         } catch (InterruptedException
                 | MetadataException | IOException ex) {
             LOG.log(Level.SEVERE, "Error", ex);
-            throw new BookkeeperException(ex);
+            throw new BookkeeperManagerException(ex);
         } finally {
             LOG.log(Level.INFO, "finished getClusterWideConfiguration");
         }
     }
 
     public static final class ClusterWideConfiguration {
+
+        private static final ClusterWideConfiguration UNKNOWN = new ClusterWideConfiguration("?", false, -1, -1, "", -1);
 
         private final String auditor;
         private final boolean autorecoveryEnabled;

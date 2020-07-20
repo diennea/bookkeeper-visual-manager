@@ -30,8 +30,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
-import org.bkvm.bookkeeper.BookkeeperException;
 import org.bkvm.bookkeeper.BookkeeperManager;
+import org.bkvm.bookkeeper.BookkeeperManagerException;
 import org.bkvm.cache.Ledger;
 
 @Path("ledger")
@@ -77,7 +77,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         return convertLedgerBean(ledgerId, ledgerMetadata);
     }
 
-    private LedgerBean convertLedgerBean(long ledgerId, Ledger ledger) throws BookkeeperException {
+    private LedgerBean convertLedgerBean(long ledgerId, Ledger ledger) throws BookkeeperManagerException {
         LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledger);
         LedgerBean b = new LedgerBean();
         b.setId(ledgerId);
