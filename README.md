@@ -54,9 +54,9 @@ Search for specific ledgers and ledgers metadata. Monitor ledger disk usage and 
 
 ### Requirements
 
-In order to run BookKeeper Visual Manager you just need a Linux Machine and Java 8 runtime.
+In order to run BookKeeper Visual Manager you just need a Unix Machine and Java 8 runtime.
 
-In order to develop BookKeeper Visual Maanger you need Maven 3.6.x and Yarn.
+In order to develop BookKeeper Visual Manager you need Maven 3.6.x and Yarn.
 
 ### Using the provided release packages
 
