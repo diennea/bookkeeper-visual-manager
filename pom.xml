@@ -49,7 +49,7 @@
         <junit.version>4.13</junit.version>
         <mockito.version>1.10.19</mockito.version>
         <jetty.version>9.4.18.v20190429</jetty.version>
-        <herddb.version>0.19.0</herddb.version>
+        <herddb.version>0.21.0</herddb.version>
 
         <yarn.version>v1.21.1</yarn.version>
         <node.version>v11.12.0</node.version>
