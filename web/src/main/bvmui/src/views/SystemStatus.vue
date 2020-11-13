@@ -37,6 +37,8 @@
                 </v-tooltip>
             </v-tab-item>
             <v-tab-item>
+<!--                <div v-for="cluster in clusters" v-bind:key=":cluster">
+                    <div>{{ cluster.clusterName }}</div>
                 <v-simple-table class="mt-2 elevation-1">
                     <template v-slot:default>
                         <thead>
@@ -46,25 +48,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr> <td>autorecoveryEnabled</td> <td>{{ autorecoveryEnabled }}</td></tr>
-                            <tr> <td>Auditor</td> <td>{{ auditor }}</td></tr>
-                            <tr> <td>lostBookieRecoveryDelay</td> <td>{{ lostBookieRecoveryDelay }}</td></tr>
-                            <tr> <td>layoutManagerFactoryClass</td> <td>{{ layoutManagerFactoryClass }}</td></tr>
-                            <tr> <td>layoutFormatVersion</td> <td>{{ layoutFormatVersion }}</td></tr>
-                            <tr> <td>layoutManagerVersion</td> <td>{{ layoutManagerVersion }}</td></tr>
+                            <tr> <td>autorecoveryEnabled</td> <td>{{ cluster.autorecoveryEnabled }}</td></tr>
+                            <tr> <td>Auditor</td> <td>{{ cluster.auditor }}</td></tr>
+                            <tr> <td>lostBookieRecoveryDelay</td> <td>{{ cluster.lostBookieRecoveryDelay }}</td></tr>
+                            <tr> <td>layoutManagerFactoryClass</td> <td>{{ cluster.layoutManagerFactoryClass }}</td></tr>
+                            <tr> <td>layoutFormatVersion</td> <td>{{ cluster.layoutFormatVersion }}</td></tr>
+                            <tr> <td>layoutManagerVersion</td> <td>{{ cluster.layoutManagerVersion }}</td></tr>
                         </tbody>
                     </template>
                 </v-simple-table>
+                </div>                -->
             </v-tab-item>
             <v-tab-item>
-                <span class="caption mt-2">Client configuration used by this BookKeeper Visual Manager instance</span>
+                <div v-for="cluster in clusters" :key="cluster">
+                <span class="caption mt-2">Client configuration used for cluster {{ cluster.clusterName }}</span>
                 <v-data-table
                     :headers="headers"
-                    :items="computedBookkeeperConfiguration"
+                    :items="cluster.computedBookkeeperConfiguration"
                     multi-sort
                     hide-default-footer
                     class="mt-2 elevation-1"
                 />
+                </div>
             </v-tab-item>
         </v-tabs>
     </div>
@@ -79,43 +84,38 @@ export default {
             ],
             lastCacheRefresh: 0,
             status: "unknown",
-            bookkeeperConfiguration: "",
-            auditor: "",
-            autorecoveryEnabled: false,
-            lostBookieRecoveryDelay: 0,
-            layoutFormatVersion: -1,
-            layoutManagerFactoryClass: "",
-            layoutManagerVersion: -1
+            clusters: []
         };
-    },
-    computed: {
-        computedBookkeeperConfiguration() {
-            if (!this.bookkeeperConfiguration) {
-                return [];
-            }
-            let conf = [];
-            for (let keyValue in this.bookkeeperConfiguration) {
-                conf.push({
-                    name: keyValue,
-                    value: this.bookkeeperConfiguration[keyValue]
-                });
-            }
-            return conf;
-        }
     },
     created() {
         this.$request.get("api/cache/info").then(
             cacheInfo => {
-                this.pageLoaded = true;
                 this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
-                this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
-                this.auditor = cacheInfo.auditor;
-                this.autorecoveryEnabled = cacheInfo.autorecoveryEnabled;
-                this.lostBookieRecoveryDelay = cacheInfo.lostBookieRecoveryDelay;
-                this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
-                this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
-                this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
+                let clusters = [];
+                for (let clusterInfo in cacheInfo.clusters) {
+                    let computedConfiguration = [];
+                    for (let keyValue in clusterInfo.bookkeeperConfiguration) {
+                        computedConfiguration.push({
+                            name: keyValue,
+                            value: clusterInfo.bookkeeperConfiguration[keyValue]
+                        });
+                    }
+                    var cluster = {
+                        clusterName: clusterInfo.clusterName,
+                        bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
+                        auditor: clusterInfo.auditor,
+                        autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
+                        lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
+                        layoutFormatVersion: clusterInfo.layoutFormatVersion,
+                        layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
+                        layoutManagerVersion: clusterInfo.layoutManagerVersion,
+                        computedBookkeeperConfiguration: computedConfiguration
+                    };
+                    clusters.push(cluster);
+                }
+                this.clusters = clusters;
+                this.pageLoaded = true;
             }
         );
     },
@@ -125,13 +125,29 @@ export default {
                 cacheInfo => {
                     this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                     this.status = cacheInfo.status;
-                    this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
-                    this.auditor = cacheInfo.auditor;
-                    this.autorecoveryEnabled = cacheInfo.autorecoveryEnabled;
-                    this.lostBookieRecoveryDelay = cacheInfo.lostBookieRecoveryDelay;
-                    this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
-                    this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
-                    this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
+                    let clusters = [];
+                    for (let clusterInfo in cacheInfo.clusters) {
+                        let computedConfiguration = [];
+                        for (let keyValue in clusterInfo.bookkeeperConfiguration) {
+                            computedConfiguration.push({
+                                name: keyValue,
+                                value: clusterInfo.bookkeeperConfiguration[keyValue]
+                            });
+                        }
+                        var cluster = {
+                            clusterName: clusterInfo.clusterName,
+                            bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
+                            auditor: clusterInfo.auditor,
+                            autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
+                            lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
+                            layoutFormatVersion: clusterInfo.layoutFormatVersion,
+                            layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
+                            layoutManagerVersion: clusterInfo.layoutManagerVersion,
+                            computedBookkeeperConfiguration: computedConfiguration
+                        };
+                        clusters.push(cluster);
+                    }
+                    this.clusters = clusters;
                 });
         },
         refreshPage() {
@@ -139,13 +155,29 @@ export default {
                 cacheInfo => {
                     this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                     this.status = cacheInfo.status;
-                    this.bookkeeperConfiguration = cacheInfo.bookkeeperConfiguration;
-                    this.auditor = cacheInfo.auditor;
-                    this.autorecoveryEnabled = cacheInfo.autorecoveryEnabled;
-                    this.lostBookieRecoveryDelay = cacheInfo.lostBookieRecoveryDelay;
-                    this.layoutFormatVersion = cacheInfo.layoutFormatVersion;
-                    this.layoutManagerFactoryClass = cacheInfo.layoutManagerFactoryClass;
-                    this.layoutManagerVersion = cacheInfo.layoutManagerVersion;
+                    let clusters = [];
+                    for (let clusterInfo in cacheInfo.clusters) {
+                        let computedConfiguration = [];
+                        for (let keyValue in clusterInfo.bookkeeperConfiguration) {
+                            computedConfiguration.push({
+                                name: keyValue,
+                                value: clusterInfo.bookkeeperConfiguration[keyValue]
+                            });
+                        }
+                        var cluster = {
+                            clusterName: clusterInfo.clusterName,
+                            bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
+                            auditor: clusterInfo.auditor,
+                            autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
+                            lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
+                            layoutFormatVersion: clusterInfo.layoutFormatVersion,
+                            layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
+                            layoutManagerVersion: clusterInfo.layoutManagerVersion,
+                            computedBookkeeperConfiguration: computedConfiguration
+                        };
+                        clusters.push(cluster);
+                    }
+                    this.clusters = clusters;
                 });
         }
     }

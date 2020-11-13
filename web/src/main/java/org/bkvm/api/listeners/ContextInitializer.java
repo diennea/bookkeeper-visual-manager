@@ -75,9 +75,16 @@ public class ContextInitializer implements ServletContextListener {
 
             MetadataCache metadataCache = new MetadataCache(datasource);
 
+            
             context.setAttribute("metadataCache", metadataCache);
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
+            
+            String defaultService = configStore.getProperty(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, "");
+            context.log("Default cluster URI: " + defaultService);
+            if (!defaultService.isEmpty()) {
+                bookkeeperManager.ensureDefaultCluster(defaultService);
+            }
 
             boolean refreshAtBoot = Boolean.parseBoolean(configStore.getProperty(PROPERTY_METADATA_REFRESH_AT_BOOT, configStore.getProperty("metdata.refreshAtBoot", "false")));
             context.log("metdata.refreshAtBoot=" + refreshAtBoot);

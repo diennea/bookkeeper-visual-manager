@@ -20,28 +20,22 @@
 package org.bkvm.config;
 
 /**
- *
+ * Configuration entries
  * @author matteo.minardi
  */
 public final class ServerConfiguration {
 
     /**
-     * Comma separated list of Zookeeper servers.
+     * Default service URI for the 'default' cluster, automatically created at first boot if set
      */
     public static final String PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI = "metadataServiceUri";
-    public static final String PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT = "zk+null://127.0.0.1:2181/ledgers";
+    public static final String PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT = ""; // "zk+null://127.0.0.1:2181/ledgers"
 
-    /**
-     * Zookeeper session timeout.
-     */
-    public static final String PROPERTY_ZOOKEEPER_SESSION_TIMEOUT = "zkTimeout";
-    public static final int PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT = 10000;
-
-    /**
-     * Zookeeper first connection timeout.
-     */
-    public static final String PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT = "zkConnectionTimeout";
-    public static final int PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT = 10000;
+    public static final String PROPERTY_METADATA_REFRESH_PERIOD = "metadata.refreshPeriodSeconds";
+    public static final String PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT = "300";
+    
+    public static final String PROPERTY_METADATA_REFRESH_AT_BOOT = "metadata.refreshAtBoot";
+    public static final String PROPERTY_METADATA_REFRESH_AT_BOOT_DEFAULT = "false";
 
     /**
      * Automatically refresh metadata

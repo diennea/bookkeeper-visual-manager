@@ -19,6 +19,8 @@
  */
 package org.bkvm.api.resources;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,11 +32,10 @@ import org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 @Path("cache")
 public class SystemStatusResource extends AbstractBookkeeperResource {
 
-    public static final class SystemStatus {
-
-        private long lastCacheRefresh;
-        private String status;
-        private Map<String, String> bookkeeperConfiguration;
+    public static final class ClusterStatus {
+        private final int clusterId;
+        private final String clusterName;
+        private final String bookkeeperConfiguration;
         private final String auditor;
         private final boolean autorecoveryEnabled;
         private final int lostBookieRecoveryDelay;
@@ -42,18 +43,21 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
         private final String layoutManagerFactoryClass;
         private final int layoutManagerVersion;
 
-        public SystemStatus(RefreshCacheWorkerStatus status) {
-            this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
-            this.status = status.getStatus().toString();
-//            TO--DO
-//            this.bookkeeperConfiguration = status.getBookkkeeperClientConfiguration();
-            BookkeeperManager.ClusterWideConfiguration clusterWideConfiguration = status.getLastClusterWideConfiguration();
-            this.auditor = clusterWideConfiguration.getAuditor();
-            this.autorecoveryEnabled = clusterWideConfiguration.isAutorecoveryEnabled();
-            this.lostBookieRecoveryDelay = clusterWideConfiguration.getLostBookieRecoveryDelay();
-            this.layoutFormatVersion = clusterWideConfiguration.getLayoutFormatVersion();
-            this.layoutManagerFactoryClass = clusterWideConfiguration.getLayoutManagerFactoryClass();
-            this.layoutManagerVersion = clusterWideConfiguration.getLayoutManagerVersion();
+        public ClusterStatus(int clusterId, String clusterName, String bookkeeperConfiguration, String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion, String layoutManagerFactoryClass,
+                             int layoutManagerVersion) {
+            this.clusterId = clusterId;
+            this.clusterName = clusterName;
+            this.bookkeeperConfiguration = bookkeeperConfiguration;
+            this.auditor = auditor;
+            this.autorecoveryEnabled = autorecoveryEnabled;
+            this.lostBookieRecoveryDelay = lostBookieRecoveryDelay;
+            this.layoutFormatVersion = layoutFormatVersion;
+            this.layoutManagerFactoryClass = layoutManagerFactoryClass;
+            this.layoutManagerVersion = layoutManagerVersion;
+        }
+
+        public String getBookkeeperConfiguration() {
+            return bookkeeperConfiguration;
         }
 
         public String getAuditor() {
@@ -80,13 +84,42 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
             return layoutManagerVersion;
         }
 
-        public Map<String, String> getBookkeeperConfiguration() {
-            return bookkeeperConfiguration;
+        public int getClusterId() {
+            return clusterId;
         }
 
-        public void setBookkeeperConfiguration(Map<String, String> bookkeeperConfiguration) {
-            this.bookkeeperConfiguration = bookkeeperConfiguration;
+        public String getClusterName() {
+            return clusterName;
         }
+        
+    }
+    
+    public static final class SystemStatus {
+
+        private long lastCacheRefresh;
+        private String status;
+        private List<ClusterStatus> clusters;
+        
+
+        public SystemStatus(RefreshCacheWorkerStatus status) {
+            this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
+            this.status = status.getStatus().toString();
+            this.clusters = new ArrayList<>();
+            Map<Integer, BookkeeperManager.ClusterWideConfiguration> clusterWideConfiguration = status.getLastClusterWideConfiguration();            
+            clusterWideConfiguration.values().forEach(c -> {
+                ClusterStatus clusterStatus = new ClusterStatus(c.getClusterId(), c.getClusterName(), c.getConfiguration(), c.getAuditor(), c.isAutorecoveryEnabled(), c.getLostBookieRecoveryDelay(),c.getLayoutFormatVersion(), c.getLayoutManagerFactoryClass(), c.getLayoutManagerVersion());
+                clusters.add(clusterStatus);
+            });            
+        }
+
+        public List<ClusterStatus> getClusters() {
+            return clusters;
+        }
+
+        public void setClusters(List<ClusterStatus> clusters) {
+            this.clusters = clusters;
+        }
+
 
         public long getLastCacheRefresh() {
             return lastCacheRefresh;

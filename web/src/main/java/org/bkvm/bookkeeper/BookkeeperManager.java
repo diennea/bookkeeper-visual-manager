@@ -19,6 +19,8 @@
  */
 package org.bkvm.bookkeeper;
 
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD;
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -83,46 +86,30 @@ public class BookkeeperManager implements AutoCloseable {
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
     private final ScheduledExecutorService refreshThread;
 
+    public void ensureDefaultCluster(String defaultService) throws BookkeeperManagerException {
+        Cluster exists = metadataCache.listClusters().stream().filter(c -> c.getName().equals("default")).findFirst().orElse(null);
+        if (exists != null) {
+            LOG.log(Level.INFO, " Default cluster exists: " + exists.getClusterId() + " " + exists.getName() + " at " + exists.getMetadataServiceUri());
+            return;
+        }
+        LOG.log(Level.INFO, " Default cluster does not exist, creating 'default' at " + defaultService);
+        Cluster cluster = new Cluster();
+        cluster.setName("default");
+        cluster.setMetadataServiceUri(defaultService);
+        cluster.setConfiguration("");
+        updateCluster(cluster);
+    }
+
     public enum RefreshStatus {
         IDLE,
         WORKING
     }
     private volatile long lastMetadataCacheRefresh;
-    private volatile ClusterWideConfiguration lastClusterWideConfiguration;
+    private final ConcurrentHashMap<Integer, ClusterWideConfiguration> lastClusterWideConfiguration = new ConcurrentHashMap<>();
     private final AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperManagerException {
-        try {
-            this.configStore = configStore;
-            int zkSessionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_SESSION_TIMEOUT,
-                    PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT, this.configStore);
-            int zkFirstConnectionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT,
-                    PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT, this.configStore);
-            String zkMetadataServiceUri = this.configStore.getProperty(PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
-                    PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT);
-
-            this.conf = new ClientConfiguration()
-                    .setZkTimeout(zkSessionTimeout)
-                    .setMetadataServiceUri(zkMetadataServiceUri)
-                    .setClientConnectTimeoutMillis(zkFirstConnectionTimeout)
-                    .setEnableDigestTypeAutodetection(true)
-                    .setGetBookieInfoTimeout(1000)
-                    .setClientConnectTimeoutMillis(1000);
-
-            LOG.log(Level.INFO, "Bookkeeper client connection string = {0}", zkMetadataServiceUri);
-            this.bkClient = BookKeeper.forConfig(conf).build();
-
-            // inizialize the = new BookkeeperClusterPool()
-            this.bkClusterPool = new BookkeeperClusterPool();
-
-            Map<String, String> remainingKeys = new HashMap<>();
-            this.conf.getKeys().forEachRemaining(key -> {
-                remainingKeys.put(key, String.valueOf(conf.getProperty(key)));
-            });
-            this.bookkeeperClientConfiguration = remainingKeys;
-            this.metadataCache = metadataCache;
-            this.lastClusterWideConfiguration = ClusterWideConfiguration.UNKNOWN;
-            int refreshSeconds = Integer.parseInt(configStore.getProperty(PROPERTY_METADATA_REFRESH_PERIOD, PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT));
+        int refreshSeconds = Integer.parseInt(configStore.getProperty(PROPERTY_METADATA_REFRESH_PERIOD, PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT));
         this.refreshThread = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -140,19 +127,6 @@ public class BookkeeperManager implements AutoCloseable {
                 refreshMetadataCache();
             }, refreshSeconds, refreshSeconds, TimeUnit.SECONDS);
         }
-        } catch (ConfigurationNotValidException t) {
-            throw new BookkeeperManagerException(t);
-        }
-    }
-
-    private synchronized BookKeeper getBookKeeperClient() throws BookkeeperManagerException {
-        if (bkClient == null) {
-            try {
-                bkClient = BookKeeper.forConfig(conf).build();
-            } catch (IOException | InterruptedException | BKException ex) {
-                throw new BookkeeperManagerException(ex);
-            }
-        });
         this.configStore = configStore;
         this.metadataCache = metadataCache;
         this.bkClusterPool = new BookkeeperClusterPool();
@@ -162,16 +136,16 @@ public class BookkeeperManager implements AutoCloseable {
 
         private final RefreshStatus status;
         private final long lastMetadataCacheRefresh;
-        private final ClusterWideConfiguration lastClusterWideConfiguration;
+        private final Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration;
 
         public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh,
-                                        ClusterWideConfiguration lastClusterWideConfiguration) {
+                                        Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
             this.lastClusterWideConfiguration = lastClusterWideConfiguration;
         }
 
-        public ClusterWideConfiguration getLastClusterWideConfiguration() {
+        public Map<Integer, ClusterWideConfiguration> getLastClusterWideConfiguration() {
             return lastClusterWideConfiguration;
         }
 
@@ -208,7 +182,8 @@ public class BookkeeperManager implements AutoCloseable {
         LOG.info("Refreshing Metadata Cache");
         try {
             for (Cluster cluster : this.metadataCache.listClusters()) {
-                LOG.info("Refreshing cluster " + cluster.getClusterId() + " at " + cluster.getMetadataServiceUri());
+                String clusterName = cluster.getName();
+                LOG.info("Refreshing cluster " + clusterName + " at " + cluster.getMetadataServiceUri());
                 BookkeeperCluster bkCluster = this.bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
 
                 int clusterId = bkCluster.getId();
@@ -217,7 +192,7 @@ public class BookkeeperManager implements AutoCloseable {
                 BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
 
                 // TO--DO: Configuration every cluster
-                lastClusterWideConfiguration = getClusterWideConfiguration(bkClient, conf);
+                lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
 
                 final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
                 RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
@@ -455,7 +430,7 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
-    private ClusterWideConfiguration getClusterWideConfiguration(BookKeeper bookkeeper, ClientConfiguration conf) throws BookkeeperManagerException {
+    private static ClusterWideConfiguration getClusterWideConfiguration(int clusterId, String clusterName, String configString, BookKeeper bookkeeper, ClientConfiguration conf) throws BookkeeperManagerException {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;
@@ -485,7 +460,7 @@ public class BookkeeperManager implements AutoCloseable {
                 auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor);
             }
 
-            return new ClusterWideConfiguration(auditorDescription, autoRecoveryEnabled, lostBookieRecoveryDelay,
+            return new ClusterWideConfiguration(clusterId, clusterName, configString, auditorDescription, autoRecoveryEnabled, lostBookieRecoveryDelay,
                     layoutFormatVersion, layoutManagerFactoryClass, layoutManagerVersion);
         } catch (InterruptedException
                 | MetadataException | IOException ex) {
@@ -498,22 +473,39 @@ public class BookkeeperManager implements AutoCloseable {
 
     public static final class ClusterWideConfiguration {
 
-        private static final ClusterWideConfiguration UNKNOWN = new ClusterWideConfiguration("?", false, -1, -1, "", -1);
-
+        private final int clusterId;
+        private final String clusterName;
         private final String auditor;
         private final boolean autorecoveryEnabled;
         private final int lostBookieRecoveryDelay;
         private final int layoutFormatVersion;
         private final String layoutManagerFactoryClass;
         private final int layoutManagerVersion;
+        private final String configuration;
 
-        public ClusterWideConfiguration(String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion, String layoutManagerFactoryClass, int layoutManagerVersion) {
+        public ClusterWideConfiguration(int clusterId, String clusterName, String configuration, String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion,
+                                        String layoutManagerFactoryClass, int layoutManagerVersion) {
+            this.clusterId = clusterId;
+            this.clusterName = clusterName;
+            this.configuration = configuration;
             this.auditor = auditor;
             this.autorecoveryEnabled = autorecoveryEnabled;
             this.lostBookieRecoveryDelay = lostBookieRecoveryDelay;
             this.layoutFormatVersion = layoutFormatVersion;
             this.layoutManagerFactoryClass = layoutManagerFactoryClass;
             this.layoutManagerVersion = layoutManagerVersion;
+        }
+
+        public String getClusterName() {
+            return clusterName;
+        }
+
+        public String getConfiguration() {
+            return configuration;
+        }
+
+        public int getClusterId() {
+            return clusterId;
         }
 
         public String getAuditor() {
