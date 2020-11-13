@@ -41,6 +41,7 @@ public class ContextInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        System.setProperty("herddb.network.sendstacktraces", "false");
         ServletContext context = sce.getServletContext();
         context.log("starting");
 

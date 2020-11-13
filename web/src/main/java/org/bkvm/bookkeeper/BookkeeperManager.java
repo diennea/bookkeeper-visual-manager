@@ -208,10 +208,10 @@ public class BookkeeperManager implements AutoCloseable {
         LOG.info("Refreshing Metadata Cache");
         try {
             for (Cluster cluster : this.metadataCache.listClusters()) {
-                this.bkClusterPool.addCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
+                LOG.info("Refreshing cluster " + cluster.getClusterId() + " at " + cluster.getMetadataServiceUri());
+                BookkeeperCluster bkCluster = this.bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
 
-                int clusterId = cluster.getClusterId();
-                BookkeeperCluster bkCluster = this.bkClusterPool.getCluster(clusterId);
+                int clusterId = bkCluster.getId();
                 ClientConfiguration conf = bkCluster.getConf();
                 BookKeeper bkClient = bkCluster.getBkClient();
                 BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
@@ -446,7 +446,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     public void updateCluster(Cluster cluster) throws BookkeeperManagerException {
         metadataCache.updateCluster(cluster);
-        bkClusterPool.addCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
+        bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
     }
 
     public void deleteCluster(int clusterId) throws BookkeeperManagerException {

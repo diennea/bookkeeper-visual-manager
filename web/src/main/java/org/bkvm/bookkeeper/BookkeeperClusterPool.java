@@ -46,34 +46,43 @@ public class BookkeeperClusterPool implements Closeable {
     private Map<Integer, BookkeeperCluster> pool = new ConcurrentHashMap<>();
 
     @SneakyThrows
-    public void addCluster(int clusterId, String metadataServiceUri) {
-        BookKeeper bkClient = createBookKeeperClient(metadataServiceUri);
-        BookKeeperAdmin bkAdmin = new BookKeeperAdmin(bkClient);
-        LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
+    public BookkeeperCluster ensureCluster(int clusterId, String metadataServiceUri) {
+        return pool.computeIfAbsent(clusterId, id -> {
+            try {
+                LOG.log(Level.INFO, "creating cluster " + clusterId + ", at " + metadataServiceUri);
+                BookKeeper bkClient = createBookKeeperClient(metadataServiceUri);
+                BookKeeperAdmin bkAdmin = new BookKeeperAdmin(bkClient);
+                LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
+                BookkeeperCluster bkCluster = new BookkeeperCluster(id, bkClient, bkAdmin, bkAdmin.getConf());
 
-        BookkeeperCluster bkCluster = new BookkeeperCluster(bkClient, bkAdmin, bkAdmin.getConf());
-        pool.put(clusterId, bkCluster);
+                return bkCluster;
+            } catch (BKException | IOException ex) {
+                throw new RuntimeException(ex);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(ex);
+            }
+        });
     }
 
     public BookkeeperCluster getCluster(int clusterId) {
         return pool.get(clusterId);
     }
 
-    private BookKeeper createBookKeeperClient(String metadataServiceUri) {
-        try {
+    private BookKeeper createBookKeeperClient(String metadataServiceUri) throws IOException, InterruptedException, BKException {
             ClientConfiguration conf = new ClientConfiguration()
                     .setMetadataServiceUri(metadataServiceUri)
                     .setEnableDigestTypeAutodetection(true)
                     .setGetBookieInfoTimeout(1000)
                     .setClientConnectTimeoutMillis(1000);
             return BookKeeper.forConfig(conf).build();
-        } catch (IOException | InterruptedException | BKException ex) {
-            return null;
-        }
     }
 
     public void removeCluster(int clusterId) throws BookkeeperManagerException {
         BookkeeperCluster bkCluster = pool.remove(clusterId);
+        if (bkCluster == null) {
+            return;
+        }
         releaseBookKeeperCluster(bkCluster);
     }
 
@@ -111,11 +120,13 @@ public class BookkeeperClusterPool implements Closeable {
     @Data
     public static class BookkeeperCluster {
 
+        private int id;
         private BookKeeper bkClient;
         private BookKeeperAdmin bkAdmin;
         private ClientConfiguration conf;
 
-        public BookkeeperCluster(BookKeeper bkClient, BookKeeperAdmin bkAdmin, ClientConfiguration conf) {
+        public BookkeeperCluster(int id, BookKeeper bkClient, BookKeeperAdmin bkAdmin, ClientConfiguration conf) {
+            this.id = id;
             this.bkClient = bkClient;
             this.bkAdmin = bkAdmin;
             this.conf = conf;

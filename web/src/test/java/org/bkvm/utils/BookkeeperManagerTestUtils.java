@@ -22,10 +22,11 @@ package org.bkvm.utils;
 import herddb.jdbc.HerdDBEmbeddedDataSource;
 import java.util.Properties;
 import org.bkvm.bookkeeper.BookkeeperManager;
+import org.bkvm.bookkeeper.BookkeeperManagerException;
+import org.bkvm.cache.Cluster;
 import org.bkvm.cache.MetadataCache;
 import org.bkvm.config.ConfigurationStore;
 import org.bkvm.config.PropertiesConfigurationStore;
-import org.bkvm.config.ServerConfiguration;
 import org.junit.After;
 import org.junit.Before;
 
@@ -36,6 +37,10 @@ import org.junit.Before;
  * @author matteo.minardi
  */
 public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
+
+    static {
+        System.setProperty("herddb.network.sendstacktraces", "false");
+    }
 
     private HerdDBEmbeddedDataSource datasource;
     private MetadataCache metadataCache;
@@ -53,8 +58,22 @@ public class BookkeeperManagerTestUtils extends AbstractBookkeeperTestUtils {
         properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI,
                 "zk+null://" + getZooKeeperAddress() + "/ledgers");
 
-        ConfigurationStore config = new PropertiesConfigurationStore(properties);
+        ConfigurationStore config = new PropertiesConfigurationStore(new Properties());
         bookkeeperManager = new BookkeeperManager(config, metadataCache);
+        init();
+    }
+
+    protected void init() throws Exception {
+        createCluster("cluster1", "zk+null://" + getZooKeeperAddress() + "/ledgers", "");
+    }
+
+    protected Cluster createCluster(String name, String metadataServiceUri, String configuration) throws BookkeeperManagerException {
+        Cluster cluster = new Cluster();
+        cluster.setName(name);
+        cluster.setMetadataServiceUri(metadataServiceUri);
+        cluster.setConfiguration(configuration);
+        bookkeeperManager.updateCluster(cluster);
+        return cluster;
     }
 
     @After
