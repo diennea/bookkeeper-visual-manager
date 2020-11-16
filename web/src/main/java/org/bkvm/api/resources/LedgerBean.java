@@ -82,15 +82,15 @@ public final class LedgerBean implements Serializable {
         } catch (Throwable t) {
             svalue = Arrays.toString(value);
         }
-        this.metadata.put(key, svalue);        
+        this.metadata.put(key, svalue);
     }
 
     public void applyLedgerMetadata(LedgerMetadata metadata, String descriptionPattern) {
         Map<String, byte[]> customMetadata = metadata.getCustomMetadata();
         for (Map.Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
             setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
-        
-        }        
+
+        }
         String[] specialMetadataNames = descriptionPattern != null ? descriptionPattern.toLowerCase().split("\\,") : new String[]{};
         boolean descriptionFound = false;
 
