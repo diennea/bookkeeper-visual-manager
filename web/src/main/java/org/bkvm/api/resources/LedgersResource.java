@@ -33,15 +33,43 @@ import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.bookkeeper.BookkeeperManagerException;
 import org.bkvm.cache.Ledger;
+import org.bkvm.config.ServerConfiguration;
 
 @Path("ledger")
 public class LedgersResource extends AbstractBookkeeperResource {
+
+    public static final class GetLedgersResult {
+        private List<LedgerBean> ledgers;
+        private long totalSize;
+
+        public List<LedgerBean> getLedgers() {
+            return ledgers;
+        }
+
+        public void setLedgers(List<LedgerBean> ledgers) {
+            this.ledgers = ledgers;
+        }
+
+        public long getTotalSize() {
+            return totalSize;
+        }
+
+        public void setTotalSize(long totalSize) {
+            this.totalSize = totalSize;
+        }
+
+        @Override
+        public String toString() {
+            return "GetLedgersResult{" + "ledgers=" + ledgers + ", totalSize=" + totalSize + '}';
+        }
+
+    }
 
     @GET
     @Secured
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<LedgerBean> getLedgers(@QueryParam("term") String term,
+    public GetLedgersResult getLedgers(@QueryParam("term") String term,
                                        @QueryParam("bookie") String bookie,
                                        @QueryParam("ledgerIds") String ledgerIds,
                                        @QueryParam("minLength") String minLength,
@@ -56,16 +84,21 @@ public class LedgersResource extends AbstractBookkeeperResource {
                 _ledgersIds = new ArrayList<>();
             }
         }
-        List<Long> ids = getBookkeeperManger().searchLedgers(term, bookie, _ledgersIds, convertParamInt(minLength),
+        List<Long> ids = getBookkeeperManager().searchLedgers(term, bookie, _ledgersIds, convertParamInt(minLength),
                 convertParamInt(maxLength), convertParamInt(minAge));
         List<LedgerBean> res = new ArrayList<>();
+        long totalSize = 0;
         for (long id : ids) {
             LedgerBean bean = getLedgerMetadata(id);
             if (bean != null) {
                 res.add(bean);
+                totalSize += bean.getLength();
             }
         }
-        return res;
+        GetLedgersResult r = new GetLedgersResult();
+        r.setLedgers(res);
+        r.setTotalSize(totalSize);
+        return r;
     }
 
     @GET
@@ -73,15 +106,16 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @Path("metadata/{ledgerId}")
     @Produces(MediaType.APPLICATION_JSON)
     public LedgerBean getLedgerMetadata(@PathParam("ledgerId") long ledgerId) throws Exception {
-        Ledger ledgerMetadata = getBookkeeperManger().getLedger(ledgerId);
-        return convertLedgerBean(ledgerId, ledgerMetadata);
+        Ledger ledger = getBookkeeperManager().getLedger(ledgerId);
+        LedgerMetadata ledgerMetadata = getBookkeeperManager().getLedgerMetadata(ledger);
+        String descriptionPattern = getBookkeeperManager().getConfigStore().getProperty(ServerConfiguration.PROPERTY_BK_METADATA_DESCRIPTION, ServerConfiguration.PROPERTY_BK_METADATA_DESCRIPTION_DEFAULT);
+        return convertLedgerBean(ledgerId, ledgerMetadata, ledger, descriptionPattern);
     }
 
-    private LedgerBean convertLedgerBean(long ledgerId, Ledger ledger) throws BookkeeperManagerException {
-        LedgerMetadata ledgerMetadata = getBookkeeperManger().getLedgerMetadata(ledger);
+    private LedgerBean convertLedgerBean(long ledgerId, LedgerMetadata ledgerMetadata, Ledger ledger, String descriptionPattern) throws BookkeeperManagerException {
         LedgerBean b = new LedgerBean();
         b.setId(ledgerId);
-        b.setLedgerMetadata(ledgerMetadata);
+        b.applyLedgerMetadata(ledgerMetadata, descriptionPattern);
         b.setAge(ledger.getAge());
         b.setEnsembleSize(ledgerMetadata.getEnsembleSize());
         b.setWriteQuorumSize(ledgerMetadata.getWriteQuorumSize());

@@ -28,7 +28,7 @@ public abstract class AbstractBookkeeperResource {
     @Context
     private ServletContext servletContext;
 
-    protected BookkeeperManager getBookkeeperManger() {
+    protected BookkeeperManager getBookkeeperManager() {
         return (BookkeeperManager) servletContext.getAttribute("bookkeeper");
     }
 

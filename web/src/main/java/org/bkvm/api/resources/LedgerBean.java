@@ -21,6 +21,7 @@ package org.bkvm.api.resources;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.apache.bookkeeper.client.api.LedgerMetadata;
 public final class LedgerBean implements Serializable {
 
     private long id;
+    private String description;
     private Map<String, String> metadata = new HashMap<>();
     private long age;
     private int ensembleSize;
@@ -73,14 +75,40 @@ public final class LedgerBean implements Serializable {
         this.metadata = metadata;
     }
 
-    public void setMetadataValue(String key, byte[] value) {
-        this.metadata.put(key, new String(value, StandardCharsets.UTF_8));
+    private void setMetadataValue(String key, byte[] value) {
+        String svalue;
+        try {
+            svalue = new String(value, StandardCharsets.UTF_8);
+        } catch (Throwable t) {
+            svalue = Arrays.toString(value);
+        }
+        this.metadata.put(key, svalue);
     }
 
-    public void setLedgerMetadata(LedgerMetadata metadata) {
+    public void applyLedgerMetadata(LedgerMetadata metadata, String descriptionPattern) {
         Map<String, byte[]> customMetadata = metadata.getCustomMetadata();
         for (Map.Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
             setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
+
+        }
+        String[] specialMetadataNames = descriptionPattern != null ? descriptionPattern.toLowerCase().split("\\,") : new String[]{};
+        boolean descriptionFound = false;
+
+        // descriptionPattern=tablespacename,pulsar/managed-ledger,application
+        // pickup the first metadata name that matches
+        for (String metadataField : specialMetadataNames) {
+            for (Map.Entry<String, String> currentCustomMetadata : this.metadata.entrySet()) {
+                if (!descriptionFound) {
+                    if (currentCustomMetadata.getKey().contains(metadataField)) {
+                        this.description = currentCustomMetadata.getValue();
+                        descriptionFound = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!descriptionFound) {
+            description = "";
         }
     }
 
@@ -180,9 +208,17 @@ public final class LedgerBean implements Serializable {
         this.ensembles = ensembles;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String toString() {
-        return "LedgerBean{" + "id=" + id + ", metadata=" + metadata + '}';
+        return "LedgerBean{" + "id=" + id + ", desc=" + description + " metadata=" + metadata + '}';
     }
 
 }

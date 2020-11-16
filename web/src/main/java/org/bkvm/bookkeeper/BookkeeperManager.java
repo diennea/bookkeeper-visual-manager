@@ -205,6 +205,10 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
+    public ConfigurationStore getConfigStore() {
+        return configStore;
+    }
+
     public RefreshCacheWorkerStatus refreshMetadataCache() {
         if (refreshStatus.compareAndSet(RefreshStatus.IDLE, RefreshStatus.WORKING)) {
             this.refreshThread.submit(() -> {

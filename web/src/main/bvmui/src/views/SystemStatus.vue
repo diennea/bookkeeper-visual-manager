@@ -4,9 +4,38 @@
             background-color="blue lighten-1"
             center-active
             dark>
+            <v-tab>Cache Status</v-tab>
             <v-tab>Cluster Status on ZooKeeper</v-tab>
             <v-tab>Client Configuration</v-tab>
-            <v-tab>Cache Status</v-tab>
+             <v-tab-item>
+                <p class="caption my-2">
+                    BookKeeper Visual Manager caches data on a local database
+                    in order to save resources on the Metadata Service (ZooKeeper).
+                    You have to manually request a reload from ZooKeeper.
+                </p>
+                <v-btn
+                    depressed
+                    large
+                    tile
+                    color="blue lighten-1 white--text"
+                    @click="refreshPage">
+                    Reload page
+                </v-btn>
+                <v-btn
+                    depressed
+                    large
+                    tile
+                    color="green lighten-1 white--text"
+                    @click="refreshCache">
+                    Reload metadata from ZooKeeper
+                </v-btn>
+                <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                        <span class="ml-2" v-on="on">Background worker status <b>{{ status }}</b></span>
+                    </template>
+                    <span>Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh ) }}</b></span>
+                </v-tooltip>
+            </v-tab-item>
             <v-tab-item>
                 <v-simple-table class="mt-2 elevation-1">
                     <template v-slot:default>
@@ -36,35 +65,6 @@
                     hide-default-footer
                     class="mt-2 elevation-1"
                 />
-            </v-tab-item>
-            <v-tab-item>
-                <p class="caption my-2">
-                    BookKeeper Visual Manager caches data on a local database
-                    in order to save resources on the Metadata Service (ZooKeeper).
-                    You have to manually request a reload from ZooKeeper.
-                </p>
-                <v-btn
-                    depressed
-                    large
-                    tile
-                    color="blue lighten-1 white--text"
-                    @click="refreshPage">
-                    Reload page
-                </v-btn>
-                <v-btn
-                    depressed
-                    large
-                    tile
-                    color="green lighten-1 white--text"
-                    @click="refreshCache">
-                    Reload metadata from ZooKeeper
-                </v-btn>
-                <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                        <span class="ml-2" v-on="on">Background worker status <b>{{ status }}</b></span>
-                    </template>
-                    <span>Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh ) }}</b></span>
-                </v-tooltip>
             </v-tab-item>
         </v-tabs>
     </div>
