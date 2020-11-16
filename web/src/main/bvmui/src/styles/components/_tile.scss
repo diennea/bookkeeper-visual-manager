@@ -1,8 +1,8 @@
 .bvm-tile {
-    min-width: 150px;
-    max-width: 150px;
+    min-width: 300px;
+    max-width: 300px;
 
-    height: 100px;
+    height: 150px;
     border-radius: 4px;
 
     color: #ffffff;
@@ -16,4 +16,8 @@
         cursor: pointer;
         transition: 0.15s;
     }
+}
+.bvm-tile__descrow {    
+    color: #1b4400;
+    font-size: large;
 }

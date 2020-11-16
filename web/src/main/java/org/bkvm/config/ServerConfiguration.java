@@ -54,5 +54,11 @@ public final class ServerConfiguration {
      */
     public static final String PROPERTY_METADATA_REFRESH_AT_BOOT = "metadata.refreshAtBoot";
     public static final String PROPERTY_METADATA_REFRESH_AT_BOOT_DEFAULT = "false";
+    
+    /**
+     * Trigger metadata refresh at boot
+     */
+    public static final String PROPERTY_BK_METADATA_DESCRIPTION = "metadata.ledgerdescription";
+    public static final String PROPERTY_BK_METADATA_DESCRIPTION_DEFAULT = "tablespacename,pulsar/,application";
 
 }

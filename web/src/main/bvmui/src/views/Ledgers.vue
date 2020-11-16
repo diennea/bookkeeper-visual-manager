@@ -8,35 +8,40 @@
                 label="Search"
                 tile
                 flat
-                hide-details />
+                hide-details
+                @keydown.enter="performSearch" />
             <v-text-field
                 v-model="ledgerIds"
                 class="pr-5"
                 label="Ledger Id"
                 tile
                 flat
-                hide-details />
+                hide-details
+                @keydown.enter="performSearch" />
             <v-text-field
                 v-model="minLength"
                 class="pr-5"
                 label="Min Length"
                 tile
                 flat
-                hide-details />
+                hide-details
+                @keydown.enter="performSearch" />
             <v-text-field
                 v-model="maxLength"
                 class="pr-5"
                 label="Max Length"
                 tile
                 flat
-                hide-details />
+                hide-details
+                @keydown.enter="performSearch" />
              <v-text-field
                 v-model="minAge"
                 class="pr-5"
                 label="Age"
                 tile
                 flat
-                hide-details />
+                hide-details
+                @keydown.enter="performSearch" />
             <v-btn
                 depressed
                 large
@@ -47,6 +52,10 @@
                 Search
             </v-btn>
         </v-form>
+        <div class="bvm-ledger-search-results-info">
+            Found: <b>{{ ledgers.length }}</b> ledgers,
+            total size: <b>{{ $library.formatBytes(totalSize) }}</b>.
+        </div>
         <div class="bvm-ledger" :class="{'metadata': showLedgerMetadata}">
             <div class="bvm-tile-container">
                 <Tile
@@ -83,7 +92,8 @@ export default {
             minAge: 0,
             showLedgerMetadata: false,
             currentLedger: null,
-            ledgers: []
+            ledgers: [],
+            totalSize: 0
         };
     },
     created() {
@@ -93,8 +103,9 @@ export default {
             url = "api/ledger/all?bookie=" + encodeURIComponent(bookieId);
         }
         this.$request.get(url).then(
-            ledgers => {
-                this.ledgers = ledgers;
+            ledgersResult => {
+                this.ledgers = ledgersResult.ledgers;
+                this.totalSize = ledgersResult.totalSize;
             }
         );
     },
@@ -123,8 +134,9 @@ export default {
                 url = url + "&bookie=" + encodeURIComponent(bookieId);
             }
             this.$request.get(url).then(
-                ledgers => {
-                    this.ledgers = ledgers;
+                ledgersResult => {
+                    this.ledgers = ledgersResult.ledgers;
+                    this.totalSize = ledgersResult.totalSize;
                 }
             );
         }

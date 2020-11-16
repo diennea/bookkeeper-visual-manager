@@ -110,7 +110,7 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
     @Path("info")
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatus getInfo() throws Exception {
-        return new SystemStatus(getBookkeeperManger().getRefreshWorkerStatus());
+        return new SystemStatus(getBookkeeperManager().getRefreshWorkerStatus());
     }
 
     @GET
@@ -118,7 +118,7 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
     @Path("refresh")
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatus refresh() throws Exception {
-        getBookkeeperManger().refreshMetadataCache();
+        getBookkeeperManager().refreshMetadataCache();
         return getInfo();
     }
 

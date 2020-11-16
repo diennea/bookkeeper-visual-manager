@@ -1,5 +1,8 @@
 <template>
     <div class="bvm-tile" @click="$emit('click', $event)">
+        <div v-if="item.description !== ''" class="bvm-tile__descrow">
+            <span>{{ item.description }}</span>
+        </div>
         <div class="bvm-tile__row">
             <span>Ledger {{ item.id }}</span>
         </div>
