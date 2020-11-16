@@ -33,7 +33,7 @@ public final class ServerConfiguration {
 
     public static final String PROPERTY_METADATA_REFRESH_PERIOD = "metadata.refreshPeriodSeconds";
     public static final String PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT = "300";
-    
+
     public static final String PROPERTY_METADATA_REFRESH_AT_BOOT = "metadata.refreshAtBoot";
     public static final String PROPERTY_METADATA_REFRESH_AT_BOOT_DEFAULT = "false";
 

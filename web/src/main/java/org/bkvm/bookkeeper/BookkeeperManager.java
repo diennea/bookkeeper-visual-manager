@@ -186,6 +186,8 @@ public class BookkeeperManager implements AutoCloseable {
                 LOG.info("Refreshing cluster " + clusterName + " at " + cluster.getMetadataServiceUri());
                 BookkeeperCluster bkCluster = this.bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
 
+                System.out.println(">>> " + cluster.getConfiguration());
+
                 int clusterId = bkCluster.getId();
                 ClientConfiguration conf = bkCluster.getConf();
                 BookKeeper bkClient = bkCluster.getBkClient();

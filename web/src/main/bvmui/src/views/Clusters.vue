@@ -22,7 +22,7 @@
                         <v-row>
                             <v-col cols="4">
                                 <v-text-field
-                                    v-model="clusterInfo.name"
+                                    v-model="newClusterInfo.name"
                                     label="Name"
                                     required
                                     dense
@@ -30,7 +30,7 @@
                             </v-col>
                             <v-col cols="8">
                                 <v-text-field
-                                    v-model="clusterInfo.metadataServiceUri"
+                                    v-model="newClusterInfo.metadataServiceUri"
                                     label="Metadata service URI"
                                     required
                                     dense
@@ -40,7 +40,7 @@
                         <v-row>
                             <v-col cols="12">
                                 <v-textarea
-                                    v-model="clusterInfo.configuration"
+                                    v-model="newClusterInfo.configuration"
                                     label="Configuration"
                                     hint="Properties file passed as configuration to the client connection"
                                 />
@@ -55,14 +55,66 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-if="selectedClusterInfo" v-model="dialogInfo" persistent max-width="700px">
+            <v-card>
+                <v-card-title>
+                    <span class="headline">Cluster {{ selectedClusterInfo.clusterName }}</span>
+                </v-card-title>
+                <v-card-text>
+                    <v-tabs
+                        color="blue lighten-1"
+                        center-active>
+                        <v-tab>Status on ZooKeeper</v-tab>
+                        <v-tab>Clients Configuration</v-tab>
+                        <v-tab-item>
+                            <v-simple-table class="mt-2 elevation-1">
+                                <template v-slot:default>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">Property</th>
+                                            <th class="text-left">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr> <td>autorecoveryEnabled</td> <td>{{ selectedClusterInfo.autorecoveryEnabled }}</td></tr>
+                                        <tr> <td>Auditor</td> <td>{{ selectedClusterInfo.auditor }}</td></tr>
+                                        <tr> <td>lostBookieRecoveryDelay</td> <td>{{ selectedClusterInfo.lostBookieRecoveryDelay }}</td></tr>
+                                        <tr> <td>layoutManagerFactoryClass</td> <td>{{ selectedClusterInfo.layoutManagerFactoryClass }}</td></tr>
+                                        <tr> <td>layoutFormatVersion</td> <td>{{ selectedClusterInfo.layoutFormatVersion }}</td></tr>
+                                        <tr> <td>layoutManagerVersion</td> <td>{{ selectedClusterInfo.layoutManagerVersion }}</td></tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-tab-item>
+                        <v-tab-item>
+                            <v-data-table
+                                :headers="[
+                                    { text: 'Property', value: 'name' },
+                                    { text: 'Value', value: 'value' }
+                                ]"
+                                :items="selectedClusterInfo.computedBookkeeperConfiguration"
+                                multi-sort
+                                hide-default-footer
+                                class="mt-2 elevation-1"
+                            />
+                        </v-tab-item>
+                    </v-tabs>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn color="blue lighten-1" text @click="dialogInfo = false">Close</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-data-table
             :headers="headers"
             :items="clusters"
             multi-sort
             hide-default-footer
-            class="mt-2 elevation-1">
+            class="mt-2 elevation-1"
+            @click:row="showCluster">
             <template v-slot:item.actions="{ item }">
-                <v-icon @click="deleteCluster(item)">
+                <v-icon @click.stop="deleteCluster(item)">
                     mdi-delete
                 </v-icon>
             </template>
@@ -74,12 +126,15 @@ export default {
     data() {
         return {
             dialog: false,
+            dialogInfo: false,
             clusters: [],
-            clusterInfo: {
+            clustersInfo: [],
+            newClusterInfo: {
                 name: '',
                 metadataServiceUri: '',
                 configuration: ''
-            }
+            },
+            selectedClusterInfo: null
         }
     },
     computed: {
@@ -100,12 +155,12 @@ export default {
     methods: {
         closeDialog() {
             this.dialog = false;
-            this.clusterInfo.name = '';
-            this.clusterInfo.metadataServiceUri = '';
-            this.clusterInfo.configuration = '';
+            this.newClusterInfo.name = '';
+            this.newClusterInfo.metadataServiceUri = '';
+            this.newClusterInfo.configuration = '';
         },
         addCluster() {
-            this.$request.post("api/cluster/add", this.clusterInfo)
+            this.$request.post("api/cluster/add", this.newClusterInfo)
                 .then(() => {
                     this.closeDialog();
                     this.refreshClusters();
@@ -117,11 +172,39 @@ export default {
                     this.refreshClusters()
                 });
         },
-        changeCluster(name) {
-            this.$store.commit('updateCluster', { name })
+        showCluster({ clusterId }) {
+            this.dialogInfo = true;
+            this.selectedClusterInfo = this.clustersInfo.find(c => c.clusterId === clusterId);
         },
         async refreshClusters() {
             this.clusters = await this.$request.get("api/cluster/all");
+            let cacheInfo = await this.$request.get("api/cache/info");
+            this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
+            this.status = cacheInfo.status;
+            let clustersInfo = [];
+            for (let clusterInfo of cacheInfo.clusters) {
+                let computedConfiguration = [];
+                for (let keyValue in clusterInfo.bookkeeperConfiguration) {
+                    computedConfiguration.push({
+                        name: keyValue,
+                        value: clusterInfo.bookkeeperConfiguration[keyValue]
+                    });
+                }
+                var cluster = {
+                    clusterId: clusterInfo.clusterId,
+                    clusterName: clusterInfo.clusterName,
+                    auditor: clusterInfo.auditor,
+                    autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
+                    lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
+                    layoutFormatVersion: clusterInfo.layoutFormatVersion,
+                    layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
+                    layoutManagerVersion: clusterInfo.layoutManagerVersion,
+                    bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
+                    computedBookkeeperConfiguration: computedConfiguration
+                };
+                clustersInfo.push(cluster);
+            }
+            this.clustersInfo = clustersInfo;
             this.$store.commit('showDrawer', this.clusters.length > 0);
         }
     }

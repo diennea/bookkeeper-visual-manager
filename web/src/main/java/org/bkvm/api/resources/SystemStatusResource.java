@@ -33,6 +33,7 @@ import org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 public class SystemStatusResource extends AbstractBookkeeperResource {
 
     public static final class ClusterStatus {
+
         private final int clusterId;
         private final String clusterName;
         private final String bookkeeperConfiguration;
@@ -43,7 +44,8 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
         private final String layoutManagerFactoryClass;
         private final int layoutManagerVersion;
 
-        public ClusterStatus(int clusterId, String clusterName, String bookkeeperConfiguration, String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion, String layoutManagerFactoryClass,
+        public ClusterStatus(int clusterId, String clusterName, String bookkeeperConfiguration, String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion,
+                             String layoutManagerFactoryClass,
                              int layoutManagerVersion) {
             this.clusterId = clusterId;
             this.clusterName = clusterName;
@@ -91,25 +93,25 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
         public String getClusterName() {
             return clusterName;
         }
-        
+
     }
-    
+
     public static final class SystemStatus {
 
         private long lastCacheRefresh;
         private String status;
         private List<ClusterStatus> clusters;
-        
 
         public SystemStatus(RefreshCacheWorkerStatus status) {
             this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
             this.status = status.getStatus().toString();
             this.clusters = new ArrayList<>();
-            Map<Integer, BookkeeperManager.ClusterWideConfiguration> clusterWideConfiguration = status.getLastClusterWideConfiguration();            
+            Map<Integer, BookkeeperManager.ClusterWideConfiguration> clusterWideConfiguration = status.getLastClusterWideConfiguration();
             clusterWideConfiguration.values().forEach(c -> {
-                ClusterStatus clusterStatus = new ClusterStatus(c.getClusterId(), c.getClusterName(), c.getConfiguration(), c.getAuditor(), c.isAutorecoveryEnabled(), c.getLostBookieRecoveryDelay(),c.getLayoutFormatVersion(), c.getLayoutManagerFactoryClass(), c.getLayoutManagerVersion());
+                ClusterStatus clusterStatus = new ClusterStatus(c.getClusterId(), c.getClusterName(), c.getConfiguration(), c.getAuditor(), c.isAutorecoveryEnabled(), c.getLostBookieRecoveryDelay(),
+                        c.getLayoutFormatVersion(), c.getLayoutManagerFactoryClass(), c.getLayoutManagerVersion());
                 clusters.add(clusterStatus);
-            });            
+            });
         }
 
         public List<ClusterStatus> getClusters() {
@@ -119,7 +121,6 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
         public void setClusters(List<ClusterStatus> clusters) {
             this.clusters = clusters;
         }
-
 
         public long getLastCacheRefresh() {
             return lastCacheRefresh;
