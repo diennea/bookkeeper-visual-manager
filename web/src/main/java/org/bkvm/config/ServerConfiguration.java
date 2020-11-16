@@ -43,4 +43,16 @@ public final class ServerConfiguration {
     public static final String PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT = "zkConnectionTimeout";
     public static final int PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT = 10000;
 
+    /**
+     * Automatically refresh metadata
+     */
+    public static final String PROPERTY_METADATA_REFRESH_PERIOD = "metadata.refreshPeriodSeconds";
+    public static final String PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT = "300";
+
+    /**
+     * Trigger metadata refresh at boot
+     */
+    public static final String PROPERTY_METADATA_REFRESH_AT_BOOT = "metadata.refreshAtBoot";
+    public static final String PROPERTY_METADATA_REFRESH_AT_BOOT_DEFAULT = "false";
+
 }
