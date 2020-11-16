@@ -19,6 +19,7 @@
  */
 package org.bkvm.api.listeners;
 
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_AT_BOOT;
 import herddb.jdbc.HerdDBEmbeddedDataSource;
 import java.io.IOException;
 import java.util.Properties;
@@ -75,7 +76,7 @@ public class ContextInitializer implements ServletContextListener {
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
 
-            boolean refreshAtBoot = Boolean.parseBoolean(configStore.getProperty("metdata.refreshAtBoot", "false"));
+            boolean refreshAtBoot = Boolean.parseBoolean(configStore.getProperty(PROPERTY_METADATA_REFRESH_AT_BOOT, configStore.getProperty("metdata.refreshAtBoot", "false")));
             context.log("metdata.refreshAtBoot=" + refreshAtBoot);
             if (refreshAtBoot) {
                 // launch reload in background

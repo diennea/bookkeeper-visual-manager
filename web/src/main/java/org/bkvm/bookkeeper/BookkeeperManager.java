@@ -21,6 +21,8 @@ package org.bkvm.bookkeeper;
 
 import static org.bkvm.config.ServerConfiguration.PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT;
 import static org.bkvm.config.ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI;
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD;
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT;
 import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT;
 import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT;
 import static org.bkvm.config.ServerConfiguration.PROPERTY_ZOOKEEPER_SESSION_TIMEOUT;
@@ -38,9 +40,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -90,7 +93,7 @@ public class BookkeeperManager implements AutoCloseable {
     private BookKeeperAdmin bkAdmin;
     private final MetadataCache metadataCache;
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
-    private final ExecutorService refreshThread;
+    private final ScheduledExecutorService refreshThread;
 
     public enum RefreshStatus {
         IDLE,
@@ -103,17 +106,6 @@ public class BookkeeperManager implements AutoCloseable {
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperManagerException {
         try {
-            this.refreshThread = Executors.newSingleThreadExecutor(new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r, "bk-visual-manager-cache-refresh");
-                    t.setDaemon(true);
-                    t.setUncaughtExceptionHandler((Thread t1, Throwable e) -> {
-                        e.printStackTrace();
-                    });
-                    return t;
-                }
-            });
             this.configStore = configStore;
             int zkSessionTimeout = ConfigurationStoreUtils.getInt(PROPERTY_ZOOKEEPER_SESSION_TIMEOUT,
                     PROPERTY_ZOOKEEPER_SESSION_TIMEOUT_DEFAULT, this.configStore);
@@ -140,6 +132,24 @@ public class BookkeeperManager implements AutoCloseable {
             this.bookkeeperClientConfiguration = remainingKeys;
             this.metadataCache = metadataCache;
             this.lastClusterWideConfiguration = ClusterWideConfiguration.UNKNOWN;
+            int refreshSeconds = Integer.parseInt(configStore.getProperty(PROPERTY_METADATA_REFRESH_PERIOD, PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT));
+        this.refreshThread = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "bk-visual-manager-cache-refresh");
+                t.setDaemon(true);
+                t.setUncaughtExceptionHandler((Thread t1, Throwable e) -> {
+                    e.printStackTrace();
+                });
+                return t;
+            }
+        });
+        if (refreshSeconds > 0) {
+            LOG.log(Level.INFO, "Scheduling automatic refresh of metadata, every {0} seconds", refreshSeconds);
+            refreshThread.scheduleWithFixedDelay(() -> {
+                refreshMetadataCache();
+            }, refreshSeconds, refreshSeconds, TimeUnit.SECONDS);
+        }
         } catch (ConfigurationNotValidException t) {
             throw new BookkeeperManagerException(t);
         }
@@ -195,7 +205,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public RefreshCacheWorkerStatus refreshMetadataCache() throws BookkeeperManagerException {
+    public RefreshCacheWorkerStatus refreshMetadataCache() {
         if (refreshStatus.compareAndSet(RefreshStatus.IDLE, RefreshStatus.WORKING)) {
             this.refreshThread.submit(() -> {
                 doRefreshMetadataCache();

@@ -18,17 +18,17 @@
  *
  */
 package org.bkvm.utils;
-
 import static junit.framework.Assert.fail;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SaslAuthenticated;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.zookeeper.ZooKeeperClient;
+import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
@@ -52,22 +52,19 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     @Rule
     public final TemporaryFolder folder = new TemporaryFolder();
 
-    LocalZookeeperServer zkServerMain;
+    TestingServer zkServerMain;
     ZooKeeper zkServer;
     BookieServer bookie;
-    Path path;
 
     public AbstractBookkeeperTestUtils() {
     }
 
     public void startZookeeper() throws Exception {
-        path = folder.newFolder().toPath();
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        String dataDir = path.toAbsolutePath().toString();
-        zkServerMain = new LocalZookeeperServer(getPort(), dataDir);
+        zkServerMain = new TestingServer(getPort(), folder.newFolder("zk"), true);
 
-        zkServer = new ZooKeeper(getAddress(), CONNECTION_TIMEOUT, (e) -> {
+        zkServer = new ZooKeeper(getZooKeeperAddress(), CONNECTION_TIMEOUT, (e) -> {
             switch (e.getState()) {
                 case SyncConnected:
                 case SaslAuthenticated:
@@ -78,12 +75,12 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
 
         boolean connected = countDownLatch.await(CONNECTION_TIMEOUT, TimeUnit.SECONDS);
         if (!connected) {
-            fail("Could not connect to zookeeper at " + getAddress() + " within " + 10000 + " ms");
+            fail("Could not connect to zookeeper at " + getZooKeeperAddress() + " within " + 10000 + " ms");
         }
 
         try (ZooKeeperClient zkc = ZooKeeperClient
                 .newBuilder()
-                .connectString(getAddress())
+                .connectString(getZooKeeperAddress())
                 .sessionTimeoutMs(10000)
                 .build()) {
 
@@ -107,10 +104,10 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         conf.setBookiePort(5621);
         conf.setUseHostNameAsBookieID(true);
 
-        Path targetDir = path.resolve("data");
-        conf.setMetadataServiceUri("zk+null://" + getAddress() + "/ledgers");
-        conf.setLedgerDirNames(new String[]{targetDir.toAbsolutePath().toString()});
-        conf.setJournalDirName(targetDir.toAbsolutePath().toString());
+        File targetDir = folder.newFolder("bookie").getAbsoluteFile();
+        conf.setMetadataServiceUri("zk+null://" + getZooKeeperAddress() + "/ledgers");
+        conf.setLedgerDirNames(new String[]{targetDir.toString()});
+        conf.setJournalDirName(targetDir.toString());
         conf.setFlushInterval(10000);
         conf.setGcWaitTime(5);
         conf.setJournalFlushWhenQueueEmpty(true);
@@ -146,8 +143,8 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         return 1282;
     }
 
-    public String getAddress() {
-        return "localhost:" + getPort();
+    public String getZooKeeperAddress() {
+        return zkServerMain.getConnectString();
     }
 
     public int getTimeout() {

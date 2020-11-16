@@ -41,8 +41,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <zookpeeper.version>3.5.7</zookpeeper.version>
-        <bookkeeper.version>4.11.0</bookkeeper.version>
+        <curator.version>5.1.0</curator.version>
+        <zookpeeper.version>3.6.2</zookpeeper.version>
+        <bookkeeper.version>4.11.1</bookkeeper.version>
         <slf4j.version>1.7.29</slf4j.version>
         <netty.version>4.1.48.Final</netty.version>
         <netty.boringssl.version>2.0.29.Final</netty.boringssl.version>
@@ -171,6 +172,11 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-tcnative-boringssl-static</artifactId>
                 <version>${netty.boringssl.version}</version>
+            </dependency>
+             <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-test</artifactId>
+                <version>${curator.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
