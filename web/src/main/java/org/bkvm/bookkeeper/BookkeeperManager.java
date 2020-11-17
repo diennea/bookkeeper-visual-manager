@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import org.apache.bookkeeper.client.BKException.BKNoSuchLedgerExistsOnMetadataServerException;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
@@ -86,16 +87,16 @@ public class BookkeeperManager implements AutoCloseable {
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
     private final ScheduledExecutorService refreshThread;
 
-    public void ensureDefaultCluster(String defaultService) throws BookkeeperManagerException {
+    public void ensureDefaultCluster(String metadataServiceUri) throws BookkeeperManagerException {
         Cluster exists = metadataCache.listClusters().stream().filter(c -> c.getName().equals("default")).findFirst().orElse(null);
         if (exists != null) {
             LOG.log(Level.INFO, " Default cluster exists: " + exists.getClusterId() + " " + exists.getName() + " at " + exists.getMetadataServiceUri());
             return;
         }
-        LOG.log(Level.INFO, " Default cluster does not exist, creating 'default' at " + defaultService);
+        LOG.log(Level.INFO, " Default cluster does not exist, creating 'default' at " + metadataServiceUri);
         Cluster cluster = new Cluster();
         cluster.setName("default");
-        cluster.setMetadataServiceUri(defaultService);
+        cluster.setMetadataServiceUri(metadataServiceUri);
         cluster.setConfiguration("");
         updateCluster(cluster);
     }
@@ -132,6 +133,7 @@ public class BookkeeperManager implements AutoCloseable {
         this.bkClusterPool = new BookkeeperClusterPool();
     }
 
+    @Getter
     public static final class RefreshCacheWorkerStatus {
 
         private final RefreshStatus status;
@@ -143,18 +145,6 @@ public class BookkeeperManager implements AutoCloseable {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
             this.lastClusterWideConfiguration = lastClusterWideConfiguration;
-        }
-
-        public Map<Integer, ClusterWideConfiguration> getLastClusterWideConfiguration() {
-            return lastClusterWideConfiguration;
-        }
-
-        public RefreshStatus getStatus() {
-            return status;
-        }
-
-        public long getLastMetadataCacheRefresh() {
-            return lastMetadataCacheRefresh;
         }
 
     }
@@ -183,17 +173,19 @@ public class BookkeeperManager implements AutoCloseable {
         try {
             for (Cluster cluster : this.metadataCache.listClusters()) {
                 String clusterName = cluster.getName();
-                LOG.info("Refreshing cluster " + clusterName + " at " + cluster.getMetadataServiceUri());
-                BookkeeperCluster bkCluster = this.bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
+                LOG.log(Level.INFO, "Refreshing cluster {0} at {1}", new Object[]{clusterName, cluster.getMetadataServiceUri()});
 
-                System.out.println(">>> " + cluster.getConfiguration());
+                BookkeeperCluster bkCluster = this.bkClusterPool.ensureCluster(
+                        cluster.getClusterId(),
+                        cluster.getMetadataServiceUri(),
+                        cluster.getConfiguration()
+                );
 
                 int clusterId = bkCluster.getId();
                 ClientConfiguration conf = bkCluster.getConf();
                 BookKeeper bkClient = bkCluster.getBkClient();
                 BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
 
-                // TO--DO: Configuration every cluster
                 lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
 
                 final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
@@ -423,7 +415,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     public void updateCluster(Cluster cluster) throws BookkeeperManagerException {
         metadataCache.updateCluster(cluster);
-        bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri());
+        bkClusterPool.ensureCluster(cluster.getClusterId(), cluster.getMetadataServiceUri(), cluster.getConfiguration());
     }
 
     public void deleteCluster(int clusterId) throws BookkeeperManagerException {

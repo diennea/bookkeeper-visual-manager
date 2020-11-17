@@ -33,44 +33,15 @@
 export default {
     data() {
         return {
-            headers: [
-                { text: "Property", value: "name" },
-                { text: "Value", value: "value" }
-            ],
-            lastCacheRefresh: 0,
             status: "unknown",
-            clusters: []
+            lastCacheRefresh: 0
         };
     },
     created() {
         this.$request.get("api/cache/info").then(
             cacheInfo => {
-                this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 this.status = cacheInfo.status;
-                let clusters = [];
-                for (let clusterInfo in cacheInfo.clusters) {
-                    let computedConfiguration = [];
-                    for (let keyValue in clusterInfo.bookkeeperConfiguration) {
-                        computedConfiguration.push({
-                            name: keyValue,
-                            value: clusterInfo.bookkeeperConfiguration[keyValue]
-                        });
-                    }
-                    var cluster = {
-                        clusterName: clusterInfo.clusterName,
-                        bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
-                        auditor: clusterInfo.auditor,
-                        autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
-                        lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
-                        layoutFormatVersion: clusterInfo.layoutFormatVersion,
-                        layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
-                        layoutManagerVersion: clusterInfo.layoutManagerVersion,
-                        computedBookkeeperConfiguration: computedConfiguration
-                    };
-                    clusters.push(cluster);
-                }
-                this.clusters = clusters;
-                this.pageLoaded = true;
+                this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
             }
         );
     },
@@ -78,62 +49,18 @@ export default {
         refreshCache() {
             this.$request.get("api/cache/refresh").then(
                 cacheInfo => {
-                    this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                     this.status = cacheInfo.status;
-                    let clusters = [];
-                    for (let clusterInfo in cacheInfo.clusters) {
-                        let computedConfiguration = [];
-                        for (let keyValue in clusterInfo.bookkeeperConfiguration) {
-                            computedConfiguration.push({
-                                name: keyValue,
-                                value: clusterInfo.bookkeeperConfiguration[keyValue]
-                            });
-                        }
-                        var cluster = {
-                            clusterName: clusterInfo.clusterName,
-                            bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
-                            auditor: clusterInfo.auditor,
-                            autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
-                            lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
-                            layoutFormatVersion: clusterInfo.layoutFormatVersion,
-                            layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
-                            layoutManagerVersion: clusterInfo.layoutManagerVersion,
-                            computedBookkeeperConfiguration: computedConfiguration
-                        };
-                        clusters.push(cluster);
-                    }
-                    this.clusters = clusters;
-                });
+                    this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
+                }
+            );
         },
         refreshPage() {
             this.$request.get("api/cache/info").then(
                 cacheInfo => {
-                    this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                     this.status = cacheInfo.status;
-                    let clusters = [];
-                    for (let clusterInfo in cacheInfo.clusters) {
-                        let computedConfiguration = [];
-                        for (let keyValue in clusterInfo.bookkeeperConfiguration) {
-                            computedConfiguration.push({
-                                name: keyValue,
-                                value: clusterInfo.bookkeeperConfiguration[keyValue]
-                            });
-                        }
-                        var cluster = {
-                            clusterName: clusterInfo.clusterName,
-                            bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
-                            auditor: clusterInfo.auditor,
-                            autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
-                            lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
-                            layoutFormatVersion: clusterInfo.layoutFormatVersion,
-                            layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
-                            layoutManagerVersion: clusterInfo.layoutManagerVersion,
-                            computedBookkeeperConfiguration: computedConfiguration
-                        };
-                        clusters.push(cluster);
-                    }
-                    this.clusters = clusters;
-                });
+                    this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
+                }
+            );
         }
     }
 };

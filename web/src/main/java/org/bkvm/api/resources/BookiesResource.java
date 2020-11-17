@@ -27,6 +27,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import lombok.Data;
 import org.bkvm.cache.Bookie;
 
 @Path("bookie")
@@ -53,7 +54,6 @@ public class BookiesResource extends AbstractBookkeeperResource {
                 default:
                     b.setState("down");
                     break;
-
             }
 
             b.setBookieId(bookie.getBookieId());
@@ -66,6 +66,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
         return bookies;
     }
 
+    @Data
     public static final class BookieBean implements Serializable {
 
         private String state;
@@ -76,59 +77,6 @@ public class BookiesResource extends AbstractBookkeeperResource {
         private long totalDiskSpace;
         private long lastScan;
 
-        public String getBookieId() {
-            return bookieId;
-        }
-
-        public void setBookieId(String bookieId) {
-            this.bookieId = bookieId;
-        }
-
-        public long getLastScan() {
-            return lastScan;
-        }
-
-        public void setLastScan(long lastScan) {
-            this.lastScan = lastScan;
-        }
-
-        public String getState() {
-            return state;
-        }
-
-        public void setState(String state) {
-            this.state = state;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public long getFreeDiskSpace() {
-            return freeDiskSpace;
-        }
-
-        public void setFreeDiskSpace(long freeDiskSpace) {
-            this.freeDiskSpace = freeDiskSpace;
-        }
-
-        public long getTotalDiskSpace() {
-            return totalDiskSpace;
-        }
-
-        public void setTotalDiskSpace(long totalDiskSpace) {
-            this.totalDiskSpace = totalDiskSpace;
-        }
-
-        @Override
-        public String toString() {
-            return "BookieBean{" + "state=" + state + ", description=" + description
-                    + ", freeDiskSpace=" + freeDiskSpace + ", totalDiskSpace=" + totalDiskSpace + '}';
-        }
-
     }
+
 }

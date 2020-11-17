@@ -21,7 +21,9 @@ package org.bkvm.bookkeeper;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,11 +48,11 @@ public class BookkeeperClusterPool implements Closeable {
     private Map<Integer, BookkeeperCluster> pool = new ConcurrentHashMap<>();
 
     @SneakyThrows
-    public BookkeeperCluster ensureCluster(int clusterId, String metadataServiceUri) {
+    public BookkeeperCluster ensureCluster(int clusterId, String metadataServiceUri, String configuration) {
         return pool.computeIfAbsent(clusterId, id -> {
             try {
-                LOG.log(Level.INFO, "creating cluster " + clusterId + ", at " + metadataServiceUri);
-                BookKeeper bkClient = createBookKeeperClient(metadataServiceUri);
+                LOG.log(Level.INFO, "Creating cluster {0}, at {1}", new Object[]{clusterId, metadataServiceUri});
+                BookKeeper bkClient = createBookKeeperClient(metadataServiceUri, configuration);
                 BookKeeperAdmin bkAdmin = new BookKeeperAdmin(bkClient);
                 LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
                 BookkeeperCluster bkCluster = new BookkeeperCluster(id, bkClient, bkAdmin, bkAdmin.getConf());
@@ -69,13 +71,25 @@ public class BookkeeperClusterPool implements Closeable {
         return pool.get(clusterId);
     }
 
-    private BookKeeper createBookKeeperClient(String metadataServiceUri) throws IOException, InterruptedException, BKException {
-            ClientConfiguration conf = new ClientConfiguration()
-                    .setMetadataServiceUri(metadataServiceUri)
-                    .setEnableDigestTypeAutodetection(true)
-                    .setGetBookieInfoTimeout(1000)
-                    .setClientConnectTimeoutMillis(1000);
-            return BookKeeper.forConfig(conf).build();
+    private BookKeeper createBookKeeperClient(String metadataServiceUri, String configuration) throws IOException, InterruptedException, BKException {
+        ClientConfiguration conf = new ClientConfiguration()
+                .setMetadataServiceUri(metadataServiceUri)
+                .setEnableDigestTypeAutodetection(true)
+                .setGetBookieInfoTimeout(1000)
+                .setClientConnectTimeoutMillis(1000);
+
+        StringReader reader = new StringReader(configuration);
+        try {
+            Properties properties = new Properties();
+            properties.load(reader);
+            for (String p : properties.stringPropertyNames()) {
+                conf.setProperty(p, properties.get(p));
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, "Wrong configuration passed {0}", configuration);
+        }
+
+        return BookKeeper.forConfig(conf).build();
     }
 
     public void removeCluster(int clusterId) throws BookkeeperManagerException {

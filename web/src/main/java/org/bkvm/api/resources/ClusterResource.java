@@ -19,10 +19,17 @@
  */
 package org.bkvm.api.resources;
 
+import static org.bkvm.bookkeeper.BookkeeperManager.ClusterWideConfiguration;
+import static org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -30,6 +37,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import lombok.Data;
 import org.bkvm.cache.Cluster;
 
 @Path("cluster")
@@ -53,6 +61,38 @@ public class ClusterResource extends AbstractBookkeeperResource {
         }
 
         return res;
+    }
+
+    @GET
+    @Secured
+    @Path("status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ClusterStatus> getClusterStatus() throws Exception {
+        RefreshCacheWorkerStatus status = getBookkeeperManager().getRefreshWorkerStatus();
+        Map<Integer, ClusterWideConfiguration> clusterWideConfiguration = status.getLastClusterWideConfiguration();
+
+        List<ClusterStatus> clusters = new ArrayList<>();
+        for (ClusterWideConfiguration c : clusterWideConfiguration.values()) {
+
+            Map<String, Object> conf = new HashMap<>();
+            StringReader reader = new StringReader(c.getConfiguration());
+            try {
+                Properties properties = new Properties();
+                properties.load(reader);
+                for (String p : properties.stringPropertyNames()) {
+                    conf.put(p, properties.get(p));
+                }
+            } catch (IOException ex) {
+            }
+
+            ClusterStatus clusterStatus = new ClusterStatus(c.getClusterId(), c.getClusterName(), conf,
+                    c.getAuditor(), c.isAutorecoveryEnabled(), c.getLostBookieRecoveryDelay(),
+                    c.getLayoutFormatVersion(), c.getLayoutManagerFactoryClass(), c.getLayoutManagerVersion()
+            );
+            clusters.add(clusterStatus);
+        }
+
+        return clusters;
     }
 
     @GET
@@ -84,49 +124,42 @@ public class ClusterResource extends AbstractBookkeeperResource {
         getBookkeeperManager().deleteCluster(clusterId);
     }
 
+    @Data
+    public static final class ClusterStatus {
+
+        private final int clusterId;
+        private final String clusterName;
+        private final Map<String, Object> bookkeeperConfiguration;
+        private final String auditor;
+        private final boolean autorecoveryEnabled;
+        private final int lostBookieRecoveryDelay;
+        private final int layoutFormatVersion;
+        private final String layoutManagerFactoryClass;
+        private final int layoutManagerVersion;
+
+        public ClusterStatus(int clusterId, String clusterName, Map<String, Object> bookkeeperConfiguration,
+                             String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay,
+                             int layoutFormatVersion, String layoutManagerFactoryClass, int layoutManagerVersion) {
+            this.clusterId = clusterId;
+            this.clusterName = clusterName;
+            this.bookkeeperConfiguration = bookkeeperConfiguration;
+            this.auditor = auditor;
+            this.autorecoveryEnabled = autorecoveryEnabled;
+            this.lostBookieRecoveryDelay = lostBookieRecoveryDelay;
+            this.layoutFormatVersion = layoutFormatVersion;
+            this.layoutManagerFactoryClass = layoutManagerFactoryClass;
+            this.layoutManagerVersion = layoutManagerVersion;
+        }
+
+    }
+
+    @Data
     public static final class ClusterBean implements Serializable {
 
         private int clusterId;
         private String name;
         private String metadataServiceUri;
         private String configuration;
-
-        public int getClusterId() {
-            return clusterId;
-        }
-
-        public void setClusterId(int clusterId) {
-            this.clusterId = clusterId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getMetadataServiceUri() {
-            return metadataServiceUri;
-        }
-
-        public void setMetadataServiceUri(String metadataServiceUri) {
-            this.metadataServiceUri = metadataServiceUri;
-        }
-
-        public String getConfiguration() {
-            return configuration;
-        }
-
-        public void setConfiguration(String configuration) {
-            this.configuration = configuration;
-        }
-
-        @Override
-        public String toString() {
-            return "ClusterBean{" + "name=" + name + ", metadataServiceUri=" + metadataServiceUri + '}';
-        }
 
     }
 

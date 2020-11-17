@@ -1,7 +1,7 @@
 <template>
     <div class="bvm-clusters">
-        <v-dialog v-model="dialog" persistent max-width="700px">
-            <template v-slot:activator="{ on, attrs }">
+        <v-dialog v-model="dialogCreate" max-width="700px">
+            <template #activator="{ on, attrs }">
                 <v-btn
                     depressed
                     large
@@ -55,10 +55,10 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog v-if="selectedClusterInfo" v-model="dialogInfo" persistent max-width="700px">
+        <v-dialog v-if="currentCluster" v-model="dialogInfo" max-width="700px">
             <v-card>
                 <v-card-title>
-                    <span class="headline">Cluster {{ selectedClusterInfo.clusterName }}</span>
+                    <span class="headline">Cluster {{ currentCluster.clusterName }}</span>
                 </v-card-title>
                 <v-card-text>
                     <v-tabs
@@ -68,7 +68,7 @@
                         <v-tab>Clients Configuration</v-tab>
                         <v-tab-item>
                             <v-simple-table class="mt-2 elevation-1">
-                                <template v-slot:default>
+                                <template #default>
                                     <thead>
                                         <tr>
                                             <th class="text-left">Property</th>
@@ -76,12 +76,12 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr> <td>autorecoveryEnabled</td> <td>{{ selectedClusterInfo.autorecoveryEnabled }}</td></tr>
-                                        <tr> <td>Auditor</td> <td>{{ selectedClusterInfo.auditor }}</td></tr>
-                                        <tr> <td>lostBookieRecoveryDelay</td> <td>{{ selectedClusterInfo.lostBookieRecoveryDelay }}</td></tr>
-                                        <tr> <td>layoutManagerFactoryClass</td> <td>{{ selectedClusterInfo.layoutManagerFactoryClass }}</td></tr>
-                                        <tr> <td>layoutFormatVersion</td> <td>{{ selectedClusterInfo.layoutFormatVersion }}</td></tr>
-                                        <tr> <td>layoutManagerVersion</td> <td>{{ selectedClusterInfo.layoutManagerVersion }}</td></tr>
+                                        <tr> <td>autorecoveryEnabled</td> <td>{{ currentCluster.autorecoveryEnabled }}</td></tr>
+                                        <tr> <td>Auditor</td> <td>{{ currentCluster.auditor }}</td></tr>
+                                        <tr> <td>lostBookieRecoveryDelay</td> <td>{{ currentCluster.lostBookieRecoveryDelay }}</td></tr>
+                                        <tr> <td>layoutManagerFactoryClass</td> <td>{{ currentCluster.layoutManagerFactoryClass }}</td></tr>
+                                        <tr> <td>layoutFormatVersion</td> <td>{{ currentCluster.layoutFormatVersion }}</td></tr>
+                                        <tr> <td>layoutManagerVersion</td> <td>{{ currentCluster.layoutManagerVersion }}</td></tr>
                                     </tbody>
                                 </template>
                             </v-simple-table>
@@ -92,7 +92,7 @@
                                     { text: 'Property', value: 'name' },
                                     { text: 'Value', value: 'value' }
                                 ]"
-                                :items="selectedClusterInfo.computedBookkeeperConfiguration"
+                                :items="currentCluster.computedBookkeeperConfiguration"
                                 multi-sort
                                 hide-default-footer
                                 class="mt-2 elevation-1"
@@ -106,6 +106,25 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="dialogDelete" persistent max-width="290">
+            <v-card>
+                <v-card-title class="headline">
+                Delete Cluster
+                </v-card-title>
+                <v-card-text>Are you really sure you want to delete the Bookkeeper cluster?</v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                        color="blue lighten-1"
+                        text
+                        @click="dialogDelete = false">No</v-btn>
+                    <v-btn
+                        color="red darken-1"
+                        text
+                        @click="deleteCluster(deleteClusterInfo.clusterId)">Yes</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-data-table
             :headers="headers"
             :items="clusters"
@@ -113,8 +132,8 @@
             hide-default-footer
             class="mt-2 elevation-1"
             @click:row="showCluster">
-            <template v-slot:item.actions="{ item }">
-                <v-icon @click.stop="deleteCluster(item)">
+            <template #item.actions="{ item }">
+                <v-icon @click.stop="promptDeleteCluster(item)">
                     mdi-delete
                 </v-icon>
             </template>
@@ -125,16 +144,20 @@
 export default {
     data() {
         return {
-            dialog: false,
             dialogInfo: false,
+            dialogCreate: false,
+            dialogDelete: false,
             clusters: [],
             clustersInfo: [],
+            currentCluster: null,
             newClusterInfo: {
                 name: '',
                 metadataServiceUri: '',
                 configuration: ''
             },
-            selectedClusterInfo: null
+            deleteClusterInfo: {
+                clusterId: 0
+            }
         }
     },
     computed: {
@@ -154,7 +177,7 @@ export default {
     },
     methods: {
         closeDialog() {
-            this.dialog = false;
+            this.dialogCreate = false;
             this.newClusterInfo.name = '';
             this.newClusterInfo.metadataServiceUri = '';
             this.newClusterInfo.configuration = '';
@@ -166,41 +189,38 @@ export default {
                     this.refreshClusters();
                 });
         },
+        promptDeleteCluster(clusterId) {
+            this.dialogDelete = true;
+            this.deleteClusterInfo.clusterId = clusterId;
+        },
         deleteCluster({ clusterId }) {
             this.$request.post(`api/cluster/delete/${clusterId}`)
                 .then(() => {
                     this.refreshClusters()
-                });
+                }).finally(() => this.dialogDelete = false);
         },
         showCluster({ clusterId }) {
             this.dialogInfo = true;
-            this.selectedClusterInfo = this.clustersInfo.find(c => c.clusterId === clusterId);
+            this.currentCluster = this.clustersInfo.find(c => c.clusterId === clusterId);
         },
         async refreshClusters() {
             this.clusters = await this.$request.get("api/cluster/all");
-            let cacheInfo = await this.$request.get("api/cache/info");
-            this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
-            this.status = cacheInfo.status;
+            const clusterStatus = await this.$request.get("api/cluster/status");
+
             let clustersInfo = [];
-            for (let clusterInfo of cacheInfo.clusters) {
-                let computedConfiguration = [];
-                for (let keyValue in clusterInfo.bookkeeperConfiguration) {
-                    computedConfiguration.push({
-                        name: keyValue,
-                        value: clusterInfo.bookkeeperConfiguration[keyValue]
+            for (let status of clusterStatus) {
+                let computedBookkeeperConfiguration = [];
+
+                let bookkeeperConfiguration = status.bookkeeperConfiguration;
+                for (let key in bookkeeperConfiguration) {
+                    computedBookkeeperConfiguration.push({
+                        name: key,
+                        value: bookkeeperConfiguration[key]
                     });
                 }
                 var cluster = {
-                    clusterId: clusterInfo.clusterId,
-                    clusterName: clusterInfo.clusterName,
-                    auditor: clusterInfo.auditor,
-                    autorecoveryEnabled: clusterInfo.autorecoveryEnabled,
-                    lostBookieRecoveryDelay: clusterInfo.lostBookieRecoveryDelay,
-                    layoutFormatVersion: clusterInfo.layoutFormatVersion,
-                    layoutManagerFactoryClass: clusterInfo.layoutManagerFactoryClass,
-                    layoutManagerVersion: clusterInfo.layoutManagerVersion,
-                    bookkeeperConfiguration: clusterInfo.bookkeeperConfiguration,
-                    computedBookkeeperConfiguration: computedConfiguration
+                    ...status,
+                    computedBookkeeperConfiguration
                 };
                 clustersInfo.push(cluster);
             }

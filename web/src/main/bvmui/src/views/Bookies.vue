@@ -4,7 +4,7 @@
             v-for="(item, index) in bookies"
             :data="item"
             :key="index"
-            @click="clicked(item)"
+            @click="openBookie(item)"
         />
     </div>
 </template>
@@ -26,7 +26,7 @@ export default {
             });
     },
     methods: {
-        clicked(item) {
+        openBookie(item) {
             this.$router.push({
                 name: "bookie-ledgers",
                 params: { bookieId: item.description }

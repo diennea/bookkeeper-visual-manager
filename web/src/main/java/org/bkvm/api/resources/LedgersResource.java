@@ -19,16 +19,20 @@
  */
 package org.bkvm.api.resources;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import lombok.Data;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.bookkeeper.BookkeeperManagerException;
@@ -164,6 +168,64 @@ public class LedgersResource extends AbstractBookkeeperResource {
             }
         }
         return res;
+    }
+
+    @Data
+    public final class LedgerBean implements Serializable {
+
+        private long id;
+        private String description;
+        private Map<String, String> metadata = new HashMap<>();
+        private long age;
+        private int ensembleSize;
+        private int writeQuorumSize;
+        private int ackQuorumSize;
+        private long lastEntryId;
+        private long length;
+        private String password;
+        private String digestType;
+        private long ctime;
+        private boolean closed;
+        private String state;
+        private int metadataFormatVersion;
+        private Map<Long, List<String>> ensembles;
+
+        private void setMetadataValue(String key, byte[] value) {
+            String svalue;
+            try {
+                svalue = new String(value, StandardCharsets.UTF_8);
+            } catch (Throwable t) {
+                svalue = Arrays.toString(value);
+            }
+            this.metadata.put(key, svalue);
+        }
+
+        public void applyLedgerMetadata(LedgerMetadata metadata, String descriptionPattern) {
+            Map<String, byte[]> customMetadata = metadata.getCustomMetadata();
+            for (Map.Entry<String, byte[]> currentCustomMetadata : customMetadata.entrySet()) {
+                setMetadataValue(currentCustomMetadata.getKey(), currentCustomMetadata.getValue());
+
+            }
+            String[] specialMetadataNames = descriptionPattern != null ? descriptionPattern.toLowerCase().split("\\,") : new String[]{};
+            boolean descriptionFound = false;
+
+            // descriptionPattern=tablespacename,pulsar/managed-ledger,application
+            // pickup the first metadata name that matches
+            for (String metadataField : specialMetadataNames) {
+                for (Map.Entry<String, String> currentCustomMetadata : this.metadata.entrySet()) {
+                    if (!descriptionFound) {
+                        if (currentCustomMetadata.getKey().contains(metadataField)) {
+                            this.description = currentCustomMetadata.getValue();
+                            descriptionFound = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!descriptionFound) {
+                description = "";
+            }
+        }
     }
 
 }
