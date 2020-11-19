@@ -56,6 +56,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
                     break;
             }
 
+            b.setClusterId(bookie.getClusterId());
             b.setBookieId(bookie.getBookieId());
             b.setFreeDiskSpace(bookie.getFreeDiskspace());
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
@@ -70,6 +71,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public static final class BookieBean implements Serializable {
 
         private String state;
+        private Integer clusterId;
         private String bookieId;
         private String description;
 

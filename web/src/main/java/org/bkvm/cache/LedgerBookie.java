@@ -24,7 +24,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
  * A record in this table means that a ledger is placed over a Bookie
@@ -32,13 +31,16 @@ import lombok.EqualsAndHashCode;
  * @author eolivelli
  */
 @Data
-@EqualsAndHashCode
 @Entity(name = "ledger_bookie")
 public class LedgerBookie implements Serializable {
 
     @Column(columnDefinition = "long")
     @Id
     private long ledgerId;
+
+    @Column(columnDefinition = "int")
+    @Id
+    private long clusterId;
 
     @Column(columnDefinition = "string")
     @Id
@@ -47,14 +49,10 @@ public class LedgerBookie implements Serializable {
     public LedgerBookie() {
     }
 
-    public LedgerBookie(long ledgerId, String bookieAddress) {
+    public LedgerBookie(long ledgerId, String bookieId, int clusterId) {
         this.ledgerId = ledgerId;
-        this.bookieId = bookieAddress;
-    }
-
-    @Override
-    public String toString() {
-        return "LedgerBookie{" + "ledgerId=" + ledgerId + ", bookieId=" + bookieId + '}';
+        this.bookieId = bookieId;
+        this.clusterId = clusterId;
     }
 
 }

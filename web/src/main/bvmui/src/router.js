@@ -67,7 +67,7 @@ const router = new Router({
             }
         },
         {
-            path: '/ledgers/:bookieId',
+            path: '/ledgers/:clusterId/:bookieId',
             name: 'bookie-ledgers',
             component: Ledgers,
             meta: {

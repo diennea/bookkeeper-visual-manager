@@ -99,8 +99,9 @@ export default {
     created() {
         let url = "api/ledger/all";
         if (this.$route.meta.type === "bookie") {
-            const bookieId = this.$route.params.bookieId;
-            url = "api/ledger/all?bookie=" + encodeURIComponent(bookieId);
+            const { bookieId, clusterId } = this.$route.params;
+            url = "api/ledger/all?bookie=" + encodeURIComponent(bookieId)
+                + "&cluster=" + encodeURIComponent(clusterId);
         }
         this.$request.get(url).then(
             ledgersResult => {

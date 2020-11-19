@@ -32,6 +32,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.bkvm.bookkeeper.BookkeeperManager;
@@ -42,31 +43,12 @@ import org.bkvm.config.ServerConfiguration;
 @Path("ledger")
 public class LedgersResource extends AbstractBookkeeperResource {
 
+    @Data
+    @AllArgsConstructor
     public static final class GetLedgersResult {
+
         private List<LedgerBean> ledgers;
         private long totalSize;
-
-        public List<LedgerBean> getLedgers() {
-            return ledgers;
-        }
-
-        public void setLedgers(List<LedgerBean> ledgers) {
-            this.ledgers = ledgers;
-        }
-
-        public long getTotalSize() {
-            return totalSize;
-        }
-
-        public void setTotalSize(long totalSize) {
-            this.totalSize = totalSize;
-        }
-
-        @Override
-        public String toString() {
-            return "GetLedgersResult{" + "ledgers=" + ledgers + ", totalSize=" + totalSize + '}';
-        }
-
     }
 
     @GET
@@ -74,35 +56,39 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public GetLedgersResult getLedgers(@QueryParam("term") String term,
-                                       @QueryParam("bookie") String bookie,
+                                       @QueryParam("bookie") String bookieId,
+                                       @QueryParam("cluster") String clusterId,
                                        @QueryParam("ledgerIds") String ledgerIds,
                                        @QueryParam("minLength") String minLength,
                                        @QueryParam("maxLength") String maxLength,
                                        @QueryParam("minAge") String minAge
     ) throws Exception {
-        List<Long> _ledgersIds = null;
+        List<Long> searchLedgerIds = null;
         if (ledgerIds != null && !ledgerIds.trim().isEmpty()) {
             try {
-                _ledgersIds = convertParamLongList(ledgerIds);
+                searchLedgerIds = convertParamLongList(ledgerIds);
             } catch (NumberFormatException ex) {
-                _ledgersIds = new ArrayList<>();
+                searchLedgerIds = new ArrayList<>();
             }
         }
-        List<Long> ids = getBookkeeperManager().searchLedgers(term, bookie, _ledgersIds, convertParamInt(minLength),
-                convertParamInt(maxLength), convertParamInt(minAge));
-        List<LedgerBean> res = new ArrayList<>();
+
+        List<Long> resultLedgerIds = getBookkeeperManager().searchLedgers(term,
+                bookieId, convertParamInt(clusterId),
+                searchLedgerIds, convertParamInt(minLength),
+                convertParamInt(maxLength), convertParamInt(minAge)
+        );
+
+        List<LedgerBean> resultLedgers = new ArrayList<>();
         long totalSize = 0;
-        for (long id : ids) {
+        for (long id : resultLedgerIds) {
             LedgerBean bean = getLedgerMetadata(id);
             if (bean != null) {
-                res.add(bean);
+                resultLedgers.add(bean);
                 totalSize += bean.getLength();
             }
         }
-        GetLedgersResult r = new GetLedgersResult();
-        r.setLedgers(res);
-        r.setTotalSize(totalSize);
-        return r;
+
+        return new GetLedgersResult(resultLedgers, totalSize);
     }
 
     @GET

@@ -30,6 +30,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.sql.DataSource;
+import org.bkvm.utils.StringUtils;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 
 /**
@@ -130,10 +131,25 @@ public class MetadataCache implements AutoCloseable {
     }
 
     public List<Bookie> listBookies() {
+        return listBookies(null);
+    }
+
+    public List<Bookie> listBookies(Integer clusterId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
-            Query q = em.createQuery("select l from bookie l order by l.bookieId", Bookie.class);
-            return q.getResultList();
+            if (clusterId == null) {
+                Query q = em.createQuery("SELECT l "
+                        + "FROM bookie l "
+                        + "ORDER BY l.bookieId", Bookie.class);
+                return q.getResultList();
+            } else {
+                Query q = em.createQuery("SELECT l "
+                        + "FROM bookie l "
+                        + "WHERE l.clusterId = :clusterId "
+                        + "ORDER BY l.bookieId", Bookie.class);
+                q.setParameter("clusterId", clusterId);
+                return q.getResultList();
+            }
         }
     }
 
@@ -239,52 +255,64 @@ public class MetadataCache implements AutoCloseable {
     }
 
 
-    public List<Ledger> searchLedgers(String metadataTerm, String bookie, List<Long> ledgerIds) {
+    public List<Ledger> searchLedgers(String metadataTerm, String bookieId, Integer clusterId, List<Long> ledgerIds) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
+
+            boolean hasBookieCluster = true;
+            if (StringUtils.isEmpty(bookieId) || clusterId == null) {
+                hasBookieCluster = false;
+            }
+
             if (ledgerIds == null) {
-                if (metadataTerm != null && !metadataTerm.isEmpty() && bookie != null && !bookie.isEmpty()) {
+                if (!StringUtils.isEmpty(metadataTerm) && hasBookieCluster) {
                     Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
                             + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
                             + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
                             + " WHERE lm.entryValue LIKE :term"
                             + " AND ln.bookieId = :bookieId"
+                            + " AND ln.clusterId = :clusterId"
                             + " ORDER BY l.ledgerId", Ledger.class);
                     q.setParameter("term", "%" + metadataTerm + "%");
-                    q.setParameter("bookieId", bookie);
+                    q.setParameter("bookieId", bookieId);
+                    q.setParameter("clusterId", clusterId);
                     return q.getResultList();
-                } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
+                } else if (!StringUtils.isEmpty(metadataTerm)) {
                     Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
                             + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
                             + " WHERE lm.entryValue LIKE :term"
                             + " ORDER BY l.ledgerId", Ledger.class);
                     q.setParameter("term", "%" + metadataTerm + "%");
                     return q.getResultList();
-                } else if (bookie != null && !bookie.isEmpty()) {
+                } else if (hasBookieCluster) {
                     Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
                             + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
                             + " WHERE ln.bookieId = :bookieId"
+                            + " AND ln.clusterId = :clusterId"
                             + " ORDER BY l.ledgerId", Ledger.class);
-                    q.setParameter("bookieId", bookie);
+                    q.setParameter("bookieId", bookieId);
+                    q.setParameter("clusterId", clusterId);
                     return q.getResultList();
                 } else {
                     Query q = em.createQuery("SELECT l FROM ledger l ", Ledger.class);
                     return q.getResultList();
                 }
             } else if (!ledgerIds.isEmpty()) {
-                if (metadataTerm != null && !metadataTerm.isEmpty() && bookie != null && !bookie.isEmpty()) {
+                if (!StringUtils.isEmpty(metadataTerm) && hasBookieCluster) {
                     Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
                             + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
                             + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
                             + " WHERE l.ledgerId IN :ledgerIds"
                             + " AND lm.entryValue LIKE :term"
                             + " AND ln.bookieId = :bookieId"
+                            + " AND ln.clusterId = :clusterId"
                             + " ORDER BY l.ledgerId", Ledger.class);
-                    q.setParameter("ledgerIds", ledgerIds);
                     q.setParameter("term", "%" + metadataTerm + "%");
-                    q.setParameter("bookieId", bookie);
+                    q.setParameter("bookieId", bookieId);
+                    q.setParameter("clusterId", clusterId);
+                    q.setParameter("ledgerIds", ledgerIds);
                     return q.getResultList();
-                } else if (metadataTerm != null && !metadataTerm.isEmpty()) {
+                } else if (!StringUtils.isEmpty(metadataTerm)) {
                     Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
                             + "               INNER JOIN ledger_metadata lm ON lm.ledgerId = l.ledgerId"
                             + " WHERE l.ledgerId IN :ledgerIds"
@@ -293,14 +321,16 @@ public class MetadataCache implements AutoCloseable {
                     q.setParameter("ledgerIds", ledgerIds);
                     q.setParameter("term", "%" + metadataTerm + "%");
                     return q.getResultList();
-                } else if (bookie != null && !bookie.isEmpty()) {
+                } else if (hasBookieCluster) {
                     Query q = em.createQuery("SELECT DISTINCT(l) FROM ledger l "
                             + "               INNER JOIN ledger_bookie ln ON ln.ledgerId = l.ledgerId "
                             + " WHERE l.ledgerId IN :ledgerIds"
                             + " AND ln.bookieId = :bookieId"
+                            + " AND ln.clusterId = :clusterId"
                             + " ORDER BY l.ledgerId", Ledger.class);
+                    q.setParameter("bookieId", bookieId);
+                    q.setParameter("clusterId", clusterId);
                     q.setParameter("ledgerIds", ledgerIds);
-                    q.setParameter("bookieId", bookie);
                     return q.getResultList();
                 } else {
                     Query q = em.createQuery("SELECT l FROM ledger l "

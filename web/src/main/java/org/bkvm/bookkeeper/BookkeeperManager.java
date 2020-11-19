@@ -197,7 +197,7 @@ public class BookkeeperManager implements AutoCloseable {
                 LOG.log(Level.INFO, "writable Bookies {0}", available);
                 LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
                 java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-                List<Bookie> bookiesBefore = metadataCache.listBookies();
+                List<Bookie> bookiesBefore = metadataCache.listBookies(clusterId);
                 List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
                 for (BookieSocketAddress bookieAddress : bookiesCookie) {
                     LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
@@ -259,8 +259,8 @@ public class BookkeeperManager implements AutoCloseable {
                     });
                     List<LedgerBookie> bookies = new ArrayList<>();
                     Set<String> bookieAddresses = getBookieList(ledgerMetadata);
-                    bookieAddresses.forEach(s -> {
-                        bookies.add(new LedgerBookie(ledgerId, s));
+                    bookieAddresses.forEach(bookieId -> {
+                        bookies.add(new LedgerBookie(ledgerId, bookieId, clusterId));
                     });
                     LOG.log(Level.INFO, "Updating ledeger {0} metadata", ledgerId);
                     metadataCache.updateLedger(ledger, bookies, metadataEntries);
@@ -380,13 +380,14 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Long> searchLedgers(String term,
-                                    String bookie,
+                                    String bookieId,
+                                    Integer clusterId,
                                     List<Long> ledgerIds,
                                     Integer minLength,
                                     Integer maxLength,
                                     Integer minAge) throws BookkeeperManagerException {
         return metadataCache
-                .searchLedgers(term, bookie, ledgerIds)
+                .searchLedgers(term, bookieId, clusterId, ledgerIds)
                 .stream()
                 .filter(l -> {
                     if (minLength != null && l.getSize() < minLength) {

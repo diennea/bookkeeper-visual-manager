@@ -31,12 +31,6 @@ public final class ServerConfiguration {
     public static final String PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI = "metadataServiceUri";
     public static final String PROPERTY_BOKKEEPER_METADATA_SERVICE_URI_DEFAULT = ""; // "zk+null://127.0.0.1:2181/ledgers"
 
-    public static final String PROPERTY_METADATA_REFRESH_PERIOD = "metadata.refreshPeriodSeconds";
-    public static final String PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT = "300";
-
-    public static final String PROPERTY_METADATA_REFRESH_AT_BOOT = "metadata.refreshAtBoot";
-    public static final String PROPERTY_METADATA_REFRESH_AT_BOOT_DEFAULT = "false";
-
     /**
      * Automatically refresh metadata
      */

@@ -135,13 +135,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <scope>test</scope>
-         </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>            
+            <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

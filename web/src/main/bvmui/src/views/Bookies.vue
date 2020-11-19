@@ -23,13 +23,15 @@ export default {
         this.$request.get("api/bookie/all")
             .then(bookies => {
                 this.bookies = bookies;
+                console.log(bookies)
             });
     },
     methods: {
         openBookie(item) {
+            const { clusterId, bookieId } = item;
             this.$router.push({
                 name: "bookie-ledgers",
-                params: { bookieId: item.description }
+                params: { clusterId, bookieId }
             });
         }
     }

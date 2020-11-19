@@ -27,6 +27,7 @@ import org.bkvm.cache.Cluster;
 import org.bkvm.cache.MetadataCache;
 import org.bkvm.config.ConfigurationStore;
 import org.bkvm.config.PropertiesConfigurationStore;
+import org.bkvm.config.ServerConfiguration;
 import org.junit.After;
 import org.junit.Before;
 

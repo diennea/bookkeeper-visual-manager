@@ -173,11 +173,6 @@
                 <artifactId>netty-tcnative-boringssl-static</artifactId>
                 <version>${netty.boringssl.version}</version>
             </dependency>
-             <dependency>
-                <groupId>org.apache.curator</groupId>
-                <artifactId>curator-test</artifactId>
-                <version>${curator.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
@@ -261,7 +256,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.16</version>              
+                <version>1.18.16</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
