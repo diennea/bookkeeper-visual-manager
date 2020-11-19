@@ -31,8 +31,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.Data;
-import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Bookie;
+import org.bkvm.cache.Cluster;
 
 @Path("bookie")
 public class BookiesResource extends AbstractBookkeeperResource {

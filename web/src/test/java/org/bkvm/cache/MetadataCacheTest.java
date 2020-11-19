@@ -56,7 +56,7 @@ public class MetadataCacheTest {
 
                 List<Ledger> ledgersByMetaNoCluster = metadataCache.searchLedgers("foo", null, null, null);
                 assertEquals(1, ledgersByMetaNoCluster.size());
-                
+
                 List<Ledger> ledgersByMeta = metadataCache.searchLedgers("foo", null, clusterId, null);
                 assertEquals(1, ledgersByMeta.size());
                 List<Ledger> ledgersByBookie = metadataCache.searchLedgers(null, "localhost:1234", clusterId, null);
@@ -107,10 +107,10 @@ public class MetadataCacheTest {
 
                 List<Bookie> bookiesNoCluster = metadataCache.listBookies();
                 assertEquals(bookie, bookiesNoCluster.get(0));
-                
+
                 List<Bookie> bookies1 = metadataCache.listBookies(clusterId);
                 assertEquals(bookie, bookies1.get(0));
-                
+
                 List<Bookie> bookiesBadCluster = metadataCache.listBookies(clusterId + 10000);
                 assertTrue(bookiesBadCluster.isEmpty());
 
@@ -130,6 +130,7 @@ public class MetadataCacheTest {
                 assertTrue(metadataCache.listBookies().isEmpty());
                 assertNull(metadataCache.getBookie(clusterId, "bookie:123"));
 
+                metadataCache.deleteCluster(clusterId);
             }
         }
     }

@@ -4,7 +4,7 @@
             <span>{{ item.description }}</span>
         </div>
         <div class="bvm-tile__row">
-            <span>Ledger {{ item.id }}</span>
+            <span>Ledger {{ item.id }} ({{ item.clusterName }})</span>
         </div>
         <div class="bvm-tile__row">
             <span>Size {{ $library.formatBytes(item.length) }}</span>
@@ -14,10 +14,7 @@
         </div>
         <div class="bvm-tile__row">
             <span>Age {{ item.age }} hours</span>
-        </div>
-        <div class="bvm-tile__descrow">
-            <span>Cluster {{ item.clusterName }}</span>
-        </div>
+        </div>        
     </div>
 </template>
 <script>

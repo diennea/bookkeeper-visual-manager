@@ -29,10 +29,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 @AllArgsConstructor
 public class BookieKey implements Serializable {
-    
+
     @Column(columnDefinition = "string")
     private String bookieId;
     @Column(columnDefinition = "int")
     private int clusterId;
-    
+
 }

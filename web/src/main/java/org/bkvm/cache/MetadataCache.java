@@ -125,6 +125,10 @@ public class MetadataCache implements AutoCloseable {
             e.executeWithTransaction(em -> {
                 Cluster cluster = em.find(Cluster.class, clusterId);
                 em.remove(cluster);
+                em.createQuery("DELETE FROM ledger_metadata lm where lm.clusterId=" + clusterId).executeUpdate();
+                em.createQuery("DELETE FROM ledger_bookie lm where lm.clusterId=" + clusterId).executeUpdate();
+                em.createQuery("DELETE FROM ledger lm where lm.clusterId=" + clusterId).executeUpdate();
+                em.createQuery("DELETE FROM bookie lm where lm.clusterId=" + clusterId).executeUpdate();
                 return null;
             });
         }
@@ -237,9 +241,9 @@ public class MetadataCache implements AutoCloseable {
     }
 
     private void innerDeleteLedger(int clusterId, long ledgerId, EntityManager em) {
-        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId+" and lm.clusterId="+clusterId).executeUpdate();
-        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId+" and lm.clusterId="+clusterId).executeUpdate();
-        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId+" and lm.clusterId="+clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
     }
 
     public Ledger getLedgerMetadata(int clusterId, long ledgerId) {
@@ -248,7 +252,7 @@ public class MetadataCache implements AutoCloseable {
             return em.find(Ledger.class, new LedgerKey(ledgerId, clusterId));
         }
     }
-    
+
     public Cluster getCluster(int clusterId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;

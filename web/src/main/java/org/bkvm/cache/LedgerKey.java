@@ -29,10 +29,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 @AllArgsConstructor
 public class LedgerKey implements Serializable {
-    
+
     @Column(columnDefinition = "long")
     private long ledgerId;
     @Column(columnDefinition = "int")
     private int clusterId;
-    
+
 }

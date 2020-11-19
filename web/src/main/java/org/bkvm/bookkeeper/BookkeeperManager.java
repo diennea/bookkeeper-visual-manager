@@ -66,7 +66,6 @@ import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
 import org.apache.zookeeper.KeeperException;
 import org.bkvm.bookkeeper.BookkeeperClusterPool.BookkeeperCluster;
 import org.bkvm.cache.Bookie;
-import org.bkvm.cache.BookieKey;
 import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Ledger;
 import org.bkvm.cache.LedgerBookie;
@@ -332,7 +331,7 @@ public class BookkeeperManager implements AutoCloseable {
     public Ledger getLedger(int clusterId, long ledgerId) throws BookkeeperManagerException {
         return metadataCache.getLedgerMetadata(clusterId, ledgerId);
     }
-    
+
     public Cluster getCluster(int clusterId) {
         return metadataCache.getCluster(clusterId);
     }

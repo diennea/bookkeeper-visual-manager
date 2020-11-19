@@ -2,6 +2,7 @@
     <div class="bvm-metadata">
         <button class="bvm-metadata-close" @click="$emit('close', $event)">✕</button>
         <h3>Ledger {{ currentLedger.id }}</h3>
+        <div>Cluster: {{ currentLedger.clusterName }}</div>
         <h2 v-if="currentLedger.description !== ''">{{ currentLedger.description }}</h2>
         <div>Age: {{ currentLedger.age }} minutes</div>
         <div>Created at: {{ new Date(currentLedger.ctime) }}</div>
@@ -15,7 +16,6 @@
         <div>DigestType: {{ currentLedger.digestType }}</div>
         <div>Closed: {{ currentLedger.closed }}</div>
         <div>MetadataFormatVersion: {{ currentLedger.metadataFormatVersion }}</div>
-        <div>BK Cluster {{ currentLedger.clusterName }}</div>
         <div class="bvm-metadata-row" v-for="(blist, key) in currentLedger.ensembles" :key="key">
             <b>Ensemble {{ key }}</b>: <span v-for="item in blist" :key="item">{{ item }}; </span>
         </div>

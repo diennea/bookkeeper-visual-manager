@@ -41,15 +41,15 @@ public class Bookie implements Serializable {
     public static final int STATE_DOWN = 0;
     public static final int STATE_AVAILABLE = 1;
     public static final int STATE_READONLY = 2;
-    
+
     @Id
     @Column(columnDefinition = "string")
     private String bookieId;
-        
+
     @Id
     @Column(columnDefinition = "int")
     private int clusterId;
-        
+
     @Column(columnDefinition = "string")
     private String description;
 
