@@ -40,7 +40,7 @@ public class LedgerBookie implements Serializable {
 
     @Column(columnDefinition = "int")
     @Id
-    private long clusterId;
+    private int clusterId;
 
     @Column(columnDefinition = "string")
     @Id

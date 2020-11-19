@@ -106,7 +106,7 @@ public class MetadataCache implements AutoCloseable {
     public void updateCluster(Cluster cluster) {
         try (EntityManagerWrapper e = getEntityManager()) {
             e.executeWithTransaction(em -> {
-                if (cluster.getClusterId() == null) {
+                if (cluster.getClusterId() == 0) {
                     Integer max = em.createQuery("SELECT MAX(c.clusterId) FROM cluster c", Integer.class)
                             .getSingleResult();
 
@@ -162,29 +162,31 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public void deleteBookie(String bookieId) {
+    public void deleteBookie(int clusterId, String bookieId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
-            Query delete = em.createQuery("DELETE FROM bookie lm where lm.bookieId=:bookieId");
+            Query delete = em.createQuery("DELETE FROM bookie lm where lm.bookieId=:bookieId and lm.clusterId=:clusterId");
             delete.setParameter("bookieId", bookieId);
+            delete.setParameter("clusterId", clusterId);
             delete.executeUpdate();
             em.getTransaction().commit();
         }
     }
 
-    public Bookie getBookie(String bookieId) {
+    public Bookie getBookie(int clusterId, String bookieId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
-            return em.find(Bookie.class, bookieId);
+            return em.find(Bookie.class, new BookieKey(bookieId, clusterId));
         }
     }
 
-    public List<LedgerBookie> getBookieForLedger(long ledgerId) {
+    public List<LedgerBookie> getBookieForLedger(int clusterId, long ledgerId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
-            Query q = em.createQuery("select l from ledger_bookie l where l.ledgerId = :ledgerId", LedgerBookie.class);
+            Query q = em.createQuery("select l from ledger_bookie l where l.ledgerId = :ledgerId and l.clusterId = :clusterId", LedgerBookie.class);
             q.setParameter("ledgerId", ledgerId);
+            q.setParameter("clusterId", clusterId);
             return q.getResultList();
         }
     }
@@ -204,11 +206,14 @@ public class MetadataCache implements AutoCloseable {
             EntityManager em = emw.em;
             em.getTransaction().begin();
             long ledgerId = ledger.getLedgerId();
-            innerDeleteLedger(ledgerId, em);
+            innerDeleteLedger(ledger.getClusterId(), ledger.getLedgerId(), em);
             em.persist(ledger);
             bookies.forEach((lb) -> {
                 if (ledgerId != lb.getLedgerId()) {
                     throw new IllegalArgumentException(MessageFormat.format("Invalid {0} for {1}", lb.toString(), ledger.toString()));
+                }
+                if (lb.getClusterId() != ledger.getClusterId()) {
+                    throw new IllegalStateException("invalid cluster id " + lb.getClusterId() + " != " + ledger.getClusterId());
                 }
                 em.persist(lb);
             });
@@ -222,33 +227,41 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public void deleteLedger(long ledgerId) {
+    public void deleteLedger(int clusterId, long ledgerId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
-            innerDeleteLedger(ledgerId, em);
+            innerDeleteLedger(clusterId, ledgerId, em);
             em.getTransaction().commit();
         }
     }
 
-    private void innerDeleteLedger(long ledgerId, EntityManager em) {
-        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId).executeUpdate();
-        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId).executeUpdate();
-        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId).executeUpdate();
+    private void innerDeleteLedger(int clusterId, long ledgerId, EntityManager em) {
+        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId+" and lm.clusterId="+clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId+" and lm.clusterId="+clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId+" and lm.clusterId="+clusterId).executeUpdate();
     }
 
-    public Ledger getLedgerMetadata(long ledgerId) {
+    public Ledger getLedgerMetadata(int clusterId, long ledgerId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
-            return em.find(Ledger.class, ledgerId);
+            return em.find(Ledger.class, new LedgerKey(ledgerId, clusterId));
+        }
+    }
+    
+    public Cluster getCluster(int clusterId) {
+        try (EntityManagerWrapper emw = getEntityManager()) {
+            EntityManager em = emw.em;
+            return em.find(Cluster.class, clusterId);
         }
     }
 
-    public List<Long> getLedgersForBookie(String bookieId) {
+    public List<Long> getLedgersForBookie(int clusterId, String bookieId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
-            Query q = em.createQuery("select l from ledger_bookie l where l.bookieId = :bookieId", LedgerBookie.class);
+            Query q = em.createQuery("select l from ledger_bookie l where l.bookieId = :bookieId and l.clusterId = :clusterId", LedgerBookie.class);
             q.setParameter("bookieId", bookieId);
+            q.setParameter("clusterId", clusterId);
             List<LedgerBookie> mapping = q.getResultList();
             return mapping.stream().map(LedgerBookie::getLedgerId).collect(Collectors.toList());
         }

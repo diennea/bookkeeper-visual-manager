@@ -24,6 +24,7 @@ import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERI
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -65,6 +66,7 @@ import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
 import org.apache.zookeeper.KeeperException;
 import org.bkvm.bookkeeper.BookkeeperClusterPool.BookkeeperCluster;
 import org.bkvm.cache.Bookie;
+import org.bkvm.cache.BookieKey;
 import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Ledger;
 import org.bkvm.cache.LedgerBookie;
@@ -235,7 +237,7 @@ public class BookkeeperManager implements AutoCloseable {
                     if (!currentKnownBookiesOnMetadataServer.contains(b.getBookieId())) {
                         // bookie decommissioned
                         LOG.log(Level.INFO, "Found decommissioned bookie {0}", b.getBookieId());
-                        metadataCache.deleteBookie(b.getBookieId());
+                        metadataCache.deleteBookie(b.getClusterId(), b.getBookieId());
                     }
                 }
 
@@ -244,7 +246,7 @@ public class BookkeeperManager implements AutoCloseable {
                     LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId, clusterId);
                     if (ledgerMetadata == null) {
                         // ledger disappeared
-                        metadataCache.deleteLedger(ledgerId);
+                        metadataCache.deleteLedger(clusterId, ledgerId);
                         return;
                     }
                     Ledger ledger = new Ledger(ledgerId, clusterId,
@@ -323,20 +325,24 @@ public class BookkeeperManager implements AutoCloseable {
         }
     }
 
-    public List<Long> getLedgersForBookie(String bookieId) throws BookkeeperManagerException {
-        return metadataCache.getLedgersForBookie(bookieId);
+    public List<Long> getLedgersForBookie(int clusterId, String bookieId) throws BookkeeperManagerException {
+        return metadataCache.getLedgersForBookie(clusterId, bookieId);
     }
 
-    public Ledger getLedger(long ledgerId) throws BookkeeperManagerException {
-        return metadataCache.getLedgerMetadata(ledgerId);
+    public Ledger getLedger(int clusterId, long ledgerId) throws BookkeeperManagerException {
+        return metadataCache.getLedgerMetadata(clusterId, ledgerId);
+    }
+    
+    public Cluster getCluster(int clusterId) {
+        return metadataCache.getCluster(clusterId);
     }
 
     public LedgerMetadata getLedgerMetadata(Ledger ledger) throws BookkeeperManagerException {
         return convertLedgerMetadata(ledger);
     }
 
-    public LedgerMetadata getLedgerMetadata(long ledgerId) throws BookkeeperManagerException {
-        Ledger ledger = metadataCache.getLedgerMetadata(ledgerId);
+    public LedgerMetadata getLedgerMetadata(int clusterId, long ledgerId) throws BookkeeperManagerException {
+        Ledger ledger = metadataCache.getLedgerMetadata(clusterId, ledgerId);
         return convertLedgerMetadata(ledger);
     }
 
@@ -379,7 +385,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public List<Long> searchLedgers(String term,
+    public List<Map.Entry<Integer, Long>> searchLedgers(String term,
                                     String bookieId,
                                     Integer clusterId,
                                     List<Long> ledgerIds,
@@ -401,7 +407,7 @@ public class BookkeeperManager implements AutoCloseable {
                     }
                     return true;
                 })
-                .map(Ledger::getLedgerId)
+                .map(l -> new AbstractMap.SimpleImmutableEntry<>(l.getClusterId(), l.getLedgerId()))
                 .collect(Collectors.toList());
 
     }

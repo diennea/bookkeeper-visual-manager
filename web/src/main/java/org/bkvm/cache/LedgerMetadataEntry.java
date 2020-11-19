@@ -40,9 +40,9 @@ public class LedgerMetadataEntry implements Serializable {
     @Column(columnDefinition = "long")
     private long ledgerId;
 
-//    @Id
+    @Id
     @Column(columnDefinition = "int")
-    private Integer clusterId;
+    private int clusterId;
 
     @Id
     @Column(columnDefinition = "string")

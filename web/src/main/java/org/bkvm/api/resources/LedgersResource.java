@@ -37,6 +37,7 @@ import lombok.Data;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.bookkeeper.BookkeeperManagerException;
+import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Ledger;
 import org.bkvm.config.ServerConfiguration;
 
@@ -72,7 +73,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
             }
         }
 
-        List<Long> resultLedgerIds = getBookkeeperManager().searchLedgers(term,
+        List<Map.Entry<Integer, Long>> resultLedgerIds = getBookkeeperManager().searchLedgers(term,
                 bookieId, convertParamInt(clusterId),
                 searchLedgerIds, convertParamInt(minLength),
                 convertParamInt(maxLength), convertParamInt(minAge)
@@ -80,8 +81,10 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
         List<LedgerBean> resultLedgers = new ArrayList<>();
         long totalSize = 0;
-        for (long id : resultLedgerIds) {
-            LedgerBean bean = getLedgerMetadata(id);
+        for (Map.Entry<Integer, Long> lId : resultLedgerIds) {
+            long id = lId.getValue();
+            int ledgerClusterId = lId.getKey();
+            LedgerBean bean = getLedgerMetadata(ledgerClusterId, id);
             if (bean != null) {
                 resultLedgers.add(bean);
                 totalSize += bean.getLength();
@@ -93,17 +96,20 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
-    @Path("metadata/{ledgerId}")
+    @Path("metadata/{clusterId}/{ledgerId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public LedgerBean getLedgerMetadata(@PathParam("ledgerId") long ledgerId) throws Exception {
-        Ledger ledger = getBookkeeperManager().getLedger(ledgerId);
+    public LedgerBean getLedgerMetadata(@PathParam("clusterId") int clusterId, @PathParam("ledgerId") long ledgerId) throws Exception {
+        Ledger ledger = getBookkeeperManager().getLedger(clusterId, ledgerId);
         LedgerMetadata ledgerMetadata = getBookkeeperManager().getLedgerMetadata(ledger);
+        Cluster cluster = getBookkeeperManager().getCluster(clusterId);
         String descriptionPattern = getBookkeeperManager().getConfigStore().getProperty(ServerConfiguration.PROPERTY_BK_METADATA_DESCRIPTION, ServerConfiguration.PROPERTY_BK_METADATA_DESCRIPTION_DEFAULT);
-        return convertLedgerBean(ledgerId, ledgerMetadata, ledger, descriptionPattern);
+        return convertLedgerBean(ledger.getClusterId(), cluster.getName(), ledgerId, ledgerMetadata, ledger, descriptionPattern);
     }
 
-    private LedgerBean convertLedgerBean(long ledgerId, LedgerMetadata ledgerMetadata, Ledger ledger, String descriptionPattern) throws BookkeeperManagerException {
+    private LedgerBean convertLedgerBean(int clusterId, String clusterName, long ledgerId, LedgerMetadata ledgerMetadata, Ledger ledger, String descriptionPattern) throws BookkeeperManagerException {
         LedgerBean b = new LedgerBean();
+        b.setClusterId(clusterId);
+        b.setClusterName(clusterName);
         b.setId(ledgerId);
         b.applyLedgerMetadata(ledgerMetadata, descriptionPattern);
         b.setAge(ledger.getAge());
@@ -159,6 +165,8 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @Data
     public final class LedgerBean implements Serializable {
 
+        private int clusterId;
+        private String clusterName;
         private long id;
         private String description;
         private Map<String, String> metadata = new HashMap<>();

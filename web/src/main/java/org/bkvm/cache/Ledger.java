@@ -26,6 +26,7 @@ import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -37,6 +38,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode
 @Entity(name = "ledger")
+@IdClass(LedgerKey.class)
 public class Ledger implements Serializable {
 
     @Column(columnDefinition = "long")
@@ -44,6 +46,7 @@ public class Ledger implements Serializable {
     private long ledgerId;
 
     @Column(columnDefinition = "int")
+    @Id
     private int clusterId;
 
     @Column(columnDefinition = "long")

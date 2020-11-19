@@ -23,11 +23,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.Data;
+import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Bookie;
 
 @Path("bookie")
@@ -40,6 +44,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public List<BookieBean> getBookies() throws Exception {
         final List<BookieBean> bookies = new ArrayList<>();
         final Collection<Bookie> fromMetadata = getBookkeeperManager().getAllBookies();
+        final Map<Integer, Cluster> allClusters  = getBookkeeperManager().getAllClusters().stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
 
         for (Bookie bookie : fromMetadata) {
             BookieBean b = new BookieBean();
@@ -57,6 +62,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
             }
 
             b.setClusterId(bookie.getClusterId());
+            b.setClusterName(allClusters.get(bookie.getClusterId()).getName());
             b.setBookieId(bookie.getBookieId());
             b.setFreeDiskSpace(bookie.getFreeDiskspace());
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
@@ -71,7 +77,8 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public static final class BookieBean implements Serializable {
 
         private String state;
-        private Integer clusterId;
+        private int clusterId;
+        private String clusterName;
         private String bookieId;
         private String description;
 

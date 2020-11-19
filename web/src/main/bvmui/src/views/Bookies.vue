@@ -23,7 +23,6 @@ export default {
         this.$request.get("api/bookie/all")
             .then(bookies => {
                 this.bookies = bookies;
-                console.log(bookies)
             });
     },
     methods: {

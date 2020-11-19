@@ -35,88 +35,100 @@ public class MetadataCacheTest {
     public void test() {
         try (HerdDBEmbeddedDataSource datasource = new HerdDBEmbeddedDataSource();) {
             datasource.setUrl("jdbc:herddb:local");
+            int clusterId = 1234;
             try (MetadataCache metadataCache = new MetadataCache(datasource)) {
-                Ledger ledger = new Ledger(1, 1, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger = new Ledger(1, clusterId, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb = new ArrayList<>();
-                lb.add(new LedgerBookie(1, "localhost:1234", 1));
-                lb.add(new LedgerBookie(1, "localhost:1235", 1));
+                lb.add(new LedgerBookie(1, "localhost:1234", clusterId));
+                lb.add(new LedgerBookie(1, "localhost:1235", clusterId));
                 List<LedgerMetadataEntry> entries = new ArrayList<>();
-                entries.add(new LedgerMetadataEntry(1, 1, "application", "pulsar"));
-                entries.add(new LedgerMetadataEntry(1, 1, "component", "foo"));
-                entries.add(new LedgerMetadataEntry(1, 1, "other", "foo"));
+                entries.add(new LedgerMetadataEntry(1, clusterId, "application", "pulsar"));
+                entries.add(new LedgerMetadataEntry(1, clusterId, "component", "foo"));
+                entries.add(new LedgerMetadataEntry(1, clusterId, "other", "foo"));
                 metadataCache.updateLedger(ledger, lb, entries);
                 List<Ledger> ledgers = metadataCache.listLedgers();
                 assertEquals(1, ledgers.size());
                 assertEquals(1024, ledgers.get(0).getSize());
-                List<Long> ledgersInBookie = metadataCache.getLedgersForBookie("localhost:1234");
+                Ledger read = metadataCache.getLedgerMetadata(clusterId, 1);
+                assertEquals(1024, read.getSize());
+                List<Long> ledgersInBookie = metadataCache.getLedgersForBookie(clusterId, "localhost:1234");
                 assertEquals(1, ledgersInBookie.size());
 
-                List<Ledger> ledgersByMeta = metadataCache.searchLedgers("foo", null, 1, null);
+                List<Ledger> ledgersByMetaNoCluster = metadataCache.searchLedgers("foo", null, null, null);
+                assertEquals(1, ledgersByMetaNoCluster.size());
+                
+                List<Ledger> ledgersByMeta = metadataCache.searchLedgers("foo", null, clusterId, null);
                 assertEquals(1, ledgersByMeta.size());
-                List<Ledger> ledgersByBookie = metadataCache.searchLedgers(null, "localhost:1234", 1, null);
+                List<Ledger> ledgersByBookie = metadataCache.searchLedgers(null, "localhost:1234", clusterId, null);
                 assertEquals(1, ledgersByBookie.size());
-                List<Ledger> ledgersByBookieAndMeta = metadataCache.searchLedgers("pulsar", "localhost:1234", 1, null);
+                List<Ledger> ledgersByBookieAndMeta = metadataCache.searchLedgers("pulsar", "localhost:1234", clusterId, null);
                 assertEquals(1, ledgersByBookieAndMeta.size());
-                List<Ledger> ledgersByBookieAndMetaAndIdOk = metadataCache.searchLedgers("pulsar", "localhost:1234", 1, Arrays.asList(1L));
+                List<Ledger> ledgersByBookieAndMetaAndIdOk = metadataCache.searchLedgers("pulsar", "localhost:1234", clusterId, Arrays.asList(1L));
                 assertEquals(1, ledgersByBookieAndMetaAndIdOk.size());
-                List<Ledger> ledgersByBookieAndMetaAndMixedId = metadataCache.searchLedgers("pulsar", "localhost:1234", 1, Arrays.asList(new Long[]{1L, 2L}));
+                List<Ledger> ledgersByBookieAndMetaAndMixedId = metadataCache.searchLedgers("pulsar", "localhost:1234", clusterId, Arrays.asList(new Long[]{1L, 2L}));
                 assertEquals(1, ledgersByBookieAndMetaAndMixedId.size());
-                List<Ledger> ledgersByBookieAndMetaAndIdKo = metadataCache.searchLedgers("pulsar", "localhost:1234", 1, Arrays.asList(2L));
+                List<Ledger> ledgersByBookieAndMetaAndIdKo = metadataCache.searchLedgers("pulsar", "localhost:1234", clusterId, Arrays.asList(2L));
                 assertEquals(0, ledgersByBookieAndMetaAndIdKo.size());
-                List<Ledger> ledgersByBookieAndMetaAndEmtyList = metadataCache.searchLedgers("pulsar", "localhost:1234", 1, Collections.EMPTY_LIST);
+                List<Ledger> ledgersByBookieAndMetaAndEmtyList = metadataCache.searchLedgers("pulsar", "localhost:1234", clusterId, Collections.EMPTY_LIST);
                 assertEquals(0, ledgersByBookieAndMetaAndEmtyList.size());
 
                 // UPDATE, just the size
-                Ledger ledger2 = new Ledger(1, 1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger2 = new Ledger(1, clusterId, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 metadataCache.updateLedger(ledger2, lb, entries);
                 List<Ledger> ledgers2 = metadataCache.listLedgers();
                 assertEquals(1, ledgers2.size());
                 assertEquals(2048, ledgers2.get(0).getSize());
 
-                List<LedgerBookie> mappings = metadataCache.getBookieForLedger(ledger2.getLedgerId());
+                List<LedgerBookie> mappings = metadataCache.getBookieForLedger(clusterId, ledger2.getLedgerId());
                 System.out.println("mappings:" + mappings);
                 assertEquals(2, mappings.size());
 
-                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1234").size());
-                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1235").size());
-                assertEquals(0, metadataCache.getLedgersForBookie("localhost:1236").size());
+                assertEquals(1, metadataCache.getLedgersForBookie(clusterId, "localhost:1234").size());
+                assertEquals(1, metadataCache.getLedgersForBookie(clusterId, "localhost:1235").size());
+                assertEquals(0, metadataCache.getLedgersForBookie(clusterId, "localhost:1236").size());
 
                 // UPDATE, re-replication moved data to another bookie
-                Ledger ledger2rewritten = new Ledger(1, 1, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger2rewritten = new Ledger(1, clusterId, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb2 = new ArrayList<>();
-                lb2.add(new LedgerBookie(1, "localhost:1234", 1));
-                lb2.add(new LedgerBookie(1, "localhost:1236", 1));
+                lb2.add(new LedgerBookie(1, "localhost:1234", clusterId));
+                lb2.add(new LedgerBookie(1, "localhost:1236", clusterId));
                 metadataCache.updateLedger(ledger2rewritten, lb2, entries);
 
-                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1234").size());
-                assertEquals(0, metadataCache.getLedgersForBookie("localhost:1235").size());
-                assertEquals(1, metadataCache.getLedgersForBookie("localhost:1236").size());
+                assertEquals(1, metadataCache.getLedgersForBookie(clusterId, "localhost:1234").size());
+                assertEquals(0, metadataCache.getLedgersForBookie(clusterId, "localhost:1235").size());
+                assertEquals(1, metadataCache.getLedgersForBookie(clusterId, "localhost:1236").size());
 
                 System.out.println("ledgers: " + ledgers2);
 
                 // TESTS OVER BOOKIES
-                Bookie bookie = new Bookie("bookie:123", 1, "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
+                Bookie bookie = new Bookie("bookie:123", clusterId , "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // insert
                 metadataCache.updateBookie(bookie);
 
-                List<Bookie> bookies1 = metadataCache.listBookies();
+                List<Bookie> bookiesNoCluster = metadataCache.listBookies();
+                assertEquals(bookie, bookiesNoCluster.get(0));
+                
+                List<Bookie> bookies1 = metadataCache.listBookies(clusterId);
                 assertEquals(bookie, bookies1.get(0));
+                
+                List<Bookie> bookiesBadCluster = metadataCache.listBookies(clusterId + 10000);
+                assertTrue(bookiesBadCluster.isEmpty());
 
-                Bookie lookup = metadataCache.getBookie(bookie.getBookieId());
+                Bookie lookup = metadataCache.getBookie(clusterId, bookie.getBookieId());
                 assertEquals(bookie, lookup);
 
-                Bookie bookie2 = new Bookie("bookie:123", 1,  "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
+                Bookie bookie2 = new Bookie("bookie:123", clusterId,  "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
                 // update
                 metadataCache.updateBookie(bookie2);
-                lookup = metadataCache.getBookie("bookie:123");
+                lookup = metadataCache.getBookie(clusterId, "bookie:123");
                 assertEquals(bookie2, lookup);
 
                 List<Bookie> bookies = metadataCache.listBookies();
                 assertEquals(lookup, bookies.get(0));
 
-                metadataCache.deleteBookie("bookie:123");
+                metadataCache.deleteBookie(clusterId, "bookie:123");
                 assertTrue(metadataCache.listBookies().isEmpty());
-                assertNull(metadataCache.getBookie("bookie:123"));
+                assertNull(metadataCache.getBookie(clusterId, "bookie:123"));
 
             }
         }

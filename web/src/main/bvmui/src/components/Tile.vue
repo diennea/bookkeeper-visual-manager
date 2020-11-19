@@ -15,6 +15,9 @@
         <div class="bvm-tile__row">
             <span>Age {{ item.age }} hours</span>
         </div>
+        <div class="bvm-tile__descrow">
+            <span>Cluster {{ item.clusterName }}</span>
+        </div>
     </div>
 </template>
 <script>

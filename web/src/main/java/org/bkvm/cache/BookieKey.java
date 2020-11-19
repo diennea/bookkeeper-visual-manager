@@ -21,37 +21,18 @@ package org.bkvm.cache;
 
 import java.io.Serializable;
 import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-/**
- *
- * @author eolivelli
- */
 @Data
-@Entity(name = "cluster")
-public class Cluster implements Serializable {
-
-    @Id
+@EqualsAndHashCode
+@AllArgsConstructor
+public class BookieKey implements Serializable {
+    
+    @Column(columnDefinition = "string")
+    private String bookieId;
     @Column(columnDefinition = "int")
     private int clusterId;
-
-    @Column(columnDefinition = "string", length = 255)
-    private String name;
-
-    @Column(columnDefinition = "string", length = 255)
-    private String metadataServiceUri;
-
-    @Column(columnDefinition = "string", length = 5000)
-    private String configuration;
-
-    public Cluster() {
-    }
-
-    public Cluster(int clusterId, String name, String metadataServiceUri) {
-        this.name = name;
-        this.metadataServiceUri = metadataServiceUri;
-    }
-
+    
 }

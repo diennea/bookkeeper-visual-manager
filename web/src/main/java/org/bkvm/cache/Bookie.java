@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -34,20 +35,21 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode
 @Entity(name = "bookie")
+@IdClass(BookieKey.class)
 public class Bookie implements Serializable {
 
     public static final int STATE_DOWN = 0;
     public static final int STATE_AVAILABLE = 1;
     public static final int STATE_READONLY = 2;
-
+    
     @Id
     @Column(columnDefinition = "string")
     private String bookieId;
-
-//    @Id
+        
+    @Id
     @Column(columnDefinition = "int")
-    private Integer clusterId;
-
+    private int clusterId;
+        
     @Column(columnDefinition = "string")
     private String description;
 

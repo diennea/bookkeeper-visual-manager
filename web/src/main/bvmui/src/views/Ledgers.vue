@@ -61,8 +61,8 @@
                 <Tile
                     v-for="item in ledgers"
                     :item="item"
-                    :key="item.id"
-                    @click="showMetadata(item.id)"
+                    :key="item.id+'_'+item.clusterId"
+                    @click="showMetadata(item.clusterId, item.id)"
                 />
             </div>
             <div v-if="showLedgerMetadata"
@@ -111,8 +111,8 @@ export default {
         );
     },
     methods: {
-        showMetadata(ledgerId) {
-            this.$request.get(`api/ledger/metadata/${ledgerId}`).then(
+        showMetadata(clusterId, ledgerId) {
+            this.$request.get(`api/ledger/metadata/${clusterId}/${ledgerId}`).then(
                 ledger => {
                     this.currentLedger = ledger;
                     this.showLedgerMetadata = true;
