@@ -12,8 +12,19 @@ export default new Vuex.Store({
         showDrawer: false,
         token: '',
         status: '',
+        clusterCount: null
     },
     mutations: {
+        updateClusterCount(state, count) {
+            state.clusterCount = count;
+        },
+        incrementClusterCount(state) {
+            state.clusterCount++;
+        },
+        decrementClusterCount(state) {
+            console.log(state.clusterCount)
+            state.clusterCount--;
+        },
         showDrawer(state, show) {
             state.showDrawer = show;
         },
@@ -68,6 +79,23 @@ export default new Vuex.Store({
                         commit('logout');
                         resolve();
                     });
+            });
+        },
+        clusterCount({ commit, state }) {
+            return new Promise((resolve, reject) => {
+                if (state.clusterCount == null) {
+                    request.get("api/cluster/count")
+                        .then(res => {
+                            commit('updateClusterCount', res)
+                            resolve(res);
+                        })
+                        .catch(err => {
+                            commit('updateClusterCount', null)
+                            reject(err);
+                        });
+                } else {
+                    resolve(state.clusterCount);
+                }
             });
         }
     }

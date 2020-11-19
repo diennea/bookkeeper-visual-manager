@@ -28,8 +28,9 @@ export default {
     },
     computed: {
         pageTitle() {
-            const currentTitle = this.$library.replacePlaceholders(this.title, this.params);
-            document.title = `BKVM | ${currentTitle}`;
+            let currentTitle = this.$library.replacePlaceholders(this.title, this.params);
+            currentTitle = currentTitle ? `BKVM | ${currentTitle}` : "BKVM";
+            document.title = currentTitle;
             return currentTitle;
         }
     },

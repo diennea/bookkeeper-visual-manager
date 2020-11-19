@@ -38,12 +38,7 @@ export default {
         };
     },
     created() {
-        this.$request.get("api/cache/info").then(
-            cacheInfo => {
-                this.status = cacheInfo.status;
-                this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
-            }
-        );
+        this.refreshPage();
     },
     methods: {
         refreshCache() {

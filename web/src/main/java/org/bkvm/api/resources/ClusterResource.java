@@ -39,6 +39,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.Data;
 import org.bkvm.cache.Cluster;
+import org.bkvm.utils.StringUtils;
 
 @Path("cluster")
 public class ClusterResource extends AbstractBookkeeperResource {
@@ -75,7 +76,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
         for (ClusterWideConfiguration c : clusterWideConfiguration.values()) {
 
             Map<String, Object> conf = new HashMap<>();
-            StringReader reader = new StringReader(c.getConfiguration());
+            StringReader reader = new StringReader(StringUtils.trimToEmpty(c.getConfiguration()));
             try {
                 Properties properties = new Properties();
                 properties.load(reader);
@@ -118,9 +119,23 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
+    @Path("edit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void editCluster(ClusterBean bean) throws Exception {
+        Cluster cluster = new Cluster();
+        cluster.setClusterId(bean.getClusterId());
+        cluster.setName(bean.getName());
+        cluster.setMetadataServiceUri(bean.getMetadataServiceUri());
+        cluster.setConfiguration(bean.getConfiguration());
+        getBookkeeperManager().updateCluster(cluster);
+    }
+
+    @POST
+    @Secured
     @Path("delete/{clusterId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void deleteCluster(@PathParam(value = "clusterId") int clusterId) throws Exception {
+        System.out.println(">>> clusterId " + clusterId);
         getBookkeeperManager().deleteCluster(clusterId);
     }
 

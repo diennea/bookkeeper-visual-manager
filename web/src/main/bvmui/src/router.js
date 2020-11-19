@@ -9,7 +9,6 @@ import Login from '@/views/Login'
 import SystemStatus from '@/views/SystemStatus'
 
 import store from './store'
-import request from './lib/request'
 
 Vue.use(Router);
 
@@ -100,7 +99,7 @@ router.beforeEach(async (to, from, next) => {
             return;
         }
 
-        const count = await request.get('api/cluster/count');
+        const count = await store.dispatch('clusterCount');
         store.commit('showDrawer', count > 0);
         if (count === 0) {
             next('/clusters');

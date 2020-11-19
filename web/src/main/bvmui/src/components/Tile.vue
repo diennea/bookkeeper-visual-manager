@@ -14,7 +14,7 @@
         </div>
         <div class="bvm-tile__row">
             <span>Age {{ item.age }} hours</span>
-        </div>        
+        </div>
     </div>
 </template>
 <script>

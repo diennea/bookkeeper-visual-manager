@@ -112,9 +112,10 @@ public class MetadataCache implements AutoCloseable {
 
                     int newClusterId = max == null ? 1 : max + 1;
                     cluster.setClusterId(newClusterId);
+                    em.persist(cluster);
+                } else {
+                    em.merge(cluster);
                 }
-
-                em.persist(cluster);
                 return null;
             });
         }

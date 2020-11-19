@@ -15,14 +15,14 @@
             </template>
             <v-card>
                 <v-card-title>
-                    <span class="headline">Add cluster</span>
+                    <span class="headline">{{ editClusterInfo.clusterId > 0 ? 'Edit cluster' : 'Add cluster' }}</span>
                 </v-card-title>
                 <v-card-text>
                     <v-container>
                         <v-row>
                             <v-col cols="4">
                                 <v-text-field
-                                    v-model="newClusterInfo.name"
+                                    v-model="editClusterInfo.name"
                                     label="Name"
                                     required
                                     dense
@@ -30,9 +30,10 @@
                             </v-col>
                             <v-col cols="8">
                                 <v-text-field
-                                    v-model="newClusterInfo.metadataServiceUri"
+                                    v-model="editClusterInfo.metadataServiceUri"
                                     label="Metadata service URI"
                                     required
+                                    :disabled="editClusterInfo.clusterId > 0"
                                     dense
                                 />
                             </v-col>
@@ -40,7 +41,8 @@
                         <v-row>
                             <v-col cols="12">
                                 <v-textarea
-                                    v-model="newClusterInfo.configuration"
+                                    v-model="editClusterInfo.configuration"
+                                    :disabled="editClusterInfo.clusterId > 0"
                                     label="Configuration"
                                     hint="Properties file passed as configuration to the client connection"
                                 />
@@ -50,8 +52,8 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn color="blue lighten-1" text @click="closeDialog">Close</v-btn>
-                    <v-btn color="blue lighten-1" text @click="addCluster">Add</v-btn>
+                    <v-btn depressed color="blue lighten-1" text @click="closeEdit">Close</v-btn>
+                    <v-btn depressed color="blue lighten-1" text @click="editCluster" :loading="loading">{{ editClusterInfo.clusterId > 0 ? 'Edit' : 'Add' }}</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -106,22 +108,16 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog v-model="dialogDelete" persistent max-width="290">
+        <v-dialog v-model="dialogDelete" persistent max-width="350">
             <v-card>
                 <v-card-title class="headline">
-                Delete Cluster
+                Delete Cluster {{ deleteClusterInfo.name }}
                 </v-card-title>
                 <v-card-text>Are you really sure you want to delete the Bookkeeper cluster?</v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn
-                        color="blue lighten-1"
-                        text
-                        @click="dialogDelete = false">No</v-btn>
-                    <v-btn
-                        color="red darken-1"
-                        text
-                        @click="deleteCluster(deleteClusterInfo.clusterId)">Yes</v-btn>
+                    <v-btn color="blue lighten-1" text @click="closeDelete">No</v-btn>
+                    <v-btn color="red darken-1" text @click="deleteCluster(deleteClusterInfo)" :loading="loading">Delete</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -133,6 +129,9 @@
             class="mt-2 elevation-1"
             @click:row="showCluster">
             <template #item.actions="{ item }">
+                <v-icon @click.stop="promptEditCluster(item)">
+                    mdi-pencil
+                </v-icon>
                 <v-icon @click.stop="promptDeleteCluster(item)">
                     mdi-delete
                 </v-icon>
@@ -144,19 +143,22 @@
 export default {
     data() {
         return {
+            loading: false,
             dialogInfo: false,
             dialogCreate: false,
             dialogDelete: false,
             clusters: [],
             clustersInfo: [],
             currentCluster: null,
-            newClusterInfo: {
+            editClusterInfo: {
+                clusterId: 0,
                 name: '',
                 metadataServiceUri: '',
                 configuration: ''
             },
             deleteClusterInfo: {
-                clusterId: 0
+                clusterId: 0,
+                name: ''
             }
         }
     },
@@ -176,28 +178,56 @@ export default {
         this.refreshClusters();
     },
     methods: {
-        closeDialog() {
+        closeEdit() {
             this.dialogCreate = false;
-            this.newClusterInfo.name = '';
-            this.newClusterInfo.metadataServiceUri = '';
-            this.newClusterInfo.configuration = '';
+            this.editClusterInfo.clusterId = 0;
+            this.editClusterInfo.name = '';
+            this.editClusterInfo.metadataServiceUri = '';
+            this.editClusterInfo.configuration = '';
         },
-        addCluster() {
-            this.$request.post("api/cluster/add", this.newClusterInfo)
+        editCluster() {
+            const newCluster = this.editClusterInfo.clusterId === 0;
+            const url = newCluster ? "api/cluster/add" : "api/cluster/edit";
+
+            this.loading = true;
+            this.$request.post(url, this.editClusterInfo)
                 .then(() => {
-                    this.closeDialog();
                     this.refreshClusters();
+                    if (newCluster) {
+                        this.$store.commit('incrementClusterCount');
+                    }
+                }).finally(() => {
+                    this.closeEdit();
+                    this.loading = false;
                 });
         },
-        promptDeleteCluster(clusterId) {
+        promptEditCluster(item) {
+            this.dialogCreate = true;
+            this.editClusterInfo.clusterId = item.clusterId;
+            this.editClusterInfo.name = item.name;
+            this.editClusterInfo.metadataServiceUri = item.metadataServiceUri;
+            this.editClusterInfo.configuration = item.configuration;
+        },
+        promptDeleteCluster(item) {
             this.dialogDelete = true;
-            this.deleteClusterInfo.clusterId = clusterId;
+            this.deleteClusterInfo.clusterId = item.clusterId;
+            this.deleteClusterInfo.name = item.name;
+        },
+        closeDelete() {
+            this.dialogDelete = false;
+            this.deleteClusterInfo.clusterId = 0;
+            this.deleteClusterInfo.name = '';
         },
         deleteCluster({ clusterId }) {
+            this.loading = true;
             this.$request.post(`api/cluster/delete/${clusterId}`)
                 .then(() => {
                     this.refreshClusters()
-                }).finally(() => this.dialogDelete = false);
+                    this.$store.commit('decrementClusterCount');
+                }).finally(() => {
+                    this.closeDelete();
+                    this.loading = false;
+                });
         },
         showCluster({ clusterId }) {
             this.dialogInfo = true;
