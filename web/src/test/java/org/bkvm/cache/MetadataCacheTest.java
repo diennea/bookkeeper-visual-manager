@@ -20,6 +20,7 @@
 package org.bkvm.cache;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import herddb.jdbc.HerdDBEmbeddedDataSource;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.apache.bookkeeper.bookie.Bookie;
 import org.junit.Test;
 
 public class MetadataCacheTest {
@@ -130,7 +132,14 @@ public class MetadataCacheTest {
                 assertTrue(metadataCache.listBookies().isEmpty());
                 assertNull(metadataCache.getBookie(clusterId, "bookie:123"));
 
+                Cluster cluster = new Cluster(clusterId, "test", "");
+                metadataCache.updateCluster(cluster);
+                assertNotNull(metadataCache.getCluster(clusterId));
                 metadataCache.deleteCluster(clusterId);
+                assertNull(metadataCache.getCluster(clusterId));
+
+                List<Ledger> ledgersAfterClusterDelete = metadataCache.listLedgers();
+                assertEquals(0, ledgersAfterClusterDelete.size());
             }
         }
     }

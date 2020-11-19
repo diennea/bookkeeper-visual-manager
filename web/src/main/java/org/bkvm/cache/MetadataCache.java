@@ -124,6 +124,9 @@ public class MetadataCache implements AutoCloseable {
         try (EntityManagerWrapper e = getEntityManager()) {
             e.executeWithTransaction(em -> {
                 Cluster cluster = em.find(Cluster.class, clusterId);
+                if (cluster == null) {
+                    return null;
+                }
                 em.remove(cluster);
                 em.createQuery("DELETE FROM ledger_metadata lm where lm.clusterId=" + clusterId).executeUpdate();
                 em.createQuery("DELETE FROM ledger_bookie lm where lm.clusterId=" + clusterId).executeUpdate();
