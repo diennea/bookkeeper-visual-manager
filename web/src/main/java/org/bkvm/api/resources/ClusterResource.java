@@ -36,6 +36,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import lombok.Data;
 import org.bkvm.cache.Cluster;
@@ -68,8 +69,13 @@ public class ClusterResource extends AbstractBookkeeperResource {
     @Secured
     @Path("status")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ClusterStatus> getClusterStatus() throws Exception {
-        RefreshCacheWorkerStatus status = getBookkeeperManager().getRefreshWorkerStatus();
+    public List<ClusterStatus> getClusterStatus(@QueryParam("refresh") boolean executeRefresh) throws Exception {
+
+        // TO--DO
+        RefreshCacheWorkerStatus status = executeRefresh
+                ? getBookkeeperManager().refreshMetadataCache()
+                : getBookkeeperManager().getRefreshWorkerStatus();
+
         Map<Integer, ClusterWideConfiguration> clusterWideConfiguration = status.getLastClusterWideConfiguration();
 
         List<ClusterStatus> clusters = new ArrayList<>();
@@ -135,7 +141,6 @@ public class ClusterResource extends AbstractBookkeeperResource {
     @Path("delete/{clusterId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void deleteCluster(@PathParam(value = "clusterId") int clusterId) throws Exception {
-        System.out.println(">>> clusterId " + clusterId);
         getBookkeeperManager().deleteCluster(clusterId);
     }
 

@@ -174,8 +174,8 @@ export default {
             return this.clusters.map(cluster => cluster.name);
         }
     },
-    created() {
-        this.refreshClusters();
+    async created() {
+        return this.refreshClusters(false);
     },
     methods: {
         closeEdit() {
@@ -191,12 +191,13 @@ export default {
 
             this.loading = true;
             this.$request.post(url, this.editClusterInfo)
+                .then(() => this.refreshClusters(newCluster))
                 .then(() => {
-                    this.refreshClusters();
                     if (newCluster) {
                         this.$store.commit('incrementClusterCount');
                     }
-                }).finally(() => {
+                })
+                .finally(() => {
                     this.closeEdit();
                     this.loading = false;
                 });
@@ -221,8 +222,8 @@ export default {
         deleteCluster({ clusterId }) {
             this.loading = true;
             this.$request.post(`api/cluster/delete/${clusterId}`)
+                .then(() => this.refreshClusters(true))
                 .then(() => {
-                    this.refreshClusters()
                     this.$store.commit('decrementClusterCount');
                 }).finally(() => {
                     this.closeDelete();
@@ -233,9 +234,11 @@ export default {
             this.dialogInfo = true;
             this.currentCluster = this.clustersInfo.find(c => c.clusterId === clusterId);
         },
-        async refreshClusters() {
+        async refreshClusters(refresh) {
+            let refreshMetadata = refresh === true ? true : false;
+
             this.clusters = await this.$request.get("api/cluster/all");
-            const clusterStatus = await this.$request.get("api/cluster/status");
+            const clusterStatus = await this.$request.get(`api/cluster/status?refresh=${refreshMetadata}`);
 
             let clustersInfo = [];
             for (let status of clusterStatus) {

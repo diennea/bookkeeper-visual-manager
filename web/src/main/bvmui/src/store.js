@@ -22,7 +22,6 @@ export default new Vuex.Store({
             state.clusterCount++;
         },
         decrementClusterCount(state) {
-            console.log(state.clusterCount)
             state.clusterCount--;
         },
         showDrawer(state, show) {
