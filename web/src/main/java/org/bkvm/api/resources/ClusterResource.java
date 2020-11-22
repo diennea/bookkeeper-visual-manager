@@ -22,7 +22,6 @@ package org.bkvm.api.resources;
 import static org.bkvm.bookkeeper.BookkeeperManager.ClusterWideConfiguration;
 import static org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,7 +58,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
             bean.setClusterId(cluster.getClusterId());
             bean.setName(cluster.getName());
             bean.setMetadataServiceUri(cluster.getMetadataServiceUri());
-            
+
             ClusterWideConfiguration c = clusterWideConfigurations.get(cluster.getClusterId());
             if (c != null) {
                 Map<String, Object> conf = new HashMap<>();
@@ -153,16 +152,16 @@ public class ClusterResource extends AbstractBookkeeperResource {
     }
 
     @Data
-    public static final class ClusterBean implements Serializable {
+    public static final class ClusterBean {
 
         private int clusterId;
         private String name;
         private String metadataServiceUri;
         private String configuration;
-        
+
         private String refreshStatus;
         private ClusterStatus status;
-        
+
     }
 
 }

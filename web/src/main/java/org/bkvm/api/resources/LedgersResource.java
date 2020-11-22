@@ -19,7 +19,6 @@
  */
 package org.bkvm.api.resources;
 
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -163,7 +162,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
     }
 
     @Data
-    public final class LedgerBean implements Serializable {
+    public static final class LedgerBean {
 
         private int clusterId;
         private String clusterName;

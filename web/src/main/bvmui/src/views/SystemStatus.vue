@@ -17,8 +17,8 @@
         <p class="my-2">
             Background worker status <b>{{ status }}</b>
         </p>
-        <p class="caption my-2">
-            Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh ) }}</b>
+        <p v-if="lastCacheRefresh" class="caption my-2">
+            Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh) }}</b>
         </p>
     </div>
 </template>

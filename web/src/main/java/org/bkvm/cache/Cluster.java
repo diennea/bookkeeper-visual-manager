@@ -50,6 +50,7 @@ public class Cluster implements Serializable {
     }
 
     public Cluster(int clusterId, String name, String metadataServiceUri) {
+        this.clusterId = clusterId;
         this.name = name;
         this.metadataServiceUri = metadataServiceUri;
     }
