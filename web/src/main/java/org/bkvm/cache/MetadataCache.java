@@ -137,7 +137,7 @@ public class MetadataCache implements AutoCloseable {
             });
         }
     }
-
+    
     public List<Bookie> listBookies() {
         return listBookies(null);
     }
@@ -146,15 +146,15 @@ public class MetadataCache implements AutoCloseable {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             if (clusterId == null) {
-                Query q = em.createQuery("SELECT l "
-                        + "FROM bookie l "
-                        + "ORDER BY l.bookieId", Bookie.class);
+                Query q = em.createQuery("SELECT b "
+                        + "FROM bookie b "
+                        + "ORDER BY b.clusterId", Bookie.class);
                 return q.getResultList();
             } else {
-                Query q = em.createQuery("SELECT l "
-                        + "FROM bookie l "
-                        + "WHERE l.clusterId = :clusterId "
-                        + "ORDER BY l.bookieId", Bookie.class);
+                Query q = em.createQuery("SELECT b "
+                        + "FROM bookie b "
+                        + "WHERE b.clusterId = :clusterId "
+                        + "ORDER BY b.clusterId", Bookie.class);
                 q.setParameter("clusterId", clusterId);
                 return q.getResultList();
             }

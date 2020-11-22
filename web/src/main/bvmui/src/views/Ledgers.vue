@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <v-container class="bvm-bookie">
         <v-form class="bvm-ledger-search"
             @submit.prevent="performSearch">
             <v-text-field
@@ -58,11 +58,11 @@
         </div>
         <div class="bvm-ledger" :class="{'metadata': showLedgerMetadata}">
             <div class="bvm-tile-container">
-                <Tile
-                    v-for="item in ledgers"
-                    :item="item"
-                    :key="item.id+'_'+item.clusterId"
-                    @click="showMetadata(item.clusterId, item.id)"
+                <Ledger
+                    v-for="ledger in ledgers"
+                    :ledger="ledger"
+                    :key="keyLedger(ledger)"
+                    @click="showMetadata(ledger.clusterId, ledger.id)"
                 />
             </div>
             <div v-if="showLedgerMetadata"
@@ -73,15 +73,40 @@
                 />
             </div>
         </div>
-    </div>
+        <!--
+        <v-row v-if="ledger.length > 0">
+            <v-col cols="4">
+                <v-select
+                    :value="size"
+                    @input="refreshBookies(page, $event)"
+                    :items="[4, 8, 16, 32]"
+                    label="Show bookies"
+                    color="blue lighten-1"
+                    outlined
+                    dense
+                />
+            </v-col>
+            <v-col cols="8" justify="end">
+                <v-pagination
+                    v-show="pageLength > 1"
+                    :value="page"
+                    @input="refreshBookies($event, size)"
+                    :length="pageLength"
+                    color="blue lighten-1"
+                    class="justify-end my-1"
+                />
+            </v-col>
+        </v-row>
+        -->
+    </v-container>
 </template>
 <script>
 import MetadataContainer from "@/components/MetadataContainer";
-import Tile from "@/components/Tile";
+import Ledger from "@/components/Ledger";
 export default {
     components: {
         MetadataContainer,
-        Tile,
+        Ledger,
     },
     data() {
         return {
@@ -111,6 +136,9 @@ export default {
         );
     },
     methods: {
+        keyLedger(ledger) {
+            return `${ledger.clusterId}|${ledger.id}`;
+        },
         showMetadata(clusterId, ledgerId) {
             this.$request.get(`api/ledger/metadata/${clusterId}/${ledgerId}`).then(
                 ledger => {
