@@ -44,7 +44,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public static final class GetBookiesResult {
 
         private List<BookieBean> bookies;
-        private int totalSize;
+        private int totalBookies;
 
     }
 

@@ -9,13 +9,14 @@
             />
         </v-row>
         <v-row v-if="bookies.length > 0">
-            <v-col cols="4">
+            <v-col cols="4" justify="start">
                 <v-select
                     :value="size"
                     @input="refreshBookies(page, $event)"
                     :items="[4, 8, 16, 32]"
                     label="Show bookies"
                     color="blue lighten-1"
+                    class="my-1"
                     outlined
                     dense
                 />
@@ -27,7 +28,7 @@
                     @input="refreshBookies($event, size)"
                     :length="pageLength"
                     color="blue lighten-1"
-                    class="justify-end my-1"
+                    class="justify-end"
                 />
             </v-col>
         </v-row>
@@ -58,7 +59,6 @@ export default {
     },
     methods: {
         async refreshBookies(page, size) {
-            console.log("Ciao", size, page)
             if (this.page == page && this.size == size) return;
             this.page = this.size === size ? page : 1;
             this.size = size;
@@ -66,7 +66,7 @@ export default {
             const bookieResponse = await this.$request.get(url);
 
             this.bookies = bookieResponse.bookies;
-            this.bookiesCount = bookieResponse.totalSize;
+            this.bookiesCount = bookieResponse.totalBookies;
         },
         openBookie(bookie) {
             const { clusterId, bookieId } = bookie;
