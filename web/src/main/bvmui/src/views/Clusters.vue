@@ -60,10 +60,17 @@
         <v-dialog v-if="currentCluster" v-model="dialogInfo" max-width="700px">
             <v-card>
                 <v-card-title>
-                    <span class="headline">Cluster {{ currentCluster.clusterName }}</span>
+                    <span class="headline">Cluster {{ currentCluster.name }}</span>
                 </v-card-title>
                 <v-card-text>
+                    <div class="text-center" v-if="!currentCluster.status">
+                        <p class="caption my-2" >
+                            The additional information of cluster <strong>{{ currentCluster.name }}</strong>
+                            is not available. Try to refresh metadata or wait the metadata is loaded.
+                        </p>
+                    </div>
                     <v-tabs
+                        v-else
                         color="blue lighten-1"
                         center-active>
                         <v-tab>Status on ZooKeeper</v-tab>
@@ -78,12 +85,12 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr> <td>autorecoveryEnabled</td> <td>{{ currentCluster.autorecoveryEnabled }}</td></tr>
-                                        <tr> <td>Auditor</td> <td>{{ currentCluster.auditor }}</td></tr>
-                                        <tr> <td>lostBookieRecoveryDelay</td> <td>{{ currentCluster.lostBookieRecoveryDelay }}</td></tr>
-                                        <tr> <td>layoutManagerFactoryClass</td> <td>{{ currentCluster.layoutManagerFactoryClass }}</td></tr>
-                                        <tr> <td>layoutFormatVersion</td> <td>{{ currentCluster.layoutFormatVersion }}</td></tr>
-                                        <tr> <td>layoutManagerVersion</td> <td>{{ currentCluster.layoutManagerVersion }}</td></tr>
+                                        <tr> <td>autorecoveryEnabled</td> <td>{{ currentCluster.status.autorecoveryEnabled }}</td></tr>
+                                        <tr> <td>Auditor</td> <td>{{ currentCluster.status.auditor }}</td></tr>
+                                        <tr> <td>lostBookieRecoveryDelay</td> <td>{{ currentCluster.status.lostBookieRecoveryDelay }}</td></tr>
+                                        <tr> <td>layoutManagerFactoryClass</td> <td>{{ currentCluster.status.layoutManagerFactoryClass }}</td></tr>
+                                        <tr> <td>layoutFormatVersion</td> <td>{{ currentCluster.status.layoutFormatVersion }}</td></tr>
+                                        <tr> <td>layoutManagerVersion</td> <td>{{ currentCluster.status.layoutManagerVersion }}</td></tr>
                                     </tbody>
                                 </template>
                             </v-simple-table>
@@ -94,7 +101,7 @@
                                     { text: 'Property', value: 'name' },
                                     { text: 'Value', value: 'value' }
                                 ]"
-                                :items="currentCluster.computedBookkeeperConfiguration"
+                                :items="convertConfiguration(currentCluster.status.bookkeeperConfiguration)"
                                 multi-sort
                                 hide-default-footer
                                 class="mt-2 elevation-1"
@@ -148,7 +155,6 @@ export default {
             dialogCreate: false,
             dialogDelete: false,
             clusters: [],
-            clustersInfo: [],
             currentCluster: null,
             editClusterInfo: {
                 clusterId: 0,
@@ -223,42 +229,39 @@ export default {
             this.loading = true;
             this.$request.post(`api/cluster/delete/${clusterId}`)
                 .then(() => this.refreshClusters(true))
-                .then(() => {
-                    this.$store.commit('decrementClusterCount');
-                }).finally(() => {
+                .then(() => this.$store.commit('decrementClusterCount'))
+                .finally(() => {
                     this.closeDelete();
                     this.loading = false;
                 });
         },
         showCluster({ clusterId }) {
+            this.currentCluster = this.clusters.find(c => c.clusterId === clusterId);
+            if (this.currentCluster.status == null) {
+                const isRefreshing = this.currentCluster.refreshClusters === "WORKING";
+                if (!isRefreshing) {
+                    this.refreshClusters(true);
+                }
+            }
             this.dialogInfo = true;
-            this.currentCluster = this.clustersInfo.find(c => c.clusterId === clusterId);
         },
         async refreshClusters(refresh) {
-            let refreshMetadata = refresh === true ? true : false;
-
-            this.clusters = await this.$request.get("api/cluster/all");
-            const clusterStatus = await this.$request.get(`api/cluster/status?refresh=${refreshMetadata}`);
-
-            let clustersInfo = [];
-            for (let status of clusterStatus) {
-                let computedBookkeeperConfiguration = [];
-
-                let bookkeeperConfiguration = status.bookkeeperConfiguration;
-                for (let key in bookkeeperConfiguration) {
-                    computedBookkeeperConfiguration.push({
-                        name: key,
-                        value: bookkeeperConfiguration[key]
-                    });
-                }
-                var cluster = {
-                    ...status,
-                    computedBookkeeperConfiguration
-                };
-                clustersInfo.push(cluster);
+            if (refresh === true) {
+                const result = await this.$request.get("api/cache/refresh");
             }
-            this.clustersInfo = clustersInfo;
+            this.clusters = await this.$request.get("api/cluster/all");
+            console.log(`>>> refresh ${refresh}`, this.clusters)
             this.$store.commit('showDrawer', this.clusters.length > 0);
+        },
+        convertConfiguration(bookkeeperConfiguration) {
+            let computedBookkeeperConfiguration = [];
+            for (let key in bookkeeperConfiguration) {
+                computedBookkeeperConfiguration.push({
+                    name: key,
+                    value: bookkeeperConfiguration[key]
+                });
+            }
+            return computedBookkeeperConfiguration;
         }
     }
 };

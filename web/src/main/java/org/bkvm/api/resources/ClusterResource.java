@@ -36,7 +36,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import lombok.Data;
 import org.bkvm.cache.Cluster;
@@ -50,56 +49,40 @@ public class ClusterResource extends AbstractBookkeeperResource {
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ClusterBean> getClusters() throws Exception {
-        List<ClusterBean> res = new ArrayList<>();
+        RefreshCacheWorkerStatus status = getBookkeeperManager().getRefreshWorkerStatus();
+        Map<Integer, ClusterWideConfiguration> clusterWideConfigurations = status.getLastClusterWideConfiguration();
 
+        List<ClusterBean> res = new ArrayList<>();
         Collection<Cluster> clusters = getBookkeeperManager().getAllClusters();
         for (Cluster cluster : clusters) {
             ClusterBean bean = new ClusterBean();
             bean.setClusterId(cluster.getClusterId());
             bean.setName(cluster.getName());
             bean.setMetadataServiceUri(cluster.getMetadataServiceUri());
+            
+            ClusterWideConfiguration c = clusterWideConfigurations.get(cluster.getClusterId());
+            if (c != null) {
+                Map<String, Object> conf = new HashMap<>();
+                StringReader reader = new StringReader(StringUtils.trimToEmpty(c.getConfiguration()));
+                try {
+                    Properties properties = new Properties();
+                    properties.load(reader);
+                    for (String p : properties.stringPropertyNames()) {
+                        conf.put(p, properties.get(p));
+                    }
+                } catch (IOException ex) {}
 
+                bean.setRefreshStatus(status.getStatus().toString());
+                ClusterStatus clusterStatus = new ClusterStatus(conf,
+                        c.getAuditor(), c.isAutorecoveryEnabled(), c.getLostBookieRecoveryDelay(),
+                        c.getLayoutFormatVersion(), c.getLayoutManagerFactoryClass(), c.getLayoutManagerVersion()
+                );
+                bean.setStatus(clusterStatus);
+            }
             res.add(bean);
         }
 
         return res;
-    }
-
-    @GET
-    @Secured
-    @Path("status")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<ClusterStatus> getClusterStatus(@QueryParam("refresh") boolean executeRefresh) throws Exception {
-
-        // TO--DO
-        RefreshCacheWorkerStatus status = executeRefresh
-                ? getBookkeeperManager().refreshMetadataCache()
-                : getBookkeeperManager().getRefreshWorkerStatus();
-
-        Map<Integer, ClusterWideConfiguration> clusterWideConfiguration = status.getLastClusterWideConfiguration();
-
-        List<ClusterStatus> clusters = new ArrayList<>();
-        for (ClusterWideConfiguration c : clusterWideConfiguration.values()) {
-
-            Map<String, Object> conf = new HashMap<>();
-            StringReader reader = new StringReader(StringUtils.trimToEmpty(c.getConfiguration()));
-            try {
-                Properties properties = new Properties();
-                properties.load(reader);
-                for (String p : properties.stringPropertyNames()) {
-                    conf.put(p, properties.get(p));
-                }
-            } catch (IOException ex) {
-            }
-
-            ClusterStatus clusterStatus = new ClusterStatus(c.getClusterId(), c.getClusterName(), conf,
-                    c.getAuditor(), c.isAutorecoveryEnabled(), c.getLostBookieRecoveryDelay(),
-                    c.getLayoutFormatVersion(), c.getLayoutManagerFactoryClass(), c.getLayoutManagerVersion()
-            );
-            clusters.add(clusterStatus);
-        }
-
-        return clusters;
     }
 
     @GET
@@ -147,8 +130,6 @@ public class ClusterResource extends AbstractBookkeeperResource {
     @Data
     public static final class ClusterStatus {
 
-        private final int clusterId;
-        private final String clusterName;
         private final Map<String, Object> bookkeeperConfiguration;
         private final String auditor;
         private final boolean autorecoveryEnabled;
@@ -157,11 +138,9 @@ public class ClusterResource extends AbstractBookkeeperResource {
         private final String layoutManagerFactoryClass;
         private final int layoutManagerVersion;
 
-        public ClusterStatus(int clusterId, String clusterName, Map<String, Object> bookkeeperConfiguration,
+        public ClusterStatus(Map<String, Object> bookkeeperConfiguration,
                              String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay,
                              int layoutFormatVersion, String layoutManagerFactoryClass, int layoutManagerVersion) {
-            this.clusterId = clusterId;
-            this.clusterName = clusterName;
             this.bookkeeperConfiguration = bookkeeperConfiguration;
             this.auditor = auditor;
             this.autorecoveryEnabled = autorecoveryEnabled;
@@ -180,7 +159,10 @@ public class ClusterResource extends AbstractBookkeeperResource {
         private String name;
         private String metadataServiceUri;
         private String configuration;
-
+        
+        private String refreshStatus;
+        private ClusterStatus status;
+        
     }
 
 }
