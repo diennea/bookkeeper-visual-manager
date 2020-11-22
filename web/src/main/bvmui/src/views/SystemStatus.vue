@@ -9,27 +9,25 @@
             depressed
             large
             tile
-            color="blue lighten-1 white--text"
-            @click="refreshPage">
-            Reload page
-        </v-btn>
-        <v-btn
-            depressed
-            large
-            tile
             color="green lighten-1 white--text"
-            @click="refreshCache">
+            @click="refreshCache"
+            :loading="status === 'WORKING'">
             Reload metadata from ZooKeeper
         </v-btn>
-        <v-tooltip bottom>
-            <template v-slot:activator="{ on }">
-                <span class="ml-2" v-on="on">Background worker status <b>{{ status }}</b></span>
-            </template>
-            <span>Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh ) }}</b></span>
-        </v-tooltip>
+        <p class="my-2">
+            Background worker status <b>{{ status }}</b>
+        </p>
+        <p class="caption my-2">
+            Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh ) }}</b>
+        </p>
     </div>
 </template>
 <script>
+const StatusMode = {
+    IDLE: 'IDLE',
+    WORKING: 'WORKING'
+}
+const RefreshRate = 2000;
 export default {
     data() {
         return {
@@ -40,6 +38,11 @@ export default {
     created() {
         this.refreshPage();
     },
+    beforeDestroy() {
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+    },
     methods: {
         refreshCache() {
             this.$request.get("api/cache/refresh").then(
@@ -48,12 +51,26 @@ export default {
                     this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
                 }
             );
+            this.interval = setInterval(this.refreshPage, RefreshRate);
         },
         refreshPage() {
             this.$request.get("api/cache/info").then(
                 cacheInfo => {
                     this.status = cacheInfo.status;
                     this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
+
+                    switch (this.status) {
+                        case StatusMode.IDLE:
+                            if (this.interval) {
+                                clearInterval(this.interval);
+                            }
+                            break;
+                        case StatusMode.WORKING:
+                            if (!this.interval) {
+                                this.interval = setInterval(this.refreshPage, RefreshRate);
+                            }
+                            break;
+                    }
                 }
             );
         }

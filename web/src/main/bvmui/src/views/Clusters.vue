@@ -64,7 +64,7 @@
                 </v-card-title>
                 <v-card-text>
                     <div class="text-center" v-if="!currentCluster.status">
-                        <p class="caption my-2" >
+                        <p class="caption my-2">
                             The additional information of cluster <strong>{{ currentCluster.name }}</strong>
                             is not available. Try to refresh metadata or wait the metadata is loaded.
                         </p>
@@ -247,10 +247,9 @@ export default {
         },
         async refreshClusters(refresh) {
             if (refresh === true) {
-                const result = await this.$request.get("api/cache/refresh");
+                await this.$request.get("api/cache/refresh");
             }
             this.clusters = await this.$request.get("api/cluster/all");
-            console.log(`>>> refresh ${refresh}`, this.clusters)
             this.$store.commit('showDrawer', this.clusters.length > 0);
         },
         convertConfiguration(bookkeeperConfiguration) {
