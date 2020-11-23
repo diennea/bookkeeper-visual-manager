@@ -23,11 +23,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import lombok.Data;
 import org.bkvm.cache.Bookie;
+import org.bkvm.cache.Cluster;
 
 @Path("bookie")
 public class BookiesResource extends AbstractBookkeeperResource {
@@ -39,6 +44,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public List<BookieBean> getBookies() throws Exception {
         final List<BookieBean> bookies = new ArrayList<>();
         final Collection<Bookie> fromMetadata = getBookkeeperManager().getAllBookies();
+        final Map<Integer, Cluster> allClusters  = getBookkeeperManager().getAllClusters().stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
 
         for (Bookie bookie : fromMetadata) {
             BookieBean b = new BookieBean();
@@ -53,9 +59,10 @@ public class BookiesResource extends AbstractBookkeeperResource {
                 default:
                     b.setState("down");
                     break;
-
             }
 
+            b.setClusterId(bookie.getClusterId());
+            b.setClusterName(allClusters.get(bookie.getClusterId()).getName());
             b.setBookieId(bookie.getBookieId());
             b.setFreeDiskSpace(bookie.getFreeDiskspace());
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
@@ -66,9 +73,12 @@ public class BookiesResource extends AbstractBookkeeperResource {
         return bookies;
     }
 
+    @Data
     public static final class BookieBean implements Serializable {
 
         private String state;
+        private int clusterId;
+        private String clusterName;
         private String bookieId;
         private String description;
 
@@ -76,59 +86,6 @@ public class BookiesResource extends AbstractBookkeeperResource {
         private long totalDiskSpace;
         private long lastScan;
 
-        public String getBookieId() {
-            return bookieId;
-        }
-
-        public void setBookieId(String bookieId) {
-            this.bookieId = bookieId;
-        }
-
-        public long getLastScan() {
-            return lastScan;
-        }
-
-        public void setLastScan(long lastScan) {
-            this.lastScan = lastScan;
-        }
-
-        public String getState() {
-            return state;
-        }
-
-        public void setState(String state) {
-            this.state = state;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public long getFreeDiskSpace() {
-            return freeDiskSpace;
-        }
-
-        public void setFreeDiskSpace(long freeDiskSpace) {
-            this.freeDiskSpace = freeDiskSpace;
-        }
-
-        public long getTotalDiskSpace() {
-            return totalDiskSpace;
-        }
-
-        public void setTotalDiskSpace(long totalDiskSpace) {
-            this.totalDiskSpace = totalDiskSpace;
-        }
-
-        @Override
-        public String toString() {
-            return "BookieBean{" + "state=" + state + ", description=" + description
-                    + ", freeDiskSpace=" + freeDiskSpace + ", totalDiskSpace=" + totalDiskSpace + '}';
-        }
-
     }
+
 }

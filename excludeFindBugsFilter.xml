@@ -3,6 +3,8 @@
 <FindBugsFilter>
     <!-- this is for classes generated at build time by EclipseLink-->
     <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+    <Bug pattern="EI_EXPOSE_REP"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
 
 </FindBugsFilter>
 

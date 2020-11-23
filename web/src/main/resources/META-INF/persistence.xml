@@ -5,6 +5,7 @@
     <class>org.bkvm.cache.LedgerMetadataEntry</class>
     <class>org.bkvm.cache.LedgerBookie</class>
     <class>org.bkvm.cache.Bookie</class>
+    <class>org.bkvm.cache.Cluster</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="create"/>

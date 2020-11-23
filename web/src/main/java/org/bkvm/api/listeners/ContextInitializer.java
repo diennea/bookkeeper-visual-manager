@@ -26,6 +26,7 @@ import java.util.Properties;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 import org.bkvm.auth.AuthManager;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.cache.MetadataCache;
@@ -35,10 +36,12 @@ import org.bkvm.config.PropertiesConfigurationStore;
 import org.bkvm.config.PropertiesConfigurationStore.PropertiesConfigurationFactory;
 import org.bkvm.config.ServerConfiguration;
 
+@WebListener
 public class ContextInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        System.setProperty("herddb.network.sendstacktraces", "false");
         ServletContext context = sce.getServletContext();
         context.log("starting");
 
@@ -75,6 +78,12 @@ public class ContextInitializer implements ServletContextListener {
             context.setAttribute("metadataCache", metadataCache);
             BookkeeperManager bookkeeperManager = new BookkeeperManager(configStore, metadataCache);
             context.setAttribute("bookkeeper", bookkeeperManager);
+
+            String defaultService = configStore.getProperty(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, "");
+            context.log("Default cluster URI: " + defaultService);
+            if (!defaultService.isEmpty()) {
+                bookkeeperManager.ensureDefaultCluster(defaultService);
+            }
 
             boolean refreshAtBoot = Boolean.parseBoolean(configStore.getProperty(PROPERTY_METADATA_REFRESH_AT_BOOT, configStore.getProperty("metdata.refreshAtBoot", "false")));
             context.log("metdata.refreshAtBoot=" + refreshAtBoot);
@@ -142,7 +151,7 @@ public class ContextInitializer implements ServletContextListener {
         try {
             Properties properties = new Properties();
 
-            String metadataServiceUri = System.getProperty("bookkeeper.visual.manager.metadataServiceUri");
+                String metadataServiceUri = System.getProperty("bookkeeper.visual.manager.metadataServiceUri");
             if (metadataServiceUri != null) {
                 properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, metadataServiceUri);
                 return new PropertiesConfigurationStore(properties);

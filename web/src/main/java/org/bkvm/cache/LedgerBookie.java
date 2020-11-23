@@ -19,25 +19,28 @@
  */
 package org.bkvm.cache;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import lombok.Data;
 
 /**
  * A record in this table means that a ledger is placed over a Bookie
  *
  * @author eolivelli
  */
+@Data
 @Entity(name = "ledger_bookie")
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class LedgerBookie implements Serializable {
 
     @Column(columnDefinition = "long")
     @Id
     private long ledgerId;
+
+    @Column(columnDefinition = "int")
+    @Id
+    private int clusterId;
 
     @Column(columnDefinition = "string")
     @Id
@@ -46,59 +49,10 @@ public class LedgerBookie implements Serializable {
     public LedgerBookie() {
     }
 
-    public LedgerBookie(long ledgerId, String bookieAddress) {
+    public LedgerBookie(long ledgerId, String bookieId, int clusterId) {
         this.ledgerId = ledgerId;
-        this.bookieId = bookieAddress;
-    }
-
-    public long getLedgerId() {
-        return ledgerId;
-    }
-
-    public void setLedgerId(long ledgerId) {
-        this.ledgerId = ledgerId;
-    }
-
-    public String getBookieId() {
-        return bookieId;
-    }
-
-    public void setBookieId(String bookieId) {
         this.bookieId = bookieId;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + (int) (this.ledgerId ^ (this.ledgerId >>> 32));
-        hash = 97 * hash + Objects.hashCode(this.bookieId);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final LedgerBookie other = (LedgerBookie) obj;
-        if (this.ledgerId != other.ledgerId) {
-            return false;
-        }
-        if (!Objects.equals(this.bookieId, other.bookieId)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "LedgerBookie{" + "ledgerId=" + ledgerId + ", bookieId=" + bookieId + '}';
+        this.clusterId = clusterId;
     }
 
 }

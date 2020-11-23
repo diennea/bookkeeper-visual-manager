@@ -2,6 +2,7 @@
     <div class="bvm-metadata">
         <button class="bvm-metadata-close" @click="$emit('close', $event)">✕</button>
         <h3>Ledger {{ currentLedger.id }}</h3>
+        <div>Cluster: {{ currentLedger.clusterName }}</div>
         <h2 v-if="currentLedger.description !== ''">{{ currentLedger.description }}</h2>
         <div>Age: {{ currentLedger.age }} minutes</div>
         <div>Created at: {{ new Date(currentLedger.ctime) }}</div>

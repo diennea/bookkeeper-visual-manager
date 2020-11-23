@@ -19,88 +19,27 @@
  */
 package org.bkvm.api.resources;
 
-import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import org.bkvm.bookkeeper.BookkeeperManager;
+import lombok.Getter;
+import lombok.Setter;
 import org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 
 @Path("cache")
 public class SystemStatusResource extends AbstractBookkeeperResource {
 
+    @Getter
+    @Setter
     public static final class SystemStatus {
 
-        private long lastCacheRefresh;
         private String status;
-        private Map<String, String> bookkeeperConfiguration;
-        private final String auditor;
-        private final boolean autorecoveryEnabled;
-        private final int lostBookieRecoveryDelay;
-        private final int layoutFormatVersion;
-        private final String layoutManagerFactoryClass;
-        private final int layoutManagerVersion;
+        private long lastCacheRefresh;
 
         public SystemStatus(RefreshCacheWorkerStatus status) {
             this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
             this.status = status.getStatus().toString();
-            this.bookkeeperConfiguration = status.getBookkkeeperClientConfiguration();
-            BookkeeperManager.ClusterWideConfiguration clusterWideConfiguration = status.getLastClusterWideConfiguration();
-            this.auditor = clusterWideConfiguration.getAuditor();
-            this.autorecoveryEnabled = clusterWideConfiguration.isAutorecoveryEnabled();
-            this.lostBookieRecoveryDelay = clusterWideConfiguration.getLostBookieRecoveryDelay();
-            this.layoutFormatVersion = clusterWideConfiguration.getLayoutFormatVersion();
-            this.layoutManagerFactoryClass = clusterWideConfiguration.getLayoutManagerFactoryClass();
-            this.layoutManagerVersion = clusterWideConfiguration.getLayoutManagerVersion();
-        }
-
-        public String getAuditor() {
-            return auditor;
-        }
-
-        public boolean isAutorecoveryEnabled() {
-            return autorecoveryEnabled;
-        }
-
-        public int getLostBookieRecoveryDelay() {
-            return lostBookieRecoveryDelay;
-        }
-
-        public int getLayoutFormatVersion() {
-            return layoutFormatVersion;
-        }
-
-        public String getLayoutManagerFactoryClass() {
-            return layoutManagerFactoryClass;
-        }
-
-        public int getLayoutManagerVersion() {
-            return layoutManagerVersion;
-        }
-
-        public Map<String, String> getBookkeeperConfiguration() {
-            return bookkeeperConfiguration;
-        }
-
-        public void setBookkeeperConfiguration(Map<String, String> bookkeeperConfiguration) {
-            this.bookkeeperConfiguration = bookkeeperConfiguration;
-        }
-
-        public long getLastCacheRefresh() {
-            return lastCacheRefresh;
-        }
-
-        public void setLastCacheRefresh(long lastCacheRefresh) {
-            this.lastCacheRefresh = lastCacheRefresh;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
         }
 
     }

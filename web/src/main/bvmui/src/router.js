@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import ErrorPage from "@/views/ErrorPage";
 import Bookies from '@/views/Bookies'
 import Ledgers from '@/views/Ledgers'
+import Clusters from '@/views/Clusters'
 import Login from '@/views/Login'
 import SystemStatus from '@/views/SystemStatus'
 
@@ -57,7 +58,15 @@ const router = new Router({
             }
         },
         {
-            path: '/ledgers/:bookieId',
+            path: '/clusters',
+            name: 'clusters',
+            component: Clusters,
+            meta: {
+                title: "Clusters"
+            }
+        },
+        {
+            path: '/ledgers/:clusterId/:bookieId',
             name: 'bookie-ledgers',
             component: Ledgers,
             meta: {
@@ -72,13 +81,31 @@ const router = new Router({
     ]
 })
 
-router.beforeEach((to, from, next) => {
-    const isLogin = to.name === 'login';
-    if (isLogin && store.getters.isLogged) {
+router.beforeEach(async (to, from, next) => {
+    const pageLogin = to.name === 'login';
+    const userLogged = store.getters.isLogged;
+    if (pageLogin && userLogged) {
         next("/");
         return;
     }
-    if (isLogin || store.getters.isLogged) {
+    if (pageLogin) {
+        next();
+        return;
+    }
+    if (userLogged) {
+        const pageClusters = to.name === 'clusters';
+        if (pageClusters) {
+            next();
+            return;
+        }
+
+        const count = await store.dispatch('clusterCount');
+        store.commit('showDrawer', count > 0);
+        if (count === 0) {
+            next('/clusters');
+            return;
+        }
+
         next();
         return;
     }

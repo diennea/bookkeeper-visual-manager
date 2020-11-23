@@ -5,7 +5,7 @@
     <packaging>pom</packaging>
     <groupId>org.bkvm</groupId>
     <version>2.1.0-SNAPSHOT</version>
-    <name>BookKeeper Visual Manager - Parent</name>
+    <name>BKVM :: Parent</name>
     <url>https://bkvm.org</url>
     <description>
         BKVM is a Visual Manager for Apache BookKeeper cluster administration.
@@ -173,7 +173,7 @@
                 <artifactId>netty-tcnative-boringssl-static</artifactId>
                 <version>${netty.boringssl.version}</version>
             </dependency>
-             <dependency>
+            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
@@ -252,6 +252,11 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.16</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>

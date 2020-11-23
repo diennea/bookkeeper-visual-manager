@@ -35,7 +35,9 @@ public class ApplicationConfig extends Application {
 
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(org.bkvm.api.listeners.AuthFilter.class);
+        resources.add(org.bkvm.api.resources.LoginResource.class);
         resources.add(org.bkvm.api.resources.BookiesResource.class);
+        resources.add(org.bkvm.api.resources.ClusterResource.class);
         resources.add(org.bkvm.api.resources.LedgersResource.class);
         resources.add(org.bkvm.api.resources.LoginResource.class);
         resources.add(org.bkvm.api.resources.SystemStatusResource.class);
