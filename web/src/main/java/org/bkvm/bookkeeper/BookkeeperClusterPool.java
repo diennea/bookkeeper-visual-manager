@@ -27,7 +27,6 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import lombok.Data;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.bookkeeper.client.BKException;
@@ -35,6 +34,7 @@ import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
+import org.apache.commons.configuration.ConfigurationException;
 
 /**
  *
@@ -50,46 +50,31 @@ public class BookkeeperClusterPool implements Closeable {
     @SneakyThrows
     public BookkeeperCluster ensureCluster(int clusterId, String metadataServiceUri, String configuration) {
         return pool.computeIfAbsent(clusterId, id -> {
-            try {
-                LOG.log(Level.INFO, "Creating cluster {0}, at {1}", new Object[]{clusterId, metadataServiceUri});
-                BookKeeper bkClient = createBookKeeperClient(metadataServiceUri, configuration);
-                BookKeeperAdmin bkAdmin = new BookKeeperAdmin(bkClient);
-                LOG.log(Level.INFO, "Added bkClient {0}", bkClient.getBookieInfo());
-                BookkeeperCluster bkCluster = new BookkeeperCluster(id, bkClient, bkAdmin, bkAdmin.getConf());
+            ClientConfiguration conf = new ClientConfiguration()
+                    .setMetadataServiceUri(metadataServiceUri)
+                    .setEnableDigestTypeAutodetection(true)
+                    .setGetBookieInfoTimeout(1000)
+                    .setClientConnectTimeoutMillis(1000);
 
-                return bkCluster;
-            } catch (BKException | IOException ex) {
-                throw new RuntimeException(ex);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(ex);
+            StringReader reader = new StringReader(configuration);
+            try {
+                Properties properties = new Properties();
+                properties.load(reader);
+                for (String p : properties.stringPropertyNames()) {
+                    conf.setProperty(p, properties.get(p));
+                }
+            } catch (IOException ex) {
+                LOG.log(Level.INFO, "Wrong configuration passed {0}", configuration);
             }
+
+            LOG.log(Level.INFO, "Creating cluster {0}, at {1}", new Object[]{clusterId, metadataServiceUri});
+            BookkeeperCluster bkCluster = new BookkeeperCluster(id, conf);
+            return bkCluster;
         });
     }
 
     public BookkeeperCluster getCluster(int clusterId) {
         return pool.get(clusterId);
-    }
-
-    private BookKeeper createBookKeeperClient(String metadataServiceUri, String configuration) throws IOException, InterruptedException, BKException {
-        ClientConfiguration conf = new ClientConfiguration()
-                .setMetadataServiceUri(metadataServiceUri)
-                .setEnableDigestTypeAutodetection(true)
-                .setGetBookieInfoTimeout(1000)
-                .setClientConnectTimeoutMillis(1000);
-
-        StringReader reader = new StringReader(configuration);
-        try {
-            Properties properties = new Properties();
-            properties.load(reader);
-            for (String p : properties.stringPropertyNames()) {
-                conf.setProperty(p, properties.get(p));
-            }
-        } catch (IOException ex) {
-            LOG.log(Level.INFO, "Wrong configuration passed {0}", configuration);
-        }
-
-        return BookKeeper.forConfig(conf).build();
     }
 
     public void removeCluster(int clusterId) throws BookkeeperManagerException {
@@ -115,7 +100,7 @@ public class BookkeeperClusterPool implements Closeable {
         }
     }
 
-    public LedgerManager getLedgerManager(int clusterId) {
+    public LedgerManager getLedgerManager(int clusterId) throws IOException, InterruptedException, BKException, ConfigurationException {
         return this.pool.get(clusterId).getBkClient().getLedgerManager();
     }
 
@@ -131,19 +116,35 @@ public class BookkeeperClusterPool implements Closeable {
         }
     }
 
-    @Data
     public static class BookkeeperCluster {
 
-        private int id;
+        private final int id;
         private BookKeeper bkClient;
-        private BookKeeperAdmin bkAdmin;
-        private ClientConfiguration conf;
+        private final ClientConfiguration conf;
 
-        public BookkeeperCluster(int id, BookKeeper bkClient, BookKeeperAdmin bkAdmin, ClientConfiguration conf) {
+        public BookkeeperCluster(int id, ClientConfiguration conf) {
             this.id = id;
-            this.bkClient = bkClient;
-            this.bkAdmin = bkAdmin;
             this.conf = conf;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public synchronized BookKeeper getBkClient() throws IOException, InterruptedException, BKException, ConfigurationException {
+            if (bkClient == null) {
+                LOG.log(Level.INFO, "Creating BK client for cluster {0} at {1}", new Object[]{id, conf.getMetadataServiceUri()});
+                bkClient = BookKeeper.forConfig(conf).build();
+            }
+            return bkClient;
+        }
+
+        public ClientConfiguration getConf() {
+            return conf;
+        }
+
+        public BookKeeperAdmin getBkAdmin() {
+            return new BookKeeperAdmin(bkClient);
         }
 
     }
