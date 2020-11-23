@@ -59,7 +59,7 @@ import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerMetadataSerDe;
 import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.meta.exceptions.MetadataException;
-import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.replication.AuditorElector;
 import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
@@ -189,18 +189,18 @@ public class BookkeeperManager implements AutoCloseable {
 
                 lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
 
-                final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
+                final Map<BookieId, BookieInfo> bookieInfo = bkClient.getBookieInfo();
                 RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
-                final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
-                final Collection<BookieSocketAddress> available = metadataClient.getWritableBookies().get().getValue();
-                final Collection<BookieSocketAddress> readonly = metadataClient.getReadOnlyBookies().get().getValue();
+                final Collection<BookieId> bookiesCookie = metadataClient.getAllBookies().get().getValue();
+                final Collection<BookieId> available = metadataClient.getWritableBookies().get().getValue();
+                final Collection<BookieId> readonly = metadataClient.getReadOnlyBookies().get().getValue();
                 LOG.log(Level.INFO, "all Bookies {0}", bookiesCookie);
                 LOG.log(Level.INFO, "writable Bookies {0}", available);
                 LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
                 java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                 List<Bookie> bookiesBefore = metadataCache.listBookies(clusterId);
                 List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
-                for (BookieSocketAddress bookieAddress : bookiesCookie) {
+                for (BookieId bookieAddress : bookiesCookie) {
                     LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
                     Bookie b = new Bookie();
                     b.setClusterId(clusterId);
@@ -352,6 +352,7 @@ public class BookkeeperManager implements AutoCloseable {
             }
             return serDe.parseConfig(
                     Base64.getDecoder().decode(ledger.getSerializedMetadata()),
+                    ledger.getLedgerId(),
                     Optional.of(ledger.getCtime().getTime()));
         } catch (IOException ex) {
             throw new BookkeeperManagerException(ex);
@@ -434,7 +435,7 @@ public class BookkeeperManager implements AutoCloseable {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;
-            BookieSocketAddress auditor = null;
+            BookieId auditor = null;
             boolean autoRecoveryEnabled = false;
             int layoutFormatVersion = 0;
             String layoutManagerFactoryClass = "";
@@ -457,7 +458,7 @@ public class BookkeeperManager implements AutoCloseable {
             }
             String auditorDescription = "";
             if (auditor != null) {
-                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor);
+                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor, bookkeeper.getBookieAddressResolver());
             }
 
             return new ClusterWideConfiguration(clusterId, clusterName, configString, auditorDescription, autoRecoveryEnabled, lostBookieRecoveryDelay,
