@@ -245,7 +245,7 @@ public class BookkeeperManager implements AutoCloseable {
                     if (b.getState() != Bookie.STATE_DOWN) {
                         BookieInfo bookieSpaceInfo = bookieInfo.get(bookieId);
                         LOG.log(Level.INFO, "Bookie info {0}", bookieSpaceInfo);
-                        if (info != null) {
+                        if (bookieSpaceInfo != null) {
                             b.setFreeDiskspace(bookieSpaceInfo.getFreeDiskSpace());
                             b.setTotalDiskspace(bookieSpaceInfo.getTotalDiskSpace());
                         } else {
