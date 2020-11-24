@@ -137,7 +137,7 @@ public class MetadataCache implements AutoCloseable {
             });
         }
     }
-    
+
     public List<Bookie> listBookies() {
         return listBookies(null);
     }

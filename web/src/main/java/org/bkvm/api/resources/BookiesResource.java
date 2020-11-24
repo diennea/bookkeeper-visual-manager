@@ -38,7 +38,7 @@ import org.bkvm.cache.Cluster;
 
 @Path("bookie")
 public class BookiesResource extends AbstractBookkeeperResource {
-    
+
     @Data
     @AllArgsConstructor
     public static final class GetBookiesResult {
