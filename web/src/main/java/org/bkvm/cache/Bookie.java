@@ -19,8 +19,13 @@
  */
 package org.bkvm.cache;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -29,14 +34,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- *
- * @author eolivelli
+ * Bookie information on database
  */
 @Data
 @EqualsAndHashCode
 @Entity(name = "bookie")
 @IdClass(BookieKey.class)
 public class Bookie implements Serializable {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final int STATE_DOWN = 0;
     public static final int STATE_AVAILABLE = 1;
@@ -65,10 +71,13 @@ public class Bookie implements Serializable {
     @Column(columnDefinition = "long")
     private long totalDiskspace;
 
+    @Column(columnDefinition = "string")
+    private String bookieInfo;
+
     public Bookie() {
     }
 
-    public Bookie(String bookieId, int clusterId, String description, int state, Timestamp scanTime, long freeDiskspace, long totalDiskspace) {
+    public Bookie(String bookieId, int clusterId, String description, int state, Timestamp scanTime, long freeDiskspace, long totalDiskspace, String bookieInfo) {
         this.bookieId = bookieId;
         this.clusterId = clusterId;
         this.description = description;
@@ -76,6 +85,43 @@ public class Bookie implements Serializable {
         this.scanTime = scanTime;
         this.freeDiskspace = freeDiskspace;
         this.totalDiskspace = totalDiskspace;
+        this.bookieInfo = bookieInfo;
+    }
+
+    @Data
+    public static final class BookieInfo {
+
+        private List<EndpointInfo> endpoints = Collections.emptyList();
+        private Map<String, String> properties = Collections.emptyMap();
+
+    }
+
+    @Data
+    public static final class EndpointInfo {
+
+        private String protocol = "";
+        private String address = "";
+        private String auth = "";
+        private String extensions = "";
+    }
+
+    public static String formatBookieInfo(BookieInfo info) {
+        try {
+            return MAPPER.writeValueAsString(info);
+        } catch (IOException err) {
+            throw new RuntimeException(err);
+        }
+    }
+
+    public static BookieInfo parseBookieInfo(String s) {
+        if (s == null) {
+            return new BookieInfo();
+        }
+        try {
+            return MAPPER.readValue(s, BookieInfo.class);
+        } catch (IOException err) {
+            return new BookieInfo();
+        }
     }
 
 }

@@ -52,6 +52,7 @@ import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
+import org.apache.bookkeeper.discover.BookieServiceInfo;
 import org.apache.bookkeeper.discover.RegistrationClient;
 import org.apache.bookkeeper.discover.ZKRegistrationClient;
 import org.apache.bookkeeper.meta.LedgerLayout;
@@ -59,7 +60,7 @@ import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerMetadataSerDe;
 import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.meta.exceptions.MetadataException;
-import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.replication.AuditorElector;
 import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
@@ -100,6 +101,27 @@ public class BookkeeperManager implements AutoCloseable {
         cluster.setMetadataServiceUri(metadataServiceUri);
         cluster.setConfiguration("");
         updateCluster(cluster);
+    }
+
+    private Bookie.BookieInfo convertBookieServiceInfo(BookieServiceInfo bookieServiceInfo) {
+        Bookie.BookieInfo info = new Bookie.BookieInfo();
+        info.setProperties(bookieServiceInfo.getProperties());
+        info.setEndpoints(bookieServiceInfo
+                .getEndpoints()
+                .stream()
+                .map(s -> {
+                    Bookie.EndpointInfo endpoint = new Bookie.EndpointInfo();
+                    endpoint.setAddress(s.getHost() + ":" + s.getProtocol());
+                    endpoint.setProtocol(s.getProtocol());
+                    if (s.getAuth() != null) {
+                        endpoint.setAuth(String.join(",", s.getAuth()));
+                    } else {
+                        endpoint.setAuth("");
+                    }
+                    return endpoint;
+                })
+                .collect(Collectors.toList()));
+        return info;
     }
 
     public enum RefreshStatus {
@@ -189,40 +211,43 @@ public class BookkeeperManager implements AutoCloseable {
 
                 lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
 
-                final Map<BookieSocketAddress, BookieInfo> bookieInfo = bkClient.getBookieInfo();
+                final Map<BookieId, BookieInfo> bookieInfo = bkClient.getBookieInfo();
                 RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
-                final Collection<BookieSocketAddress> bookiesCookie = metadataClient.getAllBookies().get().getValue();
-                final Collection<BookieSocketAddress> available = metadataClient.getWritableBookies().get().getValue();
-                final Collection<BookieSocketAddress> readonly = metadataClient.getReadOnlyBookies().get().getValue();
+                final Collection<BookieId> bookiesCookie = metadataClient.getAllBookies().get().getValue();
+                final Collection<BookieId> available = metadataClient.getWritableBookies().get().getValue();
+                final Collection<BookieId> readonly = metadataClient.getReadOnlyBookies().get().getValue();
                 LOG.log(Level.INFO, "all Bookies {0}", bookiesCookie);
                 LOG.log(Level.INFO, "writable Bookies {0}", available);
                 LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
                 java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                 List<Bookie> bookiesBefore = metadataCache.listBookies(clusterId);
                 List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
-                for (BookieSocketAddress bookieAddress : bookiesCookie) {
-                    LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
+                for (BookieId bookieId : bookiesCookie) {
+                    LOG.log(Level.INFO, "Discovered Bookie {0}", bookieId);
+                    BookieServiceInfo bookieServiceInfo = metadataClient.getBookieServiceInfo(bookieId).get().getValue();
+                    Bookie.BookieInfo info = convertBookieServiceInfo(bookieServiceInfo);
                     Bookie b = new Bookie();
                     b.setClusterId(clusterId);
-                    b.setBookieId(bookieAddress.toString());
-                    b.setDescription(bookieAddress.toString());
+                    b.setBookieId(bookieId.toString());
+                    b.setDescription(bookieId.toString());
+                    b.setBookieInfo(Bookie.formatBookieInfo(info));
                     int state;
-                    if (available.contains(bookieAddress)) {
+                    if (available.contains(bookieId)) {
                         state = Bookie.STATE_AVAILABLE;
-                    } else if (readonly.contains(bookieAddress)) {
+                    } else if (readonly.contains(bookieId)) {
                         state = Bookie.STATE_READONLY;
                     } else {
                         state = Bookie.STATE_DOWN;
                     }
-                    LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieAddress, state});
+                    LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieId, state});
                     b.setState(state);
                     b.setScanTime(now);
                     if (b.getState() != Bookie.STATE_DOWN) {
-                        BookieInfo info = bookieInfo.get(bookieAddress);
-                        LOG.log(Level.INFO, "Bookie info {0}", info);
-                        if (info != null) {
-                            b.setFreeDiskspace(info.getFreeDiskSpace());
-                            b.setTotalDiskspace(info.getTotalDiskSpace());
+                        BookieInfo bookieSpaceInfo = bookieInfo.get(bookieId);
+                        LOG.log(Level.INFO, "Bookie info {0}", bookieSpaceInfo);
+                        if (bookieSpaceInfo != null) {
+                            b.setFreeDiskspace(bookieSpaceInfo.getFreeDiskSpace());
+                            b.setTotalDiskspace(bookieSpaceInfo.getTotalDiskSpace());
                         } else {
                             // bookie did not anwer to getBookieInfo, this is not good
                             state = Bookie.STATE_DOWN;
@@ -352,6 +377,7 @@ public class BookkeeperManager implements AutoCloseable {
             }
             return serDe.parseConfig(
                     Base64.getDecoder().decode(ledger.getSerializedMetadata()),
+                    ledger.getLedgerId(),
                     Optional.of(ledger.getCtime().getTime()));
         } catch (IOException ex) {
             throw new BookkeeperManagerException(ex);
@@ -434,7 +460,7 @@ public class BookkeeperManager implements AutoCloseable {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;
-            BookieSocketAddress auditor = null;
+            BookieId auditor = null;
             boolean autoRecoveryEnabled = false;
             int layoutFormatVersion = 0;
             String layoutManagerFactoryClass = "";
@@ -457,7 +483,7 @@ public class BookkeeperManager implements AutoCloseable {
             }
             String auditorDescription = "";
             if (auditor != null) {
-                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor);
+                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor, bookkeeper.getBookieAddressResolver());
             }
 
             return new ClusterWideConfiguration(clusterId, clusterName, configString, auditorDescription, autoRecoveryEnabled, lostBookieRecoveryDelay,

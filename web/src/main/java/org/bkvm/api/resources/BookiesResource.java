@@ -44,7 +44,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
     public List<BookieBean> getBookies() throws Exception {
         final List<BookieBean> bookies = new ArrayList<>();
         final Collection<Bookie> fromMetadata = getBookkeeperManager().getAllBookies();
-        final Map<Integer, Cluster> allClusters  = getBookkeeperManager().getAllClusters().stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
+        final Map<Integer, Cluster> allClusters = getBookkeeperManager().getAllClusters().stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
 
         for (Bookie bookie : fromMetadata) {
             BookieBean b = new BookieBean();
@@ -67,7 +67,20 @@ public class BookiesResource extends AbstractBookkeeperResource {
             b.setFreeDiskSpace(bookie.getFreeDiskspace());
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
             b.setLastScan(bookie.getScanTime().getTime());
-
+            Bookie.BookieInfo parsedBookieInfo = Bookie.parseBookieInfo(bookie.getBookieInfo());
+            String endpoints = parsedBookieInfo
+                    .getEndpoints()
+                    .stream()
+                    .map(e -> e.getProtocol() + "://" + e.getAddress())
+                    .collect(Collectors.joining(","));
+            b.setEndpoints(endpoints);
+            String properties = parsedBookieInfo
+                    .getProperties()
+                    .entrySet()
+                    .stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining(","));
+            b.setProperties(properties);
             bookies.add(b);
         }
         return bookies;
@@ -85,6 +98,8 @@ public class BookiesResource extends AbstractBookkeeperResource {
         private long freeDiskSpace;
         private long totalDiskSpace;
         private long lastScan;
+        private String endpoints;
+        private String properties;
 
     }
 

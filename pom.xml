@@ -43,22 +43,21 @@
 
         <curator.version>5.1.0</curator.version>
         <zookpeeper.version>3.6.2</zookpeeper.version>
-        <bookkeeper.version>4.11.1</bookkeeper.version>
+        <bookkeeper.version>4.12.0</bookkeeper.version>
         <slf4j.version>1.7.29</slf4j.version>
-        <netty.version>4.1.48.Final</netty.version>
-        <netty.boringssl.version>2.0.29.Final</netty.boringssl.version>
+        <netty.version>4.1.51.Final</netty.version>
+        <netty.boringssl.version>2.0.34.Final</netty.boringssl.version>
         <junit.version>4.13.1</junit.version>
         <mockito.version>1.10.19</mockito.version>
-        <jetty.version>9.4.18.v20190429</jetty.version>
-        <herddb.version>0.21.0</herddb.version>
+        <jetty.version>9.4.33.v20201020</jetty.version>
+        <herddb.version>0.22.0</herddb.version>
 
         <yarn.version>v1.21.1</yarn.version>
         <node.version>v11.12.0</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
         <maven.frontend.plugin.version>1.8.0</maven.frontend.plugin.version>
 
-        <jersey.version>2.29</jersey.version>
-        <libs.jetty>9.4.27.v20200227</libs.jetty>
+        <jersey.version>2.29</jersey.version>        
         <libs.checkstyle>3.1.0</libs.checkstyle>
         <libs.spotbugs>3.1.12.2</libs.spotbugs>
         <eclipselink.version>2.7.5</eclipselink.version>
@@ -289,7 +288,7 @@
                 <plugin>
                     <groupId>org.eclipse.jetty</groupId>
                     <artifactId>jetty-maven-plugin</artifactId>
-                    <version>${libs.jetty}</version>
+                    <version>${jetty.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
