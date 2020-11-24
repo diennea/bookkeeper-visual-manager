@@ -148,13 +148,13 @@ public class MetadataCache implements AutoCloseable {
             if (clusterId == null) {
                 Query q = em.createQuery("SELECT b "
                         + "FROM bookie b "
-                        + "ORDER BY b.clusterId", Bookie.class);
+                        + "ORDER BY b.clusterId, b.bookieId", Bookie.class);
                 return q.getResultList();
             } else {
                 Query q = em.createQuery("SELECT b "
                         + "FROM bookie b "
                         + "WHERE b.clusterId = :clusterId "
-                        + "ORDER BY b.clusterId", Bookie.class);
+                        + "ORDER BY b.clusterId, b.bookieId", Bookie.class);
                 q.setParameter("clusterId", clusterId);
                 return q.getResultList();
             }

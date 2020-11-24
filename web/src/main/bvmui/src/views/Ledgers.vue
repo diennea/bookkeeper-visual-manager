@@ -61,14 +61,12 @@
                 Clear
             </v-btn>
         </v-form>
-            <v-alert
-                border="left"
-                color="blue lighten-1 white--text">
-                Found: <b>{{ ledgersCount }}</b> ledgers,
-                total size: <b>{{ $library.formatBytes(totalSize) }}</b>.
-            </v-alert>
-        <div class="bvm-ledger-search-results-info">
-        </div>
+        <v-alert
+            border="left"
+            color="blue lighten-1 white--text">
+            Found: <b>{{ ledgersCount }}</b> ledgers,
+            total size: <b>{{ $library.formatBytes(totalSize) }}</b>.
+        </v-alert>
         <div class="bvm-ledger" :class="{'metadata': showLedgerMetadata}">
             <div class="bvm-tile-container">
                 <Ledger
@@ -89,8 +87,7 @@
         <v-row v-if="ledgers.length > 0">
             <v-col cols="4" justify="start">
                 <v-select
-                    :value="size"
-                    @input="refreshLedgers(page, $event)"
+                    v-model="size"
                     :items="[20, 40, 80, 160]"
                     label="Show ledgers"
                     color="blue lighten-1"
@@ -102,8 +99,7 @@
             <v-col cols="8" justify="end">
                 <v-pagination
                     v-show="pageLength > 1"
-                    :value="page"
-                    @input="refreshLedgers($event, size)"
+                    v-model="page"
                     :length="pageLength"
                     color="blue lighten-1"
                     class="justify-end"
@@ -114,6 +110,7 @@
 </template>
 <script>
 const DefaultPageSize = 20;
+import qs from 'query-string';
 import MetadataContainer from "@/components/MetadataContainer";
 import Ledger from "@/components/Ledger";
 export default {
@@ -138,31 +135,48 @@ export default {
             totalSize: 0
         };
     },
-    async created() {
-        return this.refreshLedgers(1, DefaultPageSize);
-    },
     computed: {
         pageLength() {
             return Math.ceil(this.ledgersCount / this.size);
         }
     },
+    watch: {
+        async page(newPageValue) {
+            return this.refreshLedgers(newPageValue, this.size);
+        },
+        async size(newSizeValue) {
+            return this.refreshLedgers(this.page, newSizeValue);
+        }
+    },
+    async created() {
+        return this.refreshLedgers(1, DefaultPageSize);
+    },
     methods: {
         async refreshLedgers(page, size) {
             this.page = this.size === size ? page : 1;
             this.size = size;
+
+            const params = {
+                page: this.page,
+                size: this.size
+            }
+
             let url = `api/ledger/all?page=${this.page}&size=${this.size}`;
             if (this.search) {
-                url += "&term=" + encodeURIComponent(this.searchTerm)
-                + "&ledgerIds=" + encodeURIComponent(this.ledgerIds)
-                + "&minLength=" + encodeURIComponent(this.minLength)
-                + "&maxLength=" + encodeURIComponent(this.maxLength)
-                + "&minAge=" + encodeURIComponent(this.minAge);
+                params.term = this.searchTerm;
+                params.ledgerIds = this.ledgerIds;
+                params.minLength = this.minLength;
+                params.maxLength = this.maxLength;
+                params.minAge = this.minAge;
             }
             if (this.$route.meta.type === "bookie") {
                 const { bookieId, clusterId } = this.$route.params;
-                url += "&bookie=" + encodeURIComponent(bookieId)
-                    + "&cluster=" + encodeURIComponent(clusterId);
+                params.bookieId = bookieId;
+                params.clusterId = clusterId;
             }
+            const finalUrl = qs.stringify(params);
+            console.log(finalUrl);
+
             const ledgersResult = await this.$request.get(url);
             this.ledgers = ledgersResult.ledgers;
             this.ledgersCount = ledgersResult.totalLedgers;

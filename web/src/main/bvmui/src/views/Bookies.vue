@@ -11,8 +11,7 @@
         <v-row v-if="bookies.length > 0">
             <v-col cols="4" justify="start">
                 <v-select
-                    :value="size"
-                    @input="refreshBookies(page, $event)"
+                    v-model="size"
                     :items="[4, 8, 16, 32]"
                     label="Show bookies"
                     color="blue lighten-1"
@@ -24,8 +23,7 @@
             <v-col cols="8" justify="end">
                 <v-pagination
                     v-show="pageLength > 1"
-                    :value="page"
-                    @input="refreshBookies($event, size)"
+                    v-model="page"
                     :length="pageLength"
                     color="blue lighten-1"
                     class="justify-end"
@@ -54,12 +52,20 @@ export default {
             return Math.ceil(this.bookiesCount / this.size);
         }
     },
+    watch: {
+        async page(newPageValue) {
+            return this.refreshBookies(newPageValue, this.size);
+        },
+        async size(newSizeValue) {
+            return this.refreshBookies(this.page, newSizeValue);
+        }
+    },
     async created() {
         return this.refreshBookies(1, DefaultPageSize);
     },
     methods: {
         async refreshBookies(page, size) {
-            if (this.page == page && this.size == size) return;
+            if (this.page === page && this.size === size) return;
             this.page = this.size === size ? page : 1;
             this.size = size;
             const url = `api/bookie/all?page=${this.page}&size=${this.size}`;
