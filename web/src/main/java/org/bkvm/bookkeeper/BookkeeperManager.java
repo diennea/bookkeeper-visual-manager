@@ -52,6 +52,7 @@ import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
+import org.apache.bookkeeper.discover.BookieServiceInfo;
 import org.apache.bookkeeper.discover.RegistrationClient;
 import org.apache.bookkeeper.discover.ZKRegistrationClient;
 import org.apache.bookkeeper.meta.LedgerLayout;
@@ -100,6 +101,27 @@ public class BookkeeperManager implements AutoCloseable {
         cluster.setMetadataServiceUri(metadataServiceUri);
         cluster.setConfiguration("");
         updateCluster(cluster);
+    }
+
+    private Bookie.BookieInfo convertBookieServiceInfo(BookieServiceInfo bookieServiceInfo) {
+        Bookie.BookieInfo info = new Bookie.BookieInfo();
+        info.setProperties(bookieServiceInfo.getProperties());
+        info.setEndpoints(bookieServiceInfo
+                .getEndpoints()
+                .stream()
+                .map(s -> {
+                    Bookie.EndpointInfo endpoint = new Bookie.EndpointInfo();
+                    endpoint.setAddress(s.getHost() + ":" + s.getProtocol());
+                    endpoint.setProtocol(s.getProtocol());
+                    if (s.getAuth() != null) {
+                        endpoint.setAuth(String.join(",", s.getAuth()));
+                    } else {
+                        endpoint.setAuth("");
+                    }
+                    return endpoint;
+                })
+                .collect(Collectors.toList()));
+        return info;
     }
 
     public enum RefreshStatus {
@@ -200,29 +222,32 @@ public class BookkeeperManager implements AutoCloseable {
                 java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                 List<Bookie> bookiesBefore = metadataCache.listBookies(clusterId);
                 List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
-                for (BookieId bookieAddress : bookiesCookie) {
-                    LOG.log(Level.INFO, "Discovered Bookie {0}", bookieAddress);
+                for (BookieId bookieId : bookiesCookie) {
+                    LOG.log(Level.INFO, "Discovered Bookie {0}", bookieId);
+                    BookieServiceInfo bookieServiceInfo = metadataClient.getBookieServiceInfo(bookieId).get().getValue();
+                    Bookie.BookieInfo info = convertBookieServiceInfo(bookieServiceInfo);
                     Bookie b = new Bookie();
                     b.setClusterId(clusterId);
-                    b.setBookieId(bookieAddress.toString());
-                    b.setDescription(bookieAddress.toString());
+                    b.setBookieId(bookieId.toString());
+                    b.setDescription(bookieId.toString());
+                    b.setBookieInfo(Bookie.formatBookieInfo(info));
                     int state;
-                    if (available.contains(bookieAddress)) {
+                    if (available.contains(bookieId)) {
                         state = Bookie.STATE_AVAILABLE;
-                    } else if (readonly.contains(bookieAddress)) {
+                    } else if (readonly.contains(bookieId)) {
                         state = Bookie.STATE_READONLY;
                     } else {
                         state = Bookie.STATE_DOWN;
                     }
-                    LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieAddress, state});
+                    LOG.log(Level.INFO, "Discovered Bookie {0} state {1}", new Object[]{bookieId, state});
                     b.setState(state);
                     b.setScanTime(now);
                     if (b.getState() != Bookie.STATE_DOWN) {
-                        BookieInfo info = bookieInfo.get(bookieAddress);
-                        LOG.log(Level.INFO, "Bookie info {0}", info);
+                        BookieInfo bookieSpaceInfo = bookieInfo.get(bookieId);
+                        LOG.log(Level.INFO, "Bookie info {0}", bookieSpaceInfo);
                         if (info != null) {
-                            b.setFreeDiskspace(info.getFreeDiskSpace());
-                            b.setTotalDiskspace(info.getTotalDiskSpace());
+                            b.setFreeDiskspace(bookieSpaceInfo.getFreeDiskSpace());
+                            b.setTotalDiskspace(bookieSpaceInfo.getTotalDiskSpace());
                         } else {
                             // bookie did not anwer to getBookieInfo, this is not good
                             state = Bookie.STATE_DOWN;

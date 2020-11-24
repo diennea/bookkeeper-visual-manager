@@ -102,7 +102,7 @@ public class MetadataCacheTest {
                 System.out.println("ledgers: " + ledgers2);
 
                 // TESTS OVER BOOKIES
-                Bookie bookie = new Bookie("bookie:123", clusterId , "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
+                Bookie bookie = new Bookie("bookie:123", clusterId , "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234, null);
                 // insert
                 metadataCache.updateBookie(bookie);
 
@@ -118,7 +118,7 @@ public class MetadataCacheTest {
                 Bookie lookup = metadataCache.getBookie(clusterId, bookie.getBookieId());
                 assertEquals(bookie, lookup);
 
-                Bookie bookie2 = new Bookie("bookie:123", clusterId,  "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234);
+                Bookie bookie2 = new Bookie("bookie:123", clusterId,  "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234, null);
                 // update
                 metadataCache.updateBookie(bookie2);
                 lookup = metadataCache.getBookie(clusterId, "bookie:123");

@@ -16,12 +16,20 @@
                 <v-list-item-subtitle class="text-right">{{ $library.formatPercent(data.totalDiskSpace - data.freeDiskSpace, data.totalDiskSpace) }}&#37;</v-list-item-subtitle>
             </v-list-item>
             <v-list-item>
+                <v-list-item-title>Endpoints</v-list-item-title>
+                <v-list-item-subtitle class="text-right">{{ data.endpoints }}</v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item>
                 <v-list-item-title>Free space</v-list-item-title>
                 <v-list-item-subtitle class="text-right">{{ $library.formatBytes(data.freeDiskSpace) }}</v-list-item-subtitle>
             </v-list-item>
             <v-list-item>
                 <v-list-item-title>Total space</v-list-item-title>
                 <v-list-item-subtitle class="text-right">{{ $library.formatBytes(data.totalDiskSpace) }}</v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item v-if="data.properties !== ''">
+                <v-list-item-title>Properties</v-list-item-title>
+                <v-list-item-subtitle class="text-right">{{ data.properties }}</v-list-item-subtitle>
             </v-list-item>
         </v-list>
     </v-card>
