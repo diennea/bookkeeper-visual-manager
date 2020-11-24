@@ -120,8 +120,8 @@ export default {
     },
     data() {
         return {
-            page: 0,
-            size: 0,
+            page: 1,
+            size: DefaultPageSize,
             search: false,
             searchTerm: '',
             ledgerIds: '',
@@ -141,11 +141,14 @@ export default {
         }
     },
     watch: {
-        async page(newPageValue) {
-            return this.refreshLedgers(newPageValue, this.size);
-        },
-        async size(newSizeValue) {
-            return this.refreshLedgers(this.page, newSizeValue);
+        watch: {
+            async page(newPageValue) {
+                return this.refreshLedgers(newPageValue, this.size);
+            },
+            async size(newSizeValue) {
+                this.page = 1;
+                return this.refreshLedgers(this.page, newSizeValue);
+            }
         }
     },
     async created() {
@@ -153,15 +156,8 @@ export default {
     },
     methods: {
         async refreshLedgers(page, size) {
-            this.page = this.size === size ? page : 1;
-            this.size = size;
+            const params = { page, size };
 
-            const params = {
-                page: this.page,
-                size: this.size
-            }
-
-            let url = `api/ledger/all?page=${this.page}&size=${this.size}`;
             if (this.search) {
                 params.term = this.searchTerm;
                 params.ledgerIds = this.ledgerIds;
@@ -174,8 +170,9 @@ export default {
                 params.bookieId = bookieId;
                 params.clusterId = clusterId;
             }
-            const finalUrl = qs.stringify(params);
-            console.log(finalUrl);
+
+            const queryParameters = qs.stringify(params);
+            let url = `api/ledger/all?${queryParameters}`;
 
             const ledgersResult = await this.$request.get(url);
             this.ledgers = ledgersResult.ledgers;
@@ -203,11 +200,11 @@ export default {
             return this.refreshLedgers(1, this.size);
         },
         async clearSearch() {
-            this.searchTerm = '',
-            this.ledgerIds = '',
-            this.minLength = '',
-            this.maxLength = '',
-            this.minAge = 0,
+            this.searchTerm = '';
+            this.ledgerIds = '';
+            this.minLength = '';
+            this.maxLength = '';
+            this.minAge = 0;
 
             this.search = false;
             this.closeMetadata();

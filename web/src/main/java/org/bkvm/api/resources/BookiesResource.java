@@ -84,19 +84,13 @@ public class BookiesResource extends AbstractBookkeeperResource {
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
             b.setLastScan(bookie.getScanTime().getTime());
             Bookie.BookieInfo parsedBookieInfo = Bookie.parseBookieInfo(bookie.getBookieInfo());
-            String endpoints = parsedBookieInfo
+            List<String> endpoints = parsedBookieInfo
                     .getEndpoints()
                     .stream()
                     .map(e -> e.getProtocol() + "://" + e.getAddress())
-                    .collect(Collectors.joining(","));
+                    .collect(Collectors.toList());
             b.setEndpoints(endpoints);
-            String properties = parsedBookieInfo
-                    .getProperties()
-                    .entrySet()
-                    .stream()
-                    .map(entry -> entry.getKey() + "=" + entry.getValue())
-                    .collect(Collectors.joining(","));
-            b.setProperties(properties);
+            b.setProperties(parsedBookieInfo.getProperties());
             bookies.add(b);
         }
 
@@ -123,8 +117,8 @@ public class BookiesResource extends AbstractBookkeeperResource {
         private long freeDiskSpace;
         private long totalDiskSpace;
         private long lastScan;
-        private String endpoints;
-        private String properties;
+        private List<String> endpoints;
+        private Map<String, String> properties;
 
     }
 

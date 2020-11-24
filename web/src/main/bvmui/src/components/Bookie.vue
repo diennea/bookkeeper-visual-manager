@@ -16,10 +16,6 @@
                 <v-list-item-subtitle class="text-right">{{ $library.formatPercent(bookie.totalDiskSpace - bookie.freeDiskSpace, bookie.totalDiskSpace) }}&#37;</v-list-item-subtitle>
             </v-list-item>
             <v-list-item>
-                <v-list-item-title>Endpoints</v-list-item-title>
-                <v-list-item-subtitle class="text-right">{{ data.endpoints }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item>
                 <v-list-item-title>Free space</v-list-item-title>
                 <v-list-item-subtitle class="text-right">{{ $library.formatBytes(bookie.freeDiskSpace) }}</v-list-item-subtitle>
             </v-list-item>
@@ -27,11 +23,13 @@
                 <v-list-item-title>Total space</v-list-item-title>
                 <v-list-item-subtitle class="text-right">{{ $library.formatBytes(bookie.totalDiskSpace) }}</v-list-item-subtitle>
             </v-list-item>
-            <v-list-item v-if="data.properties !== ''">
-                <v-list-item-title>Properties</v-list-item-title>
-                <v-list-item-subtitle class="text-right">{{ data.properties }}</v-list-item-subtitle>
-            </v-list-item>
         </v-list>
+        <v-divider/>
+        <v-card-actions>
+            <v-btn text @click.stop="$emit('click-info', $event)">
+                Show info
+            </v-btn>
+        </v-card-actions>
     </v-card>
 </template>
 <script>

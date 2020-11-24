@@ -1,11 +1,54 @@
 <template>
     <v-container class="bvm-bookie">
+        <v-dialog v-if="currentBookie" v-model="dialogInfo" max-width="700px">
+            <v-card>
+                <v-card-title>
+                    <span class="headline">Bookie Info: {{ currentBookie.bookieId }} {{ currentBookie.clusterName }}</span>
+                </v-card-title>
+                <v-card-text>
+                    <v-tabs
+                        color="blue lighten-1"
+                        center-active>
+                        <v-tab>Endpoints</v-tab>
+                        <v-tab>Properties</v-tab>
+                        <v-tab-item>
+                            <v-simple-table class="mt-2 elevation-1">
+                                <template #default>
+                                    <tbody>
+                                        <tr v-for="(endpoint, index) in currentBookie.endpoints" :key="index">
+                                            <td>{{ index + 1 }}</td>
+                                            <td>{{ endpoint }}</td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-tab-item>
+                        <v-tab-item>
+                            <v-data-table
+                                :headers="[
+                                    { text: 'Property', value: 'name' },
+                                    { text: 'Value', value: 'value' }
+                                ]"
+                                :items="convertProperties(currentBookie.properties)"
+                                hide-default-footer
+                                class="mt-2 elevation-1"
+                            />
+                        </v-tab-item>
+                    </v-tabs>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn color="blue lighten-1" text @click="dialogInfo = false">Close</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-row justify="start">
             <Bookie
                 v-for="bookie in bookies"
                 :bookie="bookie"
                 :key="keyBookie(bookie)"
                 @click="openBookie(bookie)"
+                @click-info="openBookieInfo(bookie)"
             />
         </v-row>
         <v-row v-if="bookies.length > 0">
@@ -34,6 +77,7 @@
 </template>
 <script>
 const DefaultPageSize = 8;
+import qs from 'query-string';
 import Bookie from "@/components/Bookie";
 export default {
     components: {
@@ -41,10 +85,12 @@ export default {
     },
     data() {
         return {
-            page: 0,
-            size: 0,
+            page: 1,
+            size: DefaultPageSize,
             bookies: [],
             bookiesCount: 0,
+            currentBookie: null,
+            dialogInfo: false
         };
     },
     computed: {
@@ -57,6 +103,7 @@ export default {
             return this.refreshBookies(newPageValue, this.size);
         },
         async size(newSizeValue) {
+            this.page = 1;
             return this.refreshBookies(this.page, newSizeValue);
         }
     },
@@ -65,10 +112,8 @@ export default {
     },
     methods: {
         async refreshBookies(page, size) {
-            if (this.page === page && this.size === size) return;
-            this.page = this.size === size ? page : 1;
-            this.size = size;
-            const url = `api/bookie/all?page=${this.page}&size=${this.size}`;
+            const queryParameters = qs.stringify({page, size});
+            const url = `api/bookie/all?${queryParameters}`;
             const bookieResponse = await this.$request.get(url);
 
             this.bookies = bookieResponse.bookies;
@@ -81,8 +126,22 @@ export default {
                 params: { clusterId, bookieId }
             });
         },
+        openBookieInfo(bookie) {
+            this.currentBookie = bookie;
+            this.dialogInfo = true;
+        },
         keyBookie(bookie) {
             return `${bookie.clusterId}|${bookie.bookieId}`;
+        },
+        convertProperties(properties) {
+            let resultProperties = [];
+            for (let key in properties) {
+                resultProperties.push({
+                    name: key,
+                    value: properties[key]
+                });
+            }
+            return resultProperties;
         }
     }
 };
