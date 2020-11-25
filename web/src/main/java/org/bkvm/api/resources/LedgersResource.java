@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -48,6 +49,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
     public static final class GetLedgersResult {
 
         private List<LedgerBean> ledgers;
+        private long totalLedgers;
         private long totalSize;
     }
 
@@ -61,7 +63,9 @@ public class LedgersResource extends AbstractBookkeeperResource {
                                        @QueryParam("ledgerIds") String ledgerIds,
                                        @QueryParam("minLength") String minLength,
                                        @QueryParam("maxLength") String maxLength,
-                                       @QueryParam("minAge") String minAge
+                                       @QueryParam("minAge") String minAge,
+                                       @QueryParam("page") int page,
+                                       @QueryParam("size") int size
     ) throws Exception {
         List<Long> searchLedgerIds = null;
         if (ledgerIds != null && !ledgerIds.trim().isEmpty()) {
@@ -72,25 +76,35 @@ public class LedgersResource extends AbstractBookkeeperResource {
             }
         }
 
-        List<Map.Entry<Integer, Long>> resultLedgerIds = getBookkeeperManager().searchLedgers(term,
-                bookieId, convertParamInt(clusterId),
-                searchLedgerIds, convertParamInt(minLength),
-                convertParamInt(maxLength), convertParamInt(minAge)
-        );
+        List<Map.Entry<Integer, Long>> resultLedgerIds = getBookkeeperManager()
+                .searchLedgers(term,
+                        bookieId, convertParamInt(clusterId),
+                        searchLedgerIds, convertParamInt(minLength),
+                        convertParamInt(maxLength), convertParamInt(minAge)
+                );
 
-        List<LedgerBean> resultLedgers = new ArrayList<>();
+        List<LedgerBean> allLedgers = new ArrayList<>();
         long totalSize = 0;
         for (Map.Entry<Integer, Long> lId : resultLedgerIds) {
             long id = lId.getValue();
             int ledgerClusterId = lId.getKey();
             LedgerBean bean = getLedgerMetadata(ledgerClusterId, id);
             if (bean != null) {
-                resultLedgers.add(bean);
+                allLedgers.add(bean);
                 totalSize += bean.getLength();
             }
         }
 
-        return new GetLedgersResult(resultLedgers, totalSize);
+        List<LedgerBean> ledgers = filterLedgers(allLedgers, page, size);
+        return new GetLedgersResult(ledgers, allLedgers.size(), totalSize);
+    }
+
+    private List<LedgerBean> filterLedgers(List<LedgerBean> ledgers, int offset, int limit) {
+        int skipIndex = (offset - 1) * limit;
+        return ledgers.stream()
+                .skip(skipIndex)
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     @GET

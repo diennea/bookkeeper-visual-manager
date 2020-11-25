@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <v-container>
         <v-form class="bvm-ledger-search"
             @submit.prevent="performSearch">
             <v-text-field
@@ -51,18 +51,29 @@
                 @click="performSearch">
                 Search
             </v-btn>
+            <v-btn
+                depressed
+                large
+                tile
+                class="ml-1 mt-1"
+                color="red lighten-1 white--text"
+                @click="clearSearch">
+                Clear
+            </v-btn>
         </v-form>
-        <div class="bvm-ledger-search-results-info">
-            Found: <b>{{ ledgers.length }}</b> ledgers,
+        <v-alert
+            border="left"
+            color="blue lighten-1 white--text">
+            Found: <b>{{ ledgersCount }}</b> ledgers,
             total size: <b>{{ $library.formatBytes(totalSize) }}</b>.
-        </div>
+        </v-alert>
         <div class="bvm-ledger" :class="{'metadata': showLedgerMetadata}">
             <div class="bvm-tile-container">
-                <Tile
-                    v-for="item in ledgers"
-                    :item="item"
-                    :key="item.id+'_'+item.clusterId"
-                    @click="showMetadata(item.clusterId, item.id)"
+                <Ledger
+                    v-for="ledger in ledgers"
+                    :ledger="ledger"
+                    :key="keyLedger(ledger)"
+                    @click="showMetadata(ledger.clusterId, ledger.id)"
                 />
             </div>
             <div v-if="showLedgerMetadata"
@@ -73,18 +84,45 @@
                 />
             </div>
         </div>
-    </div>
+        <v-row v-if="ledgers.length > 0">
+            <v-col cols="4" justify="start">
+                <v-select
+                    v-model="size"
+                    :items="[20, 40, 80, 160]"
+                    label="Show ledgers"
+                    color="blue lighten-1"
+                    class="my-1"
+                    outlined
+                    dense
+                />
+            </v-col>
+            <v-col cols="8" justify="end">
+                <v-pagination
+                    v-show="pageLength > 1"
+                    v-model="page"
+                    :length="pageLength"
+                    color="blue lighten-1"
+                    class="justify-end"
+                />
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
 <script>
+const DefaultPageSize = 20;
+import qs from 'query-string';
 import MetadataContainer from "@/components/MetadataContainer";
-import Tile from "@/components/Tile";
+import Ledger from "@/components/Ledger";
 export default {
     components: {
         MetadataContainer,
-        Tile,
+        Ledger,
     },
     data() {
         return {
+            page: 1,
+            size: DefaultPageSize,
+            search: false,
             searchTerm: '',
             ledgerIds: '',
             minLength: '',
@@ -93,24 +131,57 @@ export default {
             showLedgerMetadata: false,
             currentLedger: null,
             ledgers: [],
+            ledgersCount: 0,
             totalSize: 0
         };
     },
-    created() {
-        let url = "api/ledger/all";
-        if (this.$route.meta.type === "bookie") {
-            const { bookieId, clusterId } = this.$route.params;
-            url = "api/ledger/all?bookie=" + encodeURIComponent(bookieId)
-                + "&cluster=" + encodeURIComponent(clusterId);
+    computed: {
+        pageLength() {
+            return Math.ceil(this.ledgersCount / this.size);
         }
-        this.$request.get(url).then(
-            ledgersResult => {
-                this.ledgers = ledgersResult.ledgers;
-                this.totalSize = ledgersResult.totalSize;
+    },
+    watch: {
+        watch: {
+            async page(newPageValue) {
+                return this.refreshLedgers(newPageValue, this.size);
+            },
+            async size(newSizeValue) {
+                this.page = 1;
+                return this.refreshLedgers(this.page, newSizeValue);
             }
-        );
+        }
+    },
+    async created() {
+        return this.refreshLedgers(1, DefaultPageSize);
     },
     methods: {
+        async refreshLedgers(page, size) {
+            const params = { page, size };
+
+            if (this.search) {
+                params.term = this.searchTerm;
+                params.ledgerIds = this.ledgerIds;
+                params.minLength = this.minLength;
+                params.maxLength = this.maxLength;
+                params.minAge = this.minAge;
+            }
+            if (this.$route.meta.type === "bookie") {
+                const { bookieId, clusterId } = this.$route.params;
+                params.bookieId = bookieId;
+                params.clusterId = clusterId;
+            }
+
+            const queryParameters = qs.stringify(params);
+            let url = `api/ledger/all?${queryParameters}`;
+
+            const ledgersResult = await this.$request.get(url);
+            this.ledgers = ledgersResult.ledgers;
+            this.ledgersCount = ledgersResult.totalLedgers;
+            this.totalSize = ledgersResult.totalSize;
+        },
+        keyLedger(ledger) {
+            return `${ledger.clusterId}|${ledger.id}`;
+        },
         showMetadata(clusterId, ledgerId) {
             this.$request.get(`api/ledger/metadata/${clusterId}/${ledgerId}`).then(
                 ledger => {
@@ -123,23 +194,21 @@ export default {
             this.metadata = null;
             this.showLedgerMetadata = false;
         },
-        performSearch() {
+        async performSearch() {
+            this.search = true;
             this.closeMetadata();
-            let url = "api/ledger/all?term=" + encodeURIComponent(this.searchTerm)
-                + "&ledgerIds=" + encodeURIComponent(this.ledgerIds)
-                + "&minLength=" + encodeURIComponent(this.minLength)
-                + "&maxLength=" + encodeURIComponent(this.maxLength)
-                + "&minAge=" + encodeURIComponent(this.minAge);
-            if (this.$route.meta.type === "bookie") {
-                const bookieId = this.$route.params.bookieId;
-                url = url + "&bookie=" + encodeURIComponent(bookieId);
-            }
-            this.$request.get(url).then(
-                ledgersResult => {
-                    this.ledgers = ledgersResult.ledgers;
-                    this.totalSize = ledgersResult.totalSize;
-                }
-            );
+            return this.refreshLedgers(1, this.size);
+        },
+        async clearSearch() {
+            this.searchTerm = '';
+            this.ledgerIds = '';
+            this.minLength = '';
+            this.maxLength = '';
+            this.minAge = 0;
+
+            this.search = false;
+            this.closeMetadata();
+            return this.refreshLedgers(1, this.size);
         }
     }
 }

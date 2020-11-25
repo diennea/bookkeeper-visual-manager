@@ -29,7 +29,9 @@ import java.util.stream.Collectors;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bkvm.cache.Bookie;
 import org.bkvm.cache.Cluster;
@@ -37,16 +39,30 @@ import org.bkvm.cache.Cluster;
 @Path("bookie")
 public class BookiesResource extends AbstractBookkeeperResource {
 
+    @Data
+    @AllArgsConstructor
+    public static final class GetBookiesResult {
+
+        private List<BookieBean> bookies;
+        private int totalBookies;
+
+    }
+
     @GET
     @Secured
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<BookieBean> getBookies() throws Exception {
-        final List<BookieBean> bookies = new ArrayList<>();
-        final Collection<Bookie> fromMetadata = getBookkeeperManager().getAllBookies();
-        final Map<Integer, Cluster> allClusters = getBookkeeperManager().getAllClusters().stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
+    public GetBookiesResult getBookies(@QueryParam("page") int page,
+                                       @QueryParam("size") int size
+    ) throws Exception {
+        final Collection<Bookie> allBookies = getBookkeeperManager().getAllBookies();
+        final List<Bookie> filteredBookies = filterBookies(allBookies, page, size);
 
-        for (Bookie bookie : fromMetadata) {
+        final Map<Integer, Cluster> allClusters  = getBookkeeperManager().getAllClusters()
+                .stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
+
+        final List<BookieBean> bookies = new ArrayList<>();
+        for (Bookie bookie : filteredBookies) {
             BookieBean b = new BookieBean();
             b.setDescription(bookie.getDescription());
             switch (bookie.getState()) {
@@ -68,22 +84,25 @@ public class BookiesResource extends AbstractBookkeeperResource {
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
             b.setLastScan(bookie.getScanTime().getTime());
             Bookie.BookieInfo parsedBookieInfo = Bookie.parseBookieInfo(bookie.getBookieInfo());
-            String endpoints = parsedBookieInfo
+            List<String> endpoints = parsedBookieInfo
                     .getEndpoints()
                     .stream()
                     .map(e -> e.getProtocol() + "://" + e.getAddress())
-                    .collect(Collectors.joining(","));
+                    .collect(Collectors.toList());
             b.setEndpoints(endpoints);
-            String properties = parsedBookieInfo
-                    .getProperties()
-                    .entrySet()
-                    .stream()
-                    .map(entry -> entry.getKey() + "=" + entry.getValue())
-                    .collect(Collectors.joining(","));
-            b.setProperties(properties);
+            b.setProperties(parsedBookieInfo.getProperties());
             bookies.add(b);
         }
-        return bookies;
+
+        return new GetBookiesResult(bookies, allBookies.size());
+    }
+
+    private List<Bookie> filterBookies(Collection<Bookie> bookies, int offset, int limit) {
+        int skipIndex = (offset - 1) * limit;
+        return bookies.stream()
+                .skip(skipIndex)
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     @Data
@@ -98,8 +117,8 @@ public class BookiesResource extends AbstractBookkeeperResource {
         private long freeDiskSpace;
         private long totalDiskSpace;
         private long lastScan;
-        private String endpoints;
-        private String properties;
+        private List<String> endpoints;
+        private Map<String, String> properties;
 
     }
 
