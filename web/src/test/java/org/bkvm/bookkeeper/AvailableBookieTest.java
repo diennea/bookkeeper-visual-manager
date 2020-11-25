@@ -31,14 +31,14 @@ public class AvailableBookieTest extends BookkeeperManagerTestUtils {
     @Test
     public void testAvailableBookiesTwoBookies() throws Exception {
         startBookie(false);
-        
+
         final BookkeeperManager bookkeeperManager = getBookkeeperManager();
         long now = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
         bookkeeperManager.doRefreshMetadataCache();
         long after = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
         assertTrue(after != now);
         Collection<Bookie> allBookies = bookkeeperManager.getAllBookies();
-        assertEquals(2, allBookies.size());                
+        assertEquals(2, allBookies.size());
         stopOneBookie();
         bookkeeperManager.doRefreshMetadataCache();
         long afterError = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
@@ -46,9 +46,9 @@ public class AvailableBookieTest extends BookkeeperManagerTestUtils {
         allBookies = bookkeeperManager.getAllBookies();
         assertEquals(2, allBookies.size());
     }
-    
+
     @Test
-    public void testAvailableBookiesOneBookie() throws Exception {        
+    public void testAvailableBookiesOneBookie() throws Exception {
         final BookkeeperManager bookkeeperManager = getBookkeeperManager();
         long now = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
         bookkeeperManager.doRefreshMetadataCache();
@@ -56,7 +56,7 @@ public class AvailableBookieTest extends BookkeeperManagerTestUtils {
         assertTrue(after != now);
         Collection<Bookie> allBookies = bookkeeperManager.getAllBookies();
         assertEquals(1, allBookies.size());
-        
+
         bookkeeperManager.doRefreshMetadataCache();
         long afterError = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
         assertTrue(afterError != after);
