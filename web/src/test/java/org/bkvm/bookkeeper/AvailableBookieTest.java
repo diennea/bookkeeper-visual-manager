@@ -20,6 +20,7 @@
 package org.bkvm.bookkeeper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.Collection;
 import org.bkvm.cache.Bookie;
 import org.bkvm.utils.BookkeeperManagerTestUtils;
@@ -28,9 +29,38 @@ import org.junit.Test;
 public class AvailableBookieTest extends BookkeeperManagerTestUtils {
 
     @Test
-    public void testAvailableBookies() throws Exception {
-        getBookkeeperManager().doRefreshMetadataCache();
-        Collection<Bookie> allBookies = getBookkeeperManager().getAllBookies();
+    public void testAvailableBookiesTwoBookies() throws Exception {
+        startBookie(false);
+        
+        final BookkeeperManager bookkeeperManager = getBookkeeperManager();
+        long now = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
+        bookkeeperManager.doRefreshMetadataCache();
+        long after = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
+        assertTrue(after != now);
+        Collection<Bookie> allBookies = bookkeeperManager.getAllBookies();
+        assertEquals(2, allBookies.size());                
+        stopOneBookie();
+        bookkeeperManager.doRefreshMetadataCache();
+        long afterError = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
+        assertTrue(afterError != after);
+        allBookies = bookkeeperManager.getAllBookies();
+        assertEquals(2, allBookies.size());
+    }
+    
+    @Test
+    public void testAvailableBookiesOneBookie() throws Exception {        
+        final BookkeeperManager bookkeeperManager = getBookkeeperManager();
+        long now = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
+        bookkeeperManager.doRefreshMetadataCache();
+        long after = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
+        assertTrue(after != now);
+        Collection<Bookie> allBookies = bookkeeperManager.getAllBookies();
+        assertEquals(1, allBookies.size());
+        
+        bookkeeperManager.doRefreshMetadataCache();
+        long afterError = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();
+        assertTrue(afterError != after);
+        allBookies = bookkeeperManager.getAllBookies();
         assertEquals(1, allBookies.size());
     }
 

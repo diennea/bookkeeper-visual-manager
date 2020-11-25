@@ -28,6 +28,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import org.apache.bookkeeper.client.BKException.BKBookieHandleNotAvailableException;
 import org.apache.bookkeeper.client.BKException.BKNoSuchLedgerExistsOnMetadataServerException;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
@@ -210,8 +212,7 @@ public class BookkeeperManager implements AutoCloseable {
                 BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
 
                 lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
-
-                final Map<BookieId, BookieInfo> bookieInfo = bkClient.getBookieInfo();
+                System.out.println("QUIII");
                 RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
                 final Collection<BookieId> bookiesCookie = metadataClient.getAllBookies().get().getValue();
                 final Collection<BookieId> available = metadataClient.getWritableBookies().get().getValue();
@@ -219,18 +220,33 @@ public class BookkeeperManager implements AutoCloseable {
                 LOG.log(Level.INFO, "all Bookies {0}", bookiesCookie);
                 LOG.log(Level.INFO, "writable Bookies {0}", available);
                 LOG.log(Level.INFO, "readonly Bookies {0}", readonly);
+                final Map<BookieId, BookieInfo> bookieInfo;
+                if (available.size() + readonly.size() > 0) {
+                    // https://github.com/apache/bookkeeper/pull/2498
+                    bookieInfo = bkClient.getBookieInfo();
+                } else {
+                    bookieInfo = Collections.emptyMap();
+                }
                 java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                 List<Bookie> bookiesBefore = metadataCache.listBookies(clusterId);
                 List<String> currentKnownBookiesOnMetadataServer = new ArrayList<>();
                 for (BookieId bookieId : bookiesCookie) {
                     LOG.log(Level.INFO, "Discovered Bookie {0}", bookieId);
-                    BookieServiceInfo bookieServiceInfo = metadataClient.getBookieServiceInfo(bookieId).get().getValue();
-                    Bookie.BookieInfo info = convertBookieServiceInfo(bookieServiceInfo);
-                    Bookie b = new Bookie();
+                    Bookie b = metadataCache.getBookie(clusterId, bookieId.toString());
+                    if (b == null) {
+                        b = new Bookie();
+                    }
                     b.setClusterId(clusterId);
                     b.setBookieId(bookieId.toString());
                     b.setDescription(bookieId.toString());
-                    b.setBookieInfo(Bookie.formatBookieInfo(info));
+                    try {
+                        BookieServiceInfo bookieServiceInfo = FutureUtils.result(metadataClient.getBookieServiceInfo(bookieId)).getValue();
+                        Bookie.BookieInfo info = convertBookieServiceInfo(bookieServiceInfo);
+                        b.setBookieInfo(Bookie.formatBookieInfo(info));
+                    } catch (BKBookieHandleNotAvailableException err) {
+                        LOG.log(Level.INFO, "Bookie " + bookieId + " is not available (" + err + ")");
+                        // keep current bookieInfo
+                    }
                     int state;
                     if (available.contains(bookieId)) {
                         state = Bookie.STATE_AVAILABLE;
@@ -296,7 +312,6 @@ public class BookkeeperManager implements AutoCloseable {
             lastMetadataCacheRefresh = System.currentTimeMillis();
             LOG.info("Refreshing Metadata Cache Finished");
         } catch (Throwable e) {
-            e.printStackTrace();
             LOG.log(Level.SEVERE, "Cannot refresh metadata {}", e);
         } finally {
             refreshStatus.compareAndSet(RefreshStatus.WORKING, RefreshStatus.IDLE);
@@ -411,12 +426,12 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Map.Entry<Integer, Long>> searchLedgers(String term,
-                                    String bookieId,
-                                    Integer clusterId,
-                                    List<Long> ledgerIds,
-                                    Integer minLength,
-                                    Integer maxLength,
-                                    Integer minAge) throws BookkeeperManagerException {
+                                                        String bookieId,
+                                                        Integer clusterId,
+                                                        List<Long> ledgerIds,
+                                                        Integer minLength,
+                                                        Integer maxLength,
+                                                        Integer minAge) throws BookkeeperManagerException {
         return metadataCache
                 .searchLedgers(term, bookieId, clusterId, ledgerIds)
                 .stream()

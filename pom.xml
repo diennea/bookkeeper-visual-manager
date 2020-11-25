@@ -43,7 +43,7 @@
 
         <curator.version>5.1.0</curator.version>
         <zookpeeper.version>3.6.2</zookpeeper.version>
-        <bookkeeper.version>4.12.0</bookkeeper.version>
+        <bookkeeper.version>4.13.0-SNAPSHOT</bookkeeper.version>
         <slf4j.version>1.7.29</slf4j.version>
         <netty.version>4.1.51.Final</netty.version>
         <netty.boringssl.version>2.0.34.Final</netty.boringssl.version>

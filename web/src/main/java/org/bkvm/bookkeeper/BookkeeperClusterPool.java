@@ -53,7 +53,8 @@ public class BookkeeperClusterPool implements Closeable {
             ClientConfiguration conf = new ClientConfiguration()
                     .setMetadataServiceUri(metadataServiceUri)
                     .setEnableDigestTypeAutodetection(true)
-                    .setGetBookieInfoTimeout(1000)
+                    .setGetBookieInfoTimeout(5)
+                    .setReadEntryTimeout(5)
                     .setClientConnectTimeoutMillis(1000);
 
             StringReader reader = new StringReader(configuration);
@@ -89,7 +90,7 @@ public class BookkeeperClusterPool implements Closeable {
     private void releaseBookKeeperCluster(BookkeeperCluster bkCluster) throws BookkeeperManagerException {
         try {
             if (bkCluster.getBkClient() != null) {
-                LOG.log(Level.INFO, "Removed bkClient {0}", bkCluster.getBkClient().getBookieInfo());
+                LOG.log(Level.INFO, "Removed bkClient {0}", bkCluster.getBkClient());
                 bkCluster.getBkClient().close();
             }
             if (bkCluster.getBkAdmin() != null) {
