@@ -212,7 +212,6 @@ public class BookkeeperManager implements AutoCloseable {
                 BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
 
                 lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
-                System.out.println("QUIII");
                 RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
                 final Collection<BookieId> bookiesCookie = metadataClient.getAllBookies().get().getValue();
                 final Collection<BookieId> available = metadataClient.getWritableBookies().get().getValue();
