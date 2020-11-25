@@ -21,7 +21,10 @@ package org.bkvm.utils;
 import static junit.framework.Assert.fail;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SaslAuthenticated;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
+import herddb.network.netty.NetworkUtils;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
@@ -54,7 +57,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
 
     TestingServer zkServerMain;
     ZooKeeper zkServer;
-    BookieServer bookie;
+    List<BookieServer> bookies = new ArrayList<>();
 
     public AbstractBookkeeperTestUtils() {
     }
@@ -62,7 +65,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     public void startZookeeper() throws Exception {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        zkServerMain = new TestingServer(getPort(), folder.newFolder("zk"), true);
+        zkServerMain = new TestingServer(-1, folder.newFolder("zk"), true);
 
         zkServer = new ZooKeeper(getZooKeeperAddress(), CONNECTION_TIMEOUT, (e) -> {
             switch (e.getState()) {
@@ -97,14 +100,11 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     }
 
     public void startBookie(boolean format) throws Exception {
-        if (bookie != null) {
-            throw new Exception("bookie already started");
-        }
         ServerConfiguration conf = new ServerConfiguration();
-        conf.setBookiePort(5621);
+        conf.setBookiePort(NetworkUtils.assignFirstFreePort());
         conf.setUseHostNameAsBookieID(true);
 
-        File targetDir = folder.newFolder("bookie").getAbsoluteFile();
+        File targetDir = folder.newFolder().getAbsoluteFile();
         conf.setMetadataServiceUri("zk+null://" + getZooKeeperAddress() + "/ledgers");
         conf.setLedgerDirNames(new String[]{targetDir.toString()});
         conf.setJournalDirName(targetDir.toString());
@@ -123,24 +123,27 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
             BookKeeperAdmin.format(conf, false, true);
         }
 
-        this.bookie = new BookieServer(conf);
-        this.bookie.start();
+        BookieServer bookie = new BookieServer(conf);
+        bookie.start();
+        bookies.add(bookie);
     }
 
-    public void stopBookie() throws Exception {
-        if (bookie != null) {
+    public void stopBookies() throws Exception {
+        for (BookieServer bookie : bookies) {
             bookie.shutdown();
             bookie.join();
-            bookie = null;
         }
+        bookies.clear();
+    }
+
+    public void stopOneBookie() throws Exception {
+        BookieServer removed = bookies.remove(0);
+        removed.shutdown();
+        removed.join();
     }
 
     public ZooKeeper getZookeeperServer() {
         return zkServer;
-    }
-
-    public int getPort() {
-        return 1282;
     }
 
     public String getZooKeeperAddress() {
@@ -158,9 +161,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     @Override
     public void close() throws Exception {
         try {
-            if (bookie != null) {
-                bookie.shutdown();
-            }
+            stopBookies();
         } catch (Throwable t) {
         }
         try {

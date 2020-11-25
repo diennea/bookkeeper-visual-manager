@@ -6,6 +6,10 @@
             <v-list-item-subtitle>{{ $library.formatDate(bookie.lastScan) }}</v-list-item-subtitle>
         </v-list-item-content>
         </v-list-item>
+        <v-list-item>
+            <v-list-item-title>Usage</v-list-item-title>
+            <v-list-item-subtitle class="text-right">{{ $library.formatPercent(bookie.totalDiskSpace - bookie.freeDiskSpace, bookie.totalDiskSpace) }}&#37;</v-list-item-subtitle>
+        </v-list-item>
         <v-card-text>
             <p class="text-center text-uppercase display-1">{{ bookie.state }}</p>
         </v-card-text>
