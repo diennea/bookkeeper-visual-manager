@@ -1,6 +1,6 @@
 <template>
     <v-container class="bvm-bookie">
-        <v-dialog v-if="currentBookie" v-model="dialogInfo" max-width="700px">
+        <v-dialog v-if="currentBookie" v-model="dialogInfo" max-width="500px">
             <v-card>
                 <v-card-title>
                     <span class="headline">Bookie Info: {{ currentBookie.bookieId }} {{ currentBookie.clusterName }}</span>
@@ -9,8 +9,25 @@
                     <v-tabs
                         color="blue lighten-1"
                         center-active>
+                        <v-tab>Disk usage</v-tab>
                         <v-tab>Endpoints</v-tab>
                         <v-tab>Properties</v-tab>
+                        <v-tab-item>
+                            <v-list class="transparent">
+                                <v-list-item>
+                                    <v-list-item-title>Usage</v-list-item-title>
+                                    <v-list-item-subtitle class="text-right">{{ $library.formatPercent(currentBookie.totalDiskSpace - currentBookie.freeDiskSpace, currentBookie.totalDiskSpace) }}&#37;</v-list-item-subtitle>
+                                </v-list-item>
+                                <v-list-item>
+                                    <v-list-item-title>Free space</v-list-item-title>
+                                    <v-list-item-subtitle class="text-right">{{ $library.formatBytes(currentBookie.freeDiskSpace) }}</v-list-item-subtitle>
+                                </v-list-item>
+                                <v-list-item>
+                                    <v-list-item-title>Total space</v-list-item-title>
+                                    <v-list-item-subtitle class="text-right">{{ $library.formatBytes(currentBookie.totalDiskSpace) }}</v-list-item-subtitle>
+                                </v-list-item>
+                            </v-list>
+                        </v-tab-item>
                         <v-tab-item>
                             <v-simple-table class="mt-2 elevation-1">
                                 <template #default>

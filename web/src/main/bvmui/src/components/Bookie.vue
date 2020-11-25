@@ -10,23 +10,8 @@
             <p class="text-center text-uppercase display-1">{{ bookie.state }}</p>
         </v-card-text>
         <v-divider />
-        <v-list class="transparent">
-            <v-list-item>
-                <v-list-item-title>Usage</v-list-item-title>
-                <v-list-item-subtitle class="text-right">{{ $library.formatPercent(bookie.totalDiskSpace - bookie.freeDiskSpace, bookie.totalDiskSpace) }}&#37;</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item>
-                <v-list-item-title>Free space</v-list-item-title>
-                <v-list-item-subtitle class="text-right">{{ $library.formatBytes(bookie.freeDiskSpace) }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item>
-                <v-list-item-title>Total space</v-list-item-title>
-                <v-list-item-subtitle class="text-right">{{ $library.formatBytes(bookie.totalDiskSpace) }}</v-list-item-subtitle>
-            </v-list-item>
-        </v-list>
-        <v-divider/>
         <v-card-actions>
-            <v-btn text @click.stop="$emit('click-info', $event)">
+            <v-btn text @click.stop="$emit('click-info', $event)" :disabled="!enableShowInfo">
                 Show info
             </v-btn>
         </v-card-actions>
@@ -39,7 +24,7 @@ export default {
     },
     computed: {
         statusColor() {
-            switch(this.bookie.state){
+            switch (this.bookie.state) {
                 case 'available':
                     return 'light-blue darken-1';
                 case 'readonly':
@@ -47,6 +32,17 @@ export default {
                 case 'down':
                 default:
                     return 'blue-grey darken-4';
+            }
+        },
+        enableShowInfo() {
+            const state = this.bookie.state ? this.bookie.state : "";
+            switch (state) {
+                case 'available':
+                case 'readonly':
+                    return true;
+                case 'down':
+                default:
+                    return false;
             }
         }
     }
