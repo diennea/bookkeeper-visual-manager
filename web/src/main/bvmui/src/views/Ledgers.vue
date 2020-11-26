@@ -141,14 +141,12 @@ export default {
         }
     },
     watch: {
-        watch: {
-            async page(newPageValue) {
-                return this.refreshLedgers(newPageValue, this.size);
-            },
-            async size(newSizeValue) {
-                this.page = 1;
-                return this.refreshLedgers(this.page, newSizeValue);
-            }
+        async page(newPageValue) {
+            return this.refreshLedgers(newPageValue, this.size);
+        },
+        async size(newSizeValue) {
+            this.page = 1;
+            return this.refreshLedgers(this.page, newSizeValue);
         }
     },
     async created() {
