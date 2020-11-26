@@ -5,7 +5,7 @@
         <div>Cluster: {{ currentLedger.clusterName }}</div>
         <h2 v-if="currentLedger.description !== ''">{{ currentLedger.description }}</h2>
         <div>Age: {{ currentLedger.age }} minutes</div>
-        <div>Created at: {{ new Date(currentLedger.ctime) }}</div>
+        <div>Created at: {{ $library.formatDate(currentLedger.ctime) }}</div>
         <div>State: {{ currentLedger.state }}</div>
         <div>Ensemble size: {{ currentLedger.ensembleSize }} (number of bookies)</div>
         <div>WriteQuorumSize: {{ currentLedger.writeQuorumSize }} (number of copies)</div>
