@@ -22,6 +22,7 @@ module.exports = {
       "vue/attributes-order": 'off',
       "vue/html-closing-bracket-newline": 'off',
       "vue/html-indent": 'off',
+      'vue/valid-v-slot': ['error', { allowModifiers: true }],
       // disallow use of Object.prototypes builtins directly
       "no-prototype-builtins": 'off',
       // specify curly brace conventions for all control statements

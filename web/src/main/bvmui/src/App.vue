@@ -2,11 +2,11 @@
     <v-app id="bkvm" v-if="$store.getters.isLogged">
         <Drawer />
         <Navbar :page-title="pageTitle" />
-        <v-content>
+        <v-main>
             <v-container>
                 <router-view class="bvm-view" :key="$route.path" />
             </v-container>
-        </v-content>
+        </v-main>
     </v-app>
     <v-app v-else>
         <router-view key="login" class="bvm-view" />

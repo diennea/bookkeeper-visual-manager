@@ -13,7 +13,7 @@
             <span>Replication {{ ledger.writeQuorumSize }}</span>
         </div>
         <div class="bvm-tile__row">
-            <span>Age {{ ledger.age }} hours</span>
+            <span>Age {{ computedAge }}</span>
         </div>
     </div>
 </template>
@@ -21,6 +21,17 @@
 export default {
     props: {
         ledger: Object
+    },
+    computed: {
+        computedAge() {
+            const countHours = Math.floor(this.ledger.age / 60);
+            const countMinutes = this.ledger.age % 60;
+            if (countHours > 1) {
+                return `${countHours} hours ${countMinutes} minutes`;
+            } else {
+                return `${countMinutes} minutes`;
+            }
+        }
     }
 };
 </script>
