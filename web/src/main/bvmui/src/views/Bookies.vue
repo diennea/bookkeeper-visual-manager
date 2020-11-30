@@ -7,7 +7,7 @@
                 </v-card-title>
                 <v-card-text>
                     <v-tabs
-                        color="blue lighten-1"
+                        color="primary"
                         center-active>
                         <v-tab>Disk usage</v-tab>
                         <v-tab>Endpoints</v-tab>
@@ -55,7 +55,7 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn color="blue lighten-1" text @click="dialogInfo = false">Close</v-btn>
+                    <v-btn color="primary" text @click="dialogInfo = false">Close</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -74,7 +74,7 @@
                     v-model="size"
                     :items="[4, 8, 16, 32]"
                     label="Show bookies"
-                    color="blue lighten-1"
+                    color="primary"
                     class="my-1"
                     outlined
                     dense
@@ -85,7 +85,7 @@
                     v-show="pageLength > 1"
                     v-model="page"
                     :length="pageLength"
-                    color="blue lighten-1"
+                    color="primary"
                     class="justify-end"
                 />
             </v-col>

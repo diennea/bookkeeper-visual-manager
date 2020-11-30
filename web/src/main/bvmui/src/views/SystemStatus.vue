@@ -21,10 +21,10 @@
             Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh) }}</b>
         </p>
         <p v-if="metadataRefreshPeriod && metadataRefreshPeriod > 0" class="caption my-2">
-            Metadata refresh period <b>{{ metadataRefreshPeriod }}</b>
+            Automatic refresh period <b>{{ metadataRefreshPeriod }} seconds</b>.
         </p>
         <p v-else class="caption my-2">
-            No metadata refresh period
+            Automatic refresh period <b>disabled</b>.
         </p>
     </div>
 </template>

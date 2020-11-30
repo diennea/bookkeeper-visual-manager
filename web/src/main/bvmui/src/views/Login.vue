@@ -9,7 +9,7 @@
                     v-model="username"
                     :error="hasError"
                     label="Username"
-                    color="blue lighten-1 white--text"
+                    color="primary white--text"
                     prepend-icon="mdi-account-circle"
                 />
                 <v-text-field
@@ -17,7 +17,7 @@
                     :error="hasError"
                     :type="showPassword ? 'text' : 'password'"
                     label="Password"
-                    color="blue lighten-1 white--text"
+                    color="primary white--text"
                     prepend-icon="mdi-lock"
                     :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                     @click:append="showPassword = !showPassword"
@@ -26,7 +26,7 @@
         </v-card-text>
         <v-divider />
         <v-card-actions>
-            <v-btn color="blue lighten-1 white--text" @click="performLogin">Login</v-btn>
+            <v-btn color="primary white--text" @click="performLogin">Login</v-btn>
         </v-card-actions>
     </v-card>
 </template>

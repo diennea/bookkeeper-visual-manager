@@ -47,7 +47,7 @@
                 large
                 tile
                 class="mt-1"
-                color="blue lighten-1 white--text"
+                color="primary white--text"
                 @click="performSearch">
                 Search
             </v-btn>
@@ -63,7 +63,7 @@
         </v-form>
         <v-alert
             border="left"
-            color="blue lighten-1 white--text">
+            color="primary white--text">
             Found: <b>{{ ledgersCount }}</b> ledgers,
             total size: <b>{{ $library.formatBytes(totalSize) }}</b>.
         </v-alert>
@@ -90,7 +90,7 @@
                     v-model="size"
                     :items="[20, 40, 80, 160]"
                     label="Show ledgers"
-                    color="blue lighten-1"
+                    color="primary"
                     class="my-1"
                     outlined
                     dense
@@ -101,7 +101,7 @@
                     v-show="pageLength > 1"
                     v-model="page"
                     :length="pageLength"
-                    color="blue lighten-1"
+                    color="primary"
                     class="justify-end"
                 />
             </v-col>

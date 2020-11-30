@@ -38,8 +38,8 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
     @Setter
     public static final class SystemStatus {
 
-        private String status;
-        private long lastCacheRefresh;
+        private final String status;
+        private final long lastCacheRefresh;
         private Integer metadataRefreshPeriod;
 
         public SystemStatus(RefreshCacheWorkerStatus status) {
@@ -58,10 +58,10 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
         ConfigurationStore configStore = bookkeeperManager.getConfigStore();
 
         Integer metadataRefreshPeriod = Integer.parseInt(configStore.getProperty(PROPERTY_METADATA_REFRESH_PERIOD, PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT));
-        SystemStatus systemStatus = new SystemStatus(bookkeeperManager.getRefreshWorkerStatus());
-        systemStatus.setMetadataRefreshPeriod(metadataRefreshPeriod);
+        SystemStatus ss = new SystemStatus(bookkeeperManager.getRefreshWorkerStatus());
+        ss.setMetadataRefreshPeriod(metadataRefreshPeriod);
 
-        return systemStatus;
+        return ss;
     }
 
     @GET

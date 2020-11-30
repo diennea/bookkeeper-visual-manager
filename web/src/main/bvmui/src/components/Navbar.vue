@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar app clipped-left color="blue lighten-1">
+    <v-app-bar app clipped-left color="primary">
         <v-app-bar-nav-icon v-show="$store.state.showDrawer" class="white--text" @click="toggleDrawer" />
         <span class="title ml-3 mr-5 white--text">
             Bookkeeper
