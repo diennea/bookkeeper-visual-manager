@@ -48,7 +48,7 @@
         <netty.version>4.1.51.Final</netty.version>
         <netty.boringssl.version>2.0.34.Final</netty.boringssl.version>
         <junit.version>4.13.1</junit.version>
-        <mockito.version>2.0.2-beta</mockito.version>
+        <mockito.version>1.10.19</mockito.version>
         <jetty.version>9.4.33.v20201020</jetty.version>
         <herddb.version>0.22.0</herddb.version>
 

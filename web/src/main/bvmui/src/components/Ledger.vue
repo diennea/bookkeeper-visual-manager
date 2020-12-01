@@ -26,7 +26,7 @@ export default {
         computedAge() {
             const countHours = Math.floor(this.ledger.age / 60);
             const countMinutes = this.ledger.age % 60;
-            if (countHours > 1) {
+            if (countHours >= 1) {
                 return `${countHours} hours ${countMinutes} minutes`;
             } else {
                 return `${countMinutes} minutes`;
