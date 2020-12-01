@@ -8,5 +8,6 @@ module.exports = {
     moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1"
     },
-    testMatch: ["**/tests/**/*.(spec|test).(js)"]
+    testMatch: ["**/tests/**/*.(spec|test).(js)"],
+    reporters: ["default", "jest-junit"]
 }

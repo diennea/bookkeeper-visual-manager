@@ -45,7 +45,4 @@ describe('Ledgers', () => {
         expect(ledgerReplication.text()).toBe('Replication 3');
         expect(ledgerAge.text()).toBe(`Age ${expectedAge}`);
     })
-    test('failing', () => {
-        expect(true).toBeFalsy();
-    })
 });

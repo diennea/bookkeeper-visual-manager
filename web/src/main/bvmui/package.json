@@ -34,6 +34,7 @@
     "eslint": "7.14.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-vue": "7.1.0",
+    "jest-junit": "^12.0.0",
     "sass": "1.29.0",
     "sass-loader": "10.1.0",
     "vue-cli-plugin-vuetify": "2.0.7",
@@ -45,6 +46,14 @@
   "resolutions": {
     "minimist": "1.2.5",
     "acorn": "7.1.1"
+  },
+  "jest-junit": {
+    "suiteName": "Tests",
+    "outputDirectory": "target/surfire-reports",
+    "outputName": "bookkeeper-visual-manager-junit.xml",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}",
+    "ancestorSeparator": " › "
   },
   "browserslist": [
     "last 1 version",
