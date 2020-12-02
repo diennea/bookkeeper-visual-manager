@@ -7,7 +7,7 @@
                     large
                     tile
                     class="mt-1"
-                    color="blue lighten-1 white--text"
+                    color="primary white--text"
                     v-bind="attrs"
                     v-on="on">
                     Insert
@@ -52,8 +52,8 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn depressed color="blue lighten-1" text @click="closeEdit">Close</v-btn>
-                    <v-btn depressed color="blue lighten-1" text @click="editCluster" :loading="loading">{{ editClusterInfo.clusterId > 0 ? 'Edit' : 'Add' }}</v-btn>
+                    <v-btn depressed color="primary" text @click="closeEdit">Close</v-btn>
+                    <v-btn depressed color="primary" text @click="editCluster" :loading="loading">{{ editClusterInfo.clusterId > 0 ? 'Edit' : 'Add' }}</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -71,7 +71,7 @@
                     </div>
                     <v-tabs
                         v-else
-                        color="blue lighten-1"
+                        color="primary"
                         center-active>
                         <v-tab>Status on ZooKeeper</v-tab>
                         <v-tab>Clients Configuration</v-tab>
@@ -111,7 +111,7 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn color="blue lighten-1" text @click="dialogInfo = false">Close</v-btn>
+                    <v-btn color="primary" text @click="dialogInfo = false">Close</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -123,7 +123,7 @@
                 <v-card-text>Are you really sure you want to delete the Bookkeeper cluster?</v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn color="blue lighten-1" text @click="closeDelete">No</v-btn>
+                    <v-btn color="primary" text @click="closeDelete">No</v-btn>
                     <v-btn color="red darken-1" text @click="deleteCluster(deleteClusterInfo)" :loading="loading">Delete</v-btn>
                 </v-card-actions>
             </v-card>

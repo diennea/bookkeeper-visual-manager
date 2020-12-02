@@ -53,13 +53,13 @@
         <herddb.version>0.22.0</herddb.version>
 
         <yarn.version>v1.21.1</yarn.version>
-        <node.version>v11.12.0</node.version>
+        <node.version>v15.2.1</node.version>
         <frontend.path>src/main/bvmui</frontend.path>
-        <maven.frontend.plugin.version>1.8.0</maven.frontend.plugin.version>
+        <maven.frontend.plugin.version>1.10.3</maven.frontend.plugin.version>
 
-        <jersey.version>2.29</jersey.version>        
-        <libs.checkstyle>3.1.0</libs.checkstyle>
-        <libs.spotbugs>3.1.12.2</libs.spotbugs>
+        <jersey.version>2.29</jersey.version>
+        <libs.checkstyle>3.1.1</libs.checkstyle>
+        <libs.spotbugs>4.1.4</libs.spotbugs>
         <eclipselink.version>2.7.5</eclipselink.version>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
 
@@ -278,7 +278,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
-                    <version>3.2.3</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <groupId>com.github.eirslett</groupId>
@@ -396,7 +396,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>

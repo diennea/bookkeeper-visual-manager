@@ -20,6 +20,12 @@
         <p v-if="lastCacheRefresh" class="caption my-2">
             Last reload from ZooKeeper was at <b>{{ new Date(lastCacheRefresh) }}</b>
         </p>
+        <p v-if="metadataRefreshPeriod && metadataRefreshPeriod > 0" class="caption my-2">
+            Automatic refresh period <b>{{ metadataRefreshPeriod }} seconds</b>.
+        </p>
+        <p v-else class="caption my-2">
+            Automatic refresh period <b>disabled</b>.
+        </p>
     </div>
 </template>
 <script>
@@ -32,7 +38,8 @@ export default {
     data() {
         return {
             status: "unknown",
-            lastCacheRefresh: 0
+            lastCacheRefresh: 0,
+            metadataRefreshPeriod: 0
         };
     },
     created() {
@@ -49,6 +56,7 @@ export default {
                 cacheInfo => {
                     this.status = cacheInfo.status;
                     this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
+                    this.metadataRefreshPeriod = cacheInfo.metadataRefreshPeriod;
                 }
             );
             this.interval = setInterval(this.refreshPage, RefreshRate);
@@ -58,6 +66,7 @@ export default {
                 cacheInfo => {
                     this.status = cacheInfo.status;
                     this.lastCacheRefresh = cacheInfo.lastCacheRefresh;
+                    this.metadataRefreshPeriod = cacheInfo.metadataRefreshPeriod;
 
                     switch (this.status) {
                         case StatusMode.IDLE:

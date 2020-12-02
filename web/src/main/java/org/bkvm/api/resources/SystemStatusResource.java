@@ -19,13 +19,17 @@
  */
 package org.bkvm.api.resources;
 
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD;
+import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.Getter;
 import lombok.Setter;
+import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
+import org.bkvm.config.ConfigurationStore;
 
 @Path("cache")
 public class SystemStatusResource extends AbstractBookkeeperResource {
@@ -34,12 +38,13 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
     @Setter
     public static final class SystemStatus {
 
-        private String status;
-        private long lastCacheRefresh;
+        private final String status;
+        private final long lastCacheRefresh;
+        private Integer metadataRefreshPeriod;
 
         public SystemStatus(RefreshCacheWorkerStatus status) {
-            this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
             this.status = status.getStatus().toString();
+            this.lastCacheRefresh = status.getLastMetadataCacheRefresh();
         }
 
     }
@@ -49,7 +54,14 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
     @Path("info")
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatus getInfo() throws Exception {
-        return new SystemStatus(getBookkeeperManager().getRefreshWorkerStatus());
+        BookkeeperManager bookkeeperManager = getBookkeeperManager();
+        ConfigurationStore configStore = bookkeeperManager.getConfigStore();
+
+        Integer metadataRefreshPeriod = Integer.parseInt(configStore.getProperty(PROPERTY_METADATA_REFRESH_PERIOD, PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT));
+        SystemStatus ss = new SystemStatus(bookkeeperManager.getRefreshWorkerStatus());
+        ss.setMetadataRefreshPeriod(metadataRefreshPeriod);
+
+        return ss;
     }
 
     @GET
