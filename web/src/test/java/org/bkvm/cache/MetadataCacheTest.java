@@ -46,6 +46,8 @@ public class MetadataCacheTest {
                 entries.add(new LedgerMetadataEntry(1, clusterId, "application", "pulsar"));
                 entries.add(new LedgerMetadataEntry(1, clusterId, "component", "foo"));
                 entries.add(new LedgerMetadataEntry(1, clusterId, "other", "foo"));
+                entries.add(new LedgerMetadataEntry(1, clusterId, "metadataentry", "4933"));
+                entries.add(new LedgerMetadataEntry(1, clusterId, "metadataentry2", "Thu Aug 22 2019 12:29:58 GMT+0200 (Central European Summer Time)"));
                 metadataCache.updateLedger(ledger, lb, entries);
                 List<Ledger> ledgers = metadataCache.listLedgers();
                 assertEquals(1, ledgers.size());
@@ -72,6 +74,16 @@ public class MetadataCacheTest {
                 assertEquals(0, ledgersByBookieAndMetaAndIdKo.size());
                 List<Ledger> ledgersByBookieAndMetaAndEmtyList = metadataCache.searchLedgers("pulsar", "localhost:1234", clusterId, Collections.EMPTY_LIST);
                 assertEquals(0, ledgersByBookieAndMetaAndEmtyList.size());
+                List<Ledger> ledgersByKeyAndValue = metadataCache.searchLedgers("metadataentry:4933", null, clusterId, null);
+                assertEquals(1, ledgersByKeyAndValue.size());
+                List<Ledger> ledgersByKeyAndValue1 = metadataCache.searchLedgers("metadataentry2:Thu Aug 22 2019 12:29:58 GMT+0200 (Central European Summer Time)", null, clusterId, null);
+                assertEquals(1, ledgersByKeyAndValue1.size());
+                List<Ledger> ledgersByKeyAndValue2 = metadataCache.searchLedgers("metadataentry: 4933:", null, clusterId, null);
+                assertEquals(0, ledgersByKeyAndValue2.size());
+                List<Ledger> ledgersByKeyAndValue3 = metadataCache.searchLedgers("metadataentry:", null, clusterId, null);
+                assertEquals(0, ledgersByKeyAndValue3.size());
+                List<Ledger> ledgersByKeyAndValue4 = metadataCache.searchLedgers("4933", null, clusterId, null);
+                assertEquals(1, ledgersByKeyAndValue4.size());
 
                 // UPDATE, just the size
                 Ledger ledger2 = new Ledger(1, clusterId, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
@@ -102,7 +114,7 @@ public class MetadataCacheTest {
                 System.out.println("ledgers: " + ledgers2);
 
                 // TESTS OVER BOOKIES
-                Bookie bookie = new Bookie("bookie:123", clusterId , "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234, null);
+                Bookie bookie = new Bookie("bookie:123", clusterId, "desc", Bookie.STATE_AVAILABLE, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234, null);
                 // insert
                 metadataCache.updateBookie(bookie);
 
@@ -118,7 +130,7 @@ public class MetadataCacheTest {
                 Bookie lookup = metadataCache.getBookie(clusterId, bookie.getBookieId());
                 assertEquals(bookie, lookup);
 
-                Bookie bookie2 = new Bookie("bookie:123", clusterId,  "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234, null);
+                Bookie bookie2 = new Bookie("bookie:123", clusterId, "desc", Bookie.STATE_DOWN, new java.sql.Timestamp(System.currentTimeMillis()), 123, 234, null);
                 // update
                 metadataCache.updateBookie(bookie2);
                 lookup = metadataCache.getBookie(clusterId, "bookie:123");
