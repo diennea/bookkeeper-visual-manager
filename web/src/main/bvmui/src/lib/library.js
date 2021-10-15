@@ -26,14 +26,7 @@ export default {
     },
     formatDate(ts){
         if (ts){
-            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-            let current_datetime = new Date()
-            let formatted_date = current_datetime.getDate()  + " "
-            + (months[current_datetime.getMonth()]) + " "
-            + current_datetime.getFullYear() + " "
-            + current_datetime.getHours() + ":"
-            + (current_datetime.getMinutes() < 10 ? "0" + current_datetime.getMinutes() : current_datetime.getMinutes())
-            return formatted_date;
+            return  new Date(ts).toLocaleString();
         }
     }
 }
