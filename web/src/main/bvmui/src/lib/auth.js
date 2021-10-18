@@ -1,6 +1,7 @@
 export default {
-    createSession(token) {
+    createSession(token, role) {
         localStorage.setItem("user-token", token);
+        localStorage.setItem("user-role", role)
     },
     destroySession() {
         localStorage.removeItem("user-token");

@@ -31,6 +31,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import org.bkvm.auth.AuthManager;
+import org.bkvm.auth.User;
 
 /**
  * Login
@@ -38,11 +39,11 @@ import org.bkvm.auth.AuthManager;
 @Path("auth")
 public class LoginResource extends AbstractBookkeeperResource {
 
-    private static final Map<String, String> USERS;
+    private static final Map<String, User> USERS;
 
     static {
         USERS = new HashMap<>();
-        USERS.put("admin", "admin");
+        USERS.put("admin", new User("admin", "admin"));
     }
 
     @Context

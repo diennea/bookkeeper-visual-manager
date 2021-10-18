@@ -12,6 +12,7 @@ export default new Vuex.Store({
         showDrawer: false,
         token: '',
         status: '',
+        role: '',
         clusterCount: null
     },
     mutations: {
@@ -33,9 +34,10 @@ export default new Vuex.Store({
         authRequest(state) {
             state.status = 'loading';
         },
-        authSuccess(state, token) {
+        authSuccess(state, {token, role}) {
             state.status = 'success';
             state.token = token;
+            state.role = role;
         },
         authError(state) {
             state.status = 'error';
@@ -54,8 +56,8 @@ export default new Vuex.Store({
                 commit('authRequest');
                 request.post(auth.LOGIN_ENDPOINT, loginInfo)
                     .then(res => {
-                        auth.createSession('dummy');
-                        commit('authSuccess', 'dummy');
+                        auth.createSession('dummy', res.userRole);
+                        commit('authSuccess', {'dummy', res.userRole});
                         resolve(res);
                     })
                     .catch(err => {

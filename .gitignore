@@ -27,3 +27,7 @@ src/main/bvmui/dist/**
 /nbproject/
 target/
 **/.DS_Store
+
+#intellij file
+.idea
+*.iml
