@@ -12,7 +12,6 @@ export default new Vuex.Store({
         showDrawer: false,
         token: '',
         status: '',
-        role: '',
         clusterCount: null
     },
     mutations: {
@@ -34,10 +33,9 @@ export default new Vuex.Store({
         authRequest(state) {
             state.status = 'loading';
         },
-        authSuccess(state, {token, role}) {
+        authSuccess(state, token) {
             state.status = 'success';
             state.token = token;
-            state.role = role;
         },
         authError(state) {
             state.status = 'error';
@@ -56,8 +54,8 @@ export default new Vuex.Store({
                 commit('authRequest');
                 request.post(auth.LOGIN_ENDPOINT, loginInfo)
                     .then(res => {
-                        auth.createSession('dummy', res.userRole);
-                        commit('authSuccess', {'dummy', res.userRole});
+                        auth.createSession('dummy', res.role);
+                        commit('authSuccess', 'dummy');
                         resolve(res);
                     })
                     .catch(err => {
@@ -84,14 +82,14 @@ export default new Vuex.Store({
         },
         clusterCount({ commit, state }) {
             return new Promise((resolve, reject) => {
-                if (state.clusterCount == null) {
+                if (state.clusterCount === null) {
                     request.get("api/cluster/count")
                         .then(res => {
-                            commit('updateClusterCount', res)
+                            commit('updateClusterCount', res);
                             resolve(res);
                         })
                         .catch(err => {
-                            commit('updateClusterCount', null)
+                            commit('updateClusterCount', null);
                             reject(err);
                         });
                 } else {

@@ -75,7 +75,7 @@ public class LoginResource extends AbstractBookkeeperResource {
             }
             response.setOk(false);
         }
-
+        
         return response;
     }
 
@@ -98,6 +98,10 @@ public class LoginResource extends AbstractBookkeeperResource {
 
         public boolean isOk() {
             return ok;
+        }
+
+        public String getRole() {
+            return role;
         }
 
         public void setOk(boolean ok) {

@@ -5,6 +5,7 @@ export default {
     },
     destroySession() {
         localStorage.removeItem("user-token");
+        localStorage.removeItem("user-role");
     },
     isLogged() {
         return localStorage.getItem("user-token") !== null;
