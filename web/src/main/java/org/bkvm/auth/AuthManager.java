@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.bkvm.config.ConfigurationStore;
 
 /**
@@ -32,26 +33,31 @@ public final class AuthManager {
 
     private static final Logger LOG = Logger.getLogger(AuthManager.class.getName());
 
-    private final Map<String, String> users = new HashMap<>();
+    private final Map<String, User> users = new HashMap<>();
 
     public AuthManager(ConfigurationStore store) {
         for (int i = 0; i < 10; i++) {
             String username = store.getProperty("user." + i + ".username", "");
             if (!username.isEmpty()) {
                 String password = store.getProperty("user." + i + ".password", "");
-                LOG.log(Level.CONFIG, "Configure user " + username);
-                users.put(username, password);
+                String role = store.getProperty("user." + i + ".role", "");
+                LOG.log(Level.CONFIG, "Configure user " + username + " with role " + role);
+                users.put(username, new User(role, password));
             }
         }
         if (users.isEmpty()) {
-            LOG.log(Level.INFO, "No user is configured, adding defaut user 'admin' with password 'admin'");
-            users.put("admin", "admin");
+            LOG.log(Level.INFO, "No user is configured, adding default user 'admin' with password 'admin'");
+            users.put("admin", new User("admin", "admin"));
         }
     }
 
     public boolean login(String username, String password) {
-        String expected = users.get(username.toLowerCase());
-        return expected.equals(password);
+        User expected = users.get(username);
+        return expected.password.equals(password);
+    }
+
+    public String getUserRole(String username) {
+        return users.get(username).role;
     }
 
 }

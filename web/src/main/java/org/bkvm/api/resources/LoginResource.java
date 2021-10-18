@@ -65,6 +65,8 @@ public class LoginResource extends AbstractBookkeeperResource {
             // force Session creation
             request.getSession(true);
             response.setOk(true);
+            String userRole = authManager.getUserRole(username);
+            response.setRole(userRole);
         } else {
             HttpSession session = request.getSession(false);
             if (session != null) {
@@ -88,6 +90,7 @@ public class LoginResource extends AbstractBookkeeperResource {
     public static class LoginResponse implements java.io.Serializable {
 
         private boolean ok;
+        private String role;
 
         public LoginResponse() {
         }
@@ -98,6 +101,10 @@ public class LoginResource extends AbstractBookkeeperResource {
 
         public void setOk(boolean ok) {
             this.ok = ok;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
     }
 
