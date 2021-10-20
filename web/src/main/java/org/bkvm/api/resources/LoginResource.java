@@ -43,7 +43,7 @@ public class LoginResource extends AbstractBookkeeperResource {
 
     static {
         USERS = new HashMap<>();
-        USERS.put("admin", new User("admin", "admin"));
+        USERS.put("admin", new User("admin", "admin", "Admin"));
     }
 
     @Context
@@ -75,7 +75,6 @@ public class LoginResource extends AbstractBookkeeperResource {
             }
             response.setOk(false);
         }
-        
         return response;
     }
 

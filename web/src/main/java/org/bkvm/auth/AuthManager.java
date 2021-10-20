@@ -41,12 +41,13 @@ public final class AuthManager {
                 String password = store.getProperty("user." + i + ".password", "");
                 String role = store.getProperty("user." + i + ".role", "");
                 LOG.log(Level.CONFIG, "Configure user " + username + " with role " + role);
-                users.put(username, new User(role, password));
+                users.put(username, new User(username, password, role));
             }
         }
         if (users.isEmpty()) {
             LOG.log(Level.INFO, "No user is configured, adding default user 'admin' with password 'admin'");
-            users.put("admin", new User("admin", "admin"));
+            User user = new User("admin", "admin", "admin");
+            users.put("admin", user);
         }
     }
 

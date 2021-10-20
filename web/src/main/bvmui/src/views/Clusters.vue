@@ -9,6 +9,7 @@
                     class="mt-1"
                     color="primary white--text"
                     v-bind="attrs"
+                    v-if="isAdmin"
                     v-on="on">
                     Insert
                 </v-btn>
@@ -136,10 +137,10 @@
             class="mt-2 elevation-1"
             @click:row="showCluster">
             <template #item.actions="{ item }">
-                <v-icon @click.stop="promptEditCluster(item)">
+                <v-icon v-if="isAdmin" @click.stop="promptEditCluster(item)">
                     mdi-pencil
                 </v-icon>
-                <v-icon @click.stop="promptDeleteCluster(item)">
+                <v-icon v-if="isAdmin" @click.stop="promptDeleteCluster(item)">
                     mdi-delete
                 </v-icon>
             </template>
@@ -178,6 +179,9 @@ export default {
         },
         clusterNames() {
             return this.clusters.map(cluster => cluster.name);
+        },
+        isAdmin() {
+            return this.$store.getters.role === "Admin";
         }
     },
     async created() {

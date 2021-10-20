@@ -3,19 +3,26 @@ package org.bkvm.auth;
 import java.io.Serializable;
 
 public class User implements Serializable {
-    String role;
+    String username;
     String password;
+    String role;
 
-    public User(String role, String password)  {
-        this.role = role;
+
+    public User(String username, String password, String role) {
+        this.username = username;
         this.password = password;
+        this.role = role;
     }
 
-    public String getRole() {
-        return role;
+    public String getUsername() {
+        return username;
     }
 
     public String getPassword() {
         return password;
+    }
+
+    public String getRole() {
+        return role;
     }
 }
