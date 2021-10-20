@@ -46,7 +46,7 @@ public final class AuthManager {
         }
         if (users.isEmpty()) {
             LOG.log(Level.INFO, "No user is configured, adding default user 'admin' with password 'admin'");
-            User user = new User("admin", "admin", "admin");
+            User user = new User("admin", "admin", "Admin");
             users.put("admin", user);
         }
     }
