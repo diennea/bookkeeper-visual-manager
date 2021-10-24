@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.annotation.security.DeclareRoles;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -41,10 +44,12 @@ import org.bkvm.cache.Cluster;
 import org.bkvm.utils.StringUtils;
 
 @Path("cluster")
+@DeclareRoles({"Admin", "User"})
 public class ClusterResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @PermitAll
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ClusterBean> getClusters() throws Exception {
@@ -86,6 +91,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @PermitAll
     @Path("count")
     @Produces(MediaType.APPLICATION_JSON)
     public int getClusterCount() throws Exception {
@@ -95,6 +101,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
+    @RolesAllowed("Admin")
     @Path("add")
     @Consumes(MediaType.APPLICATION_JSON)
     public void addCluster(ClusterBean bean) throws Exception {
@@ -107,6 +114,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
+    @RolesAllowed("Admin")
     @Path("edit")
     @Consumes(MediaType.APPLICATION_JSON)
     public void editCluster(ClusterBean bean) throws Exception {
@@ -120,6 +128,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
+    @RolesAllowed("Admin")
     @Path("delete/{clusterId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void deleteCluster(@PathParam(value = "clusterId") int clusterId) throws Exception {

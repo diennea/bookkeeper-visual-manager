@@ -21,6 +21,9 @@ package org.bkvm.api.resources;
 
 import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD;
 import static org.bkvm.config.ServerConfiguration.PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT;
+import javax.annotation.security.DeclareRoles;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,6 +35,7 @@ import org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 import org.bkvm.config.ConfigurationStore;
 
 @Path("cache")
+@DeclareRoles({"Admin", "User"})
 public class SystemStatusResource extends AbstractBookkeeperResource {
 
     @Getter
@@ -51,6 +55,7 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @PermitAll
     @Path("info")
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatus getInfo() throws Exception {
@@ -66,6 +71,7 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @RolesAllowed("Admin")
     @Path("refresh")
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatus refresh() throws Exception {

@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.security.DeclareRoles;
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -37,6 +39,7 @@ import org.bkvm.cache.Bookie;
 import org.bkvm.cache.Cluster;
 
 @Path("bookie")
+@DeclareRoles({"Admin", "User"})
 public class BookiesResource extends AbstractBookkeeperResource {
 
     @Data
@@ -50,6 +53,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @PermitAll
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public GetBookiesResult getBookies(@QueryParam("page") int page,

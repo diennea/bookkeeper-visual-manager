@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.security.DeclareRoles;
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -42,6 +44,7 @@ import org.bkvm.cache.Ledger;
 import org.bkvm.config.ServerConfiguration;
 
 @Path("ledger")
+@DeclareRoles({"Admin", "User"})
 public class LedgersResource extends AbstractBookkeeperResource {
 
     @Data
@@ -55,6 +58,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @PermitAll
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public GetLedgersResult getLedgers(@QueryParam("term") String term,
@@ -109,6 +113,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
+    @PermitAll
     @Path("metadata/{clusterId}/{ledgerId}")
     @Produces(MediaType.APPLICATION_JSON)
     public LedgerBean getLedgerMetadata(@PathParam("clusterId") int clusterId, @PathParam("ledgerId") long ledgerId) throws Exception {

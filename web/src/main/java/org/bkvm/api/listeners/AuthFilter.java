@@ -21,6 +21,7 @@ package org.bkvm.api.listeners;
 
 import java.io.IOException;
 import javax.annotation.Priority;
+import javax.annotation.security.DeclareRoles;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -36,6 +37,7 @@ import org.bkvm.api.resources.Secured;
 @Secured
 @Provider
 @Priority(Priorities.AUTHENTICATION)
+@DeclareRoles({"Admin", "User"})
 public class AuthFilter implements ContainerRequestFilter {
 
     @Context
