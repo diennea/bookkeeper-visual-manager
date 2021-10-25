@@ -40,11 +40,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.Data;
+import org.bkvm.auth.UserRole;
 import org.bkvm.cache.Cluster;
 import org.bkvm.utils.StringUtils;
 
 @Path("cluster")
-@DeclareRoles({"Admin", "User"})
+@DeclareRoles({UserRole.Fields.Admin, UserRole.Fields.User})
 public class ClusterResource extends AbstractBookkeeperResource {
 
     @GET
@@ -101,7 +102,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
-    @RolesAllowed("Admin")
+    @RolesAllowed(UserRole.Fields.Admin)
     @Path("add")
     @Consumes(MediaType.APPLICATION_JSON)
     public void addCluster(ClusterBean bean) throws Exception {
@@ -114,7 +115,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
-    @RolesAllowed("Admin")
+    @RolesAllowed(UserRole.Fields.Admin)
     @Path("edit")
     @Consumes(MediaType.APPLICATION_JSON)
     public void editCluster(ClusterBean bean) throws Exception {
@@ -128,7 +129,7 @@ public class ClusterResource extends AbstractBookkeeperResource {
 
     @POST
     @Secured
-    @RolesAllowed("Admin")
+    @RolesAllowed(UserRole.Fields.Admin)
     @Path("delete/{clusterId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void deleteCluster(@PathParam(value = "clusterId") int clusterId) throws Exception {

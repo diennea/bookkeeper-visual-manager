@@ -22,9 +22,12 @@ const router = new Router({
             redirect: '/bookies'
         },
         {
-            path: '/error',
+            path: '/error/:code',
             name: 'error',
-            component: ErrorPage
+            component: ErrorPage,
+            meta: {
+                title: "Error"
+            }
         },
         {
             path: '/login',

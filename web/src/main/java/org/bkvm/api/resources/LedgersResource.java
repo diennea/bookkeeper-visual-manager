@@ -37,6 +37,7 @@ import javax.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
+import org.bkvm.auth.UserRole;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.bookkeeper.BookkeeperManagerException;
 import org.bkvm.cache.Cluster;
@@ -44,7 +45,7 @@ import org.bkvm.cache.Ledger;
 import org.bkvm.config.ServerConfiguration;
 
 @Path("ledger")
-@DeclareRoles({"Admin", "User"})
+@DeclareRoles({UserRole.Fields.Admin, UserRole.Fields.User})
 public class LedgersResource extends AbstractBookkeeperResource {
 
     @Data

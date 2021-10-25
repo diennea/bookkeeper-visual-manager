@@ -20,16 +20,20 @@
 package org.bkvm.api.listeners;
 
 import java.io.IOException;
+import java.security.Principal;
 import javax.annotation.Priority;
-import javax.annotation.security.DeclareRoles;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import org.bkvm.api.resources.Secured;
+import org.bkvm.auth.AuthManager;
+import org.bkvm.auth.User;
 
 /**
  * Ensures that the user is authenticated
@@ -37,17 +41,58 @@ import org.bkvm.api.resources.Secured;
 @Secured
 @Provider
 @Priority(Priorities.AUTHENTICATION)
-@DeclareRoles({"Admin", "User"})
 public class AuthFilter implements ContainerRequestFilter {
 
     @Context
     private HttpServletRequest request;
 
+    @Context
+    private ServletContext application;
+
+    private AuthManager authManager;
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         if (request.getSession(false) == null) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+        } else {
+            String username = (String) request.getSession(false).getAttribute("username");
+            if (username != null) {
+                authManager = (AuthManager) application.getAttribute("authManager");
+                User user = authManager.getUser(username);
+                requestContext.setSecurityContext(new CustomSecurityContext(user));
+            }
         }
+    }
+
+    public static class CustomSecurityContext implements SecurityContext {
+
+        private final User user;
+
+        public CustomSecurityContext(User user) {
+            this.user = user;
+        }
+
+        @Override
+        public Principal getUserPrincipal() {
+            return () -> user.getUsername();
+        }
+
+        @Override
+        public boolean isUserInRole(String role) {
+            return role.equals(user.getRole());
+        }
+
+        @Override
+        public boolean isSecure() {
+            return true;
+        }
+
+        @Override
+        public String getAuthenticationScheme() {
+            return "Basic";
+        }
+
     }
 
 }

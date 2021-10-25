@@ -3,10 +3,10 @@ package org.bkvm.auth;
 import java.io.Serializable;
 
 public class User implements Serializable {
+
     String username;
     String password;
     String role;
-
 
     public User(String username, String password, String role) {
         this.username = username;
@@ -24,5 +24,10 @@ public class User implements Serializable {
 
     public String getRole() {
         return role;
+    }
+
+    @Override
+    public String toString() {
+        return username + " " + role;
     }
 }

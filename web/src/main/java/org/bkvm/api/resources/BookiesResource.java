@@ -35,11 +35,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.bkvm.auth.UserRole;
 import org.bkvm.cache.Bookie;
 import org.bkvm.cache.Cluster;
 
 @Path("bookie")
-@DeclareRoles({"Admin", "User"})
+@DeclareRoles({UserRole.Fields.Admin, UserRole.Fields.User})
 public class BookiesResource extends AbstractBookkeeperResource {
 
     @Data

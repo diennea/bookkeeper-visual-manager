@@ -30,12 +30,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.Getter;
 import lombok.Setter;
+import org.bkvm.auth.UserRole;
 import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.bookkeeper.BookkeeperManager.RefreshCacheWorkerStatus;
 import org.bkvm.config.ConfigurationStore;
 
 @Path("cache")
-@DeclareRoles({"Admin", "User"})
+@DeclareRoles({UserRole.Fields.Admin, UserRole.Fields.User})
 public class SystemStatusResource extends AbstractBookkeeperResource {
 
     @Getter
@@ -71,7 +72,7 @@ public class SystemStatusResource extends AbstractBookkeeperResource {
 
     @GET
     @Secured
-    @RolesAllowed("Admin")
+    @RolesAllowed(UserRole.Fields.Admin)
     @Path("refresh")
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatus refresh() throws Exception {
