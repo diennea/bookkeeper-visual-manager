@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.EnumUtils;
 import org.bkvm.config.ConfigurationStore;
 
 /**
@@ -40,8 +41,12 @@ public final class AuthManager {
             if (!username.isEmpty()) {
                 String password = store.getProperty("user." + i + ".password", "");
                 String role = store.getProperty("user." + i + ".role", "User");
-                LOG.log(Level.CONFIG, "Configure user {0} with role {1}", new Object[]{username, role});
-                users.put(username, new User(username, password, role));
+                if (checkUserRole(role)) {
+                    LOG.log(Level.CONFIG, "Configure user {0} with role {1}", new Object[]{username, role});
+                    users.put(username, new User(username, password, role));
+                } else {
+                    LOG.log(Level.SEVERE, "Invalid role for user {0}", username);
+                }
             }
         }
         if (users.isEmpty()) {
@@ -49,6 +54,10 @@ public final class AuthManager {
             User user = new User("admin", "admin", "Admin");
             users.put("admin", user);
         }
+    }
+
+    private boolean checkUserRole(String role) {
+        return EnumUtils.isValidEnum(UserRole.class, role);
     }
 
     public boolean login(String username, String password) {
