@@ -12,7 +12,6 @@ export default new Vuex.Store({
         showDrawer: false,
         token: '',
         status: '',
-        role: '',
         clusterCount: null
     },
     mutations: {
