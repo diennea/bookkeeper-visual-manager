@@ -40,7 +40,7 @@ public final class AuthManager {
             String username = store.getProperty("user." + i + ".username", "");
             if (!username.isEmpty()) {
                 String password = store.getProperty("user." + i + ".password", "");
-                String role = store.getProperty("user." + i + ".role", "User");
+                String role = store.getProperty("user." + i + ".role", UserRole.Fields.User);
                 if (checkUserRole(role)) {
                     LOG.log(Level.CONFIG, "Configure user {0} with role {1}", new Object[]{username, role});
                     users.put(username, new User(username, password, role));
