@@ -62,7 +62,7 @@ public final class AuthManager {
 
     public boolean login(String username, String password) {
         User expected = users.get(username);
-        return expected.password.equals(password);
+        return expected.getPassword().equals(password);
     }
 
     public User getUser(String username) {
