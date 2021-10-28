@@ -31,6 +31,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import org.bkvm.auth.AuthManager;
+import org.bkvm.auth.User;
 
 /**
  * Login
@@ -38,11 +39,11 @@ import org.bkvm.auth.AuthManager;
 @Path("auth")
 public class LoginResource extends AbstractBookkeeperResource {
 
-    private static final Map<String, String> USERS;
+    private static final Map<String, User> USERS;
 
     static {
         USERS = new HashMap<>();
-        USERS.put("admin", "admin");
+        USERS.put("admin", new User("admin", "admin", "Admin"));
     }
 
     @Context
@@ -63,7 +64,7 @@ public class LoginResource extends AbstractBookkeeperResource {
         LoginResponse response = new LoginResponse();
         if (authManager.login(username, password)) {
             // force Session creation
-            request.getSession(true);
+            request.getSession(true).setAttribute("username", username);
             response.setOk(true);
         } else {
             HttpSession session = request.getSession(false);
@@ -72,7 +73,6 @@ public class LoginResource extends AbstractBookkeeperResource {
             }
             response.setOk(false);
         }
-
         return response;
     }
 
@@ -88,6 +88,7 @@ public class LoginResource extends AbstractBookkeeperResource {
     public static class LoginResponse implements java.io.Serializable {
 
         private boolean ok;
+        private String role;
 
         public LoginResponse() {
         }
@@ -96,8 +97,16 @@ public class LoginResource extends AbstractBookkeeperResource {
             return ok;
         }
 
+        public String getRole() {
+            return role;
+        }
+
         public void setOk(boolean ok) {
             this.ok = ok;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
     }
 

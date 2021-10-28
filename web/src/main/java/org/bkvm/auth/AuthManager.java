@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.EnumUtils;
 import org.bkvm.config.ConfigurationStore;
 
 /**
@@ -32,26 +33,39 @@ public final class AuthManager {
 
     private static final Logger LOG = Logger.getLogger(AuthManager.class.getName());
 
-    private final Map<String, String> users = new HashMap<>();
+    private final Map<String, User> users = new HashMap<>();
 
     public AuthManager(ConfigurationStore store) {
         for (int i = 0; i < 10; i++) {
             String username = store.getProperty("user." + i + ".username", "");
             if (!username.isEmpty()) {
                 String password = store.getProperty("user." + i + ".password", "");
-                LOG.log(Level.CONFIG, "Configure user " + username);
-                users.put(username, password);
+                String role = store.getProperty("user." + i + ".role", UserRole.Fields.User);
+                if (checkUserRole(role)) {
+                    LOG.log(Level.CONFIG, "Configure user {0} with role {1}", new Object[]{username, role});
+                    users.put(username, new User(username, password, role));
+                } else {
+                    LOG.log(Level.SEVERE, "Invalid role for user {0}", username);
+                }
             }
         }
         if (users.isEmpty()) {
-            LOG.log(Level.INFO, "No user is configured, adding defaut user 'admin' with password 'admin'");
-            users.put("admin", "admin");
+            LOG.log(Level.INFO, "No user is configured, adding default user 'admin' with password 'admin'");
+            User user = new User("admin", "admin", "Admin");
+            users.put("admin", user);
         }
     }
 
-    public boolean login(String username, String password) {
-        String expected = users.get(username.toLowerCase());
-        return expected.equals(password);
+    private boolean checkUserRole(String role) {
+        return EnumUtils.isValidEnum(UserRole.class, role);
     }
 
+    public boolean login(String username, String password) {
+        User expected = users.get(username);
+        return expected.getPassword().equals(password);
+    }
+
+    public User getUser(String username) {
+        return users.get(username);
+    }
 }

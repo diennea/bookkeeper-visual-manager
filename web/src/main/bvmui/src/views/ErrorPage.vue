@@ -7,7 +7,8 @@
 <script>
 const ErrorMessages = Object.freeze({
     404: "Not found",
-    500: "Internal Error"
+    500: "Internal Error",
+    403: "Operation denied"
 });
 
 export default {

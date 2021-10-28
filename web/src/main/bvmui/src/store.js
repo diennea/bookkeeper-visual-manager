@@ -82,14 +82,14 @@ export default new Vuex.Store({
         },
         clusterCount({ commit, state }) {
             return new Promise((resolve, reject) => {
-                if (state.clusterCount == null) {
+                if (state.clusterCount === null) {
                     request.get("api/cluster/count")
                         .then(res => {
-                            commit('updateClusterCount', res)
+                            commit('updateClusterCount', res);
                             resolve(res);
                         })
                         .catch(err => {
-                            commit('updateClusterCount', null)
+                            commit('updateClusterCount', null);
                             reject(err);
                         });
                 } else {

@@ -22,6 +22,7 @@ package org.bkvm.api;
 import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
 @ApplicationPath("api")
 public class ApplicationConfig extends Application {
@@ -41,6 +42,7 @@ public class ApplicationConfig extends Application {
         resources.add(org.bkvm.api.resources.LedgersResource.class);
         resources.add(org.bkvm.api.resources.LoginResource.class);
         resources.add(org.bkvm.api.resources.SystemStatusResource.class);
+        resources.add(RolesAllowedDynamicFeature.class);
     }
 
 }

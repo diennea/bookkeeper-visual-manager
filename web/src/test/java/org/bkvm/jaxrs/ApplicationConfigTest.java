@@ -35,7 +35,7 @@ public class ApplicationConfigTest {
         ApplicationConfig config = new ApplicationConfig();
 
         Set<Class<?>> classes = config.getClasses();
-        assertTrue(classes.size() == 6);
+        assertTrue(classes.size() == 7);
 
         assertContainsClass(classes, org.bkvm.api.listeners.AuthFilter.class);
         assertContainsClass(classes, org.bkvm.api.resources.LoginResource.class);
