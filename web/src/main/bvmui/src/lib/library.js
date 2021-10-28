@@ -28,5 +28,8 @@ export default {
         if (ts){
             return  new Date(ts).toLocaleString();
         }
+    },
+    removeDoubleQuote(message) {
+        return message.replace(/['"]+/g, '');
     }
 }

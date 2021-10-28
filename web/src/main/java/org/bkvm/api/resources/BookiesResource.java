@@ -22,6 +22,7 @@ package org.bkvm.api.resources;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -58,12 +59,12 @@ public class BookiesResource extends AbstractBookkeeperResource {
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public GetBookiesResult getBookies(@QueryParam("page") int page,
-                                       @QueryParam("size") int size
+            @QueryParam("size") int size
     ) throws Exception {
         final Collection<Bookie> allBookies = getBookkeeperManager().getAllBookies();
         final List<Bookie> filteredBookies = filterBookies(allBookies, page, size);
 
-        final Map<Integer, Cluster> allClusters  = getBookkeeperManager().getAllClusters()
+        final Map<Integer, Cluster> allClusters = getBookkeeperManager().getAllClusters()
                 .stream().collect(Collectors.toMap(Cluster::getClusterId, Function.identity()));
 
         final List<BookieBean> bookies = new ArrayList<>();
@@ -89,11 +90,10 @@ public class BookiesResource extends AbstractBookkeeperResource {
             b.setTotalDiskSpace(bookie.getTotalDiskspace());
             b.setLastScan(bookie.getScanTime().getTime());
             Bookie.BookieInfo parsedBookieInfo = Bookie.parseBookieInfo(bookie.getBookieInfo());
-            List<String> endpoints = parsedBookieInfo
-                    .getEndpoints()
-                    .stream()
-                    .map(e -> e.getProtocol() + "://" + e.getAddress())
-                    .collect(Collectors.toList());
+            Map<String, String> endpoints = new HashMap<>();
+            parsedBookieInfo.getEndpoints().forEach(info -> {
+                endpoints.put(info.getId(), info.getProtocol() + "://" + info.getAddress());
+            });
             b.setEndpoints(endpoints);
             b.setProperties(parsedBookieInfo.getProperties());
             bookies.add(b);
@@ -122,7 +122,7 @@ public class BookiesResource extends AbstractBookkeeperResource {
         private long freeDiskSpace;
         private long totalDiskSpace;
         private long lastScan;
-        private List<String> endpoints;
+        private Map<String, String> endpoints;
         private Map<String, String> properties;
 
     }

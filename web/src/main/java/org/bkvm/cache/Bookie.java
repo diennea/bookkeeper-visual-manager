@@ -98,7 +98,7 @@ public class Bookie implements Serializable {
 
     @Data
     public static final class EndpointInfo {
-
+        private String id = "";
         private String protocol = "";
         private String address = "";
         private String auth = "";

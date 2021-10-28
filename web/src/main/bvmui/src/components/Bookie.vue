@@ -18,6 +18,9 @@
             <v-btn text @click.stop="$emit('click-info', $event)" :disabled="!enableShowInfo">
                 Show info
             </v-btn>
+            <v-btn text @click.stop="$emit('click-gc', $event)" :disabled="!enableShowInfo || !httpServerIsEnabled">
+                Garbage Collector
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -47,6 +50,14 @@ export default {
                 case 'down':
                 default:
                     return false;
+            }
+        },
+        httpServerIsEnabled() {
+            const bookieHttpServerUri = this.bookie.endpoints["httpserver"];
+            if(bookieHttpServerUri !== undefined) {
+                return true;
+            } else {
+                return false;
             }
         }
     }
