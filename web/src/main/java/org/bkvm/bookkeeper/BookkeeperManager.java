@@ -115,6 +115,7 @@ public class BookkeeperManager implements AutoCloseable {
                     Bookie.EndpointInfo endpoint = new Bookie.EndpointInfo();
                     endpoint.setAddress(s.getHost() + ":" + s.getPort());
                     endpoint.setProtocol(s.getProtocol());
+                    endpoint.setId(s.getId());
                     if (s.getAuth() != null) {
                         endpoint.setAuth(String.join(",", s.getAuth()));
                     } else {

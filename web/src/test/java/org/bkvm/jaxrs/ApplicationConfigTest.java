@@ -22,6 +22,7 @@ package org.bkvm.jaxrs;
 import static org.junit.Assert.assertTrue;
 import java.util.Set;
 import org.bkvm.api.ApplicationConfig;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.junit.Test;
 
 /**
@@ -35,7 +36,7 @@ public class ApplicationConfigTest {
         ApplicationConfig config = new ApplicationConfig();
 
         Set<Class<?>> classes = config.getClasses();
-        assertTrue(classes.size() == 7);
+        assertTrue(classes.size() == 8);
 
         assertContainsClass(classes, org.bkvm.api.listeners.AuthFilter.class);
         assertContainsClass(classes, org.bkvm.api.resources.LoginResource.class);
@@ -44,6 +45,8 @@ public class ApplicationConfigTest {
         assertContainsClass(classes, org.bkvm.api.resources.LedgersResource.class);
         assertContainsClass(classes, org.bkvm.api.resources.LoginResource.class);
         assertContainsClass(classes, org.bkvm.api.resources.SystemStatusResource.class);
+        assertContainsClass(classes, org.bkvm.api.resources.BookieGcResource.class);
+        assertContainsClass(classes, RolesAllowedDynamicFeature.class);
 
     }
 

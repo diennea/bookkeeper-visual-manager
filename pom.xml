@@ -51,6 +51,7 @@
         <mockito.version>1.10.19</mockito.version>
         <jetty.version>9.4.33.v20201020</jetty.version>
         <herddb.version>0.22.0</herddb.version>
+        <httpcomponents.version>4.1.4</httpcomponents.version>
 
         <yarn.version>v1.21.1</yarn.version>
         <node.version>v15.2.1</node.version>
@@ -158,6 +159,11 @@
                 <version>${jersey.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-grizzly2-http</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.activation</groupId>
                 <artifactId>javax.activation-api</artifactId>
                 <version>${libs.javaxactivation.api}</version>
@@ -176,6 +182,11 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpasyncclient</artifactId>
+                <version>${httpcomponents.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>

@@ -18,6 +18,9 @@
             <v-btn text @click.stop="$emit('click-info', $event)" :disabled="!enableShowInfo">
                 Show info
             </v-btn>
+            <v-btn text @click.stop="$emit('click-gc', $event)" :disabled="!enableShowInfo">
+                Garbage Collector
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>

@@ -33,7 +33,7 @@
                                 <template #default>
                                     <tbody>
                                         <tr v-for="(endpoint, index) in currentBookie.endpoints" :key="index">
-                                            <td>{{ index + 1 }}</td>
+                                            <td>{{ index }}</td>
                                             <td>{{ endpoint }}</td>
                                         </tr>
                                     </tbody>
@@ -59,6 +59,63 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-if="currentBookie" v-model="gcInfo" max-width="500px">
+            <v-card>
+                <v-card-title>
+                    <span class="headline">Bookie Info: {{ currentBookie.bookieId }} {{ currentBookie.clusterName }}</span>
+                </v-card-title>
+                <v-card-text>
+                    <v-tabs
+                        color="primary"
+                        center-active>
+                        <v-tab>Garbage Collector</v-tab>
+                        <v-tab-item>
+                            <v-simple-table class="mt-2 elevation-1">
+                                <template #default>
+                                    <tbody>
+                                        <tr v-for="(value, name, index) in gcDetails" :key="index">
+                                            <td>{{ name }}</td>
+                                            <td>{{ value }}</td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-tab-item>
+                    </v-tabs>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn color="primary" text @click="gcInfo = false">Close</v-btn>
+                    <v-btn color="primary" text @click="confirmGC = true">Trigger GC</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-if="currentBookie" v-model="confirmGC" persistent max-width="290">
+            <v-card>
+              <v-card-title class="text-h5">
+                Trigger GC for {{ currentBookie.bookieId }}
+              </v-card-title>
+              <v-card-text></v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="green darken-1"
+                  text
+                  @click="confirmGC = false"
+                >
+                  Close
+                </v-btn>
+                <v-btn
+                  color="green darken-1"
+                  text
+                  @click="triggerGC(currentBookie)"
+                >
+                  Confirm
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+        </v-dialog>
+
         <v-row justify="start">
             <Bookie
                 v-for="bookie in bookies"
@@ -66,6 +123,7 @@
                 :key="keyBookie(bookie)"
                 @click="openBookie(bookie)"
                 @click-info="openBookieInfo(bookie)"
+                @click-gc="openGC(bookie)"
             />
         </v-row>
         <v-row v-if="bookies.length > 0">
@@ -107,7 +165,12 @@ export default {
             bookies: [],
             bookiesCount: 0,
             currentBookie: null,
-            dialogInfo: false
+            dialogInfo: false,
+            gcInfo: false,
+            gcDetails: null,
+            gcTriggerResult: "",
+            confirmGC: false
+
         };
     },
     computed: {
@@ -136,6 +199,23 @@ export default {
             this.bookies = bookieResponse.bookies;
             this.bookiesCount = bookieResponse.totalBookies;
         },
+        async getGcDetails(bookieHttpServerUri){
+            const queryParameters = qs.stringify({bookieHttpServerUri});
+            const url = `api/gc/details?${queryParameters}`;
+            const bookieResponse = await this.$request.get(url);
+            if(bookieResponse.statusCode === 200) {
+                this.gcDetails = JSON.parse(bookieResponse.message)[0];
+            }
+        },
+        async triggerGC(bookie){
+            const bookieHttpServerUri = bookie.endpoints["httpserver"];
+            const queryParameters = qs.stringify({bookieHttpServerUri});
+            const url = `api/gc/trigger?${queryParameters}`;
+            const bookieResponse = await this.$request.get(url);
+            if(bookieResponse.statusCode === 200) {
+                this.gcTriggerResult = "Successful operation";
+            }
+        },
         openBookie(bookie) {
             const { clusterId, bookieId } = bookie;
             this.$router.push({
@@ -146,6 +226,12 @@ export default {
         openBookieInfo(bookie) {
             this.currentBookie = bookie;
             this.dialogInfo = true;
+        },
+        openGC(bookie){
+            const bookieHttpServerUri = bookie.endpoints["httpserver"];
+            this.getGcDetails(bookieHttpServerUri);
+            this.currentBookie = bookie;
+            this.gcInfo = true;
         },
         keyBookie(bookie) {
             return `${bookie.clusterId}|${bookie.bookieId}`;

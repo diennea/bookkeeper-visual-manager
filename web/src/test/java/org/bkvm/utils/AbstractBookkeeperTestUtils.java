@@ -18,6 +18,7 @@
  *
  */
 package org.bkvm.utils;
+
 import static junit.framework.Assert.fail;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SaslAuthenticated;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
@@ -39,7 +40,8 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * Test class that provides a testing server able to start Zookeeper and a Bookkeeper Bookie.
+ * Test class that provides a testing server able to start Zookeeper and a
+ * Bookkeeper Bookie.
  *
  * @author matteo.minardi
  */
@@ -96,10 +98,10 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
     }
 
     public void startBookie() throws Exception {
-        startBookie(true);
+        startBookie(true, -1);
     }
 
-    public void startBookie(boolean format) throws Exception {
+    public void startBookie(boolean format, int httpServerPort) throws Exception {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setBookiePort(NetworkUtils.assignFirstFreePort());
         conf.setUseHostNameAsBookieID(true);
@@ -114,9 +116,13 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
         conf.setAutoRecoveryDaemonEnabled(false);
         conf.setEnableLocalTransport(true);
         conf.setJournalSyncData(false);
-
         conf.setAllowLoopback(true);
         conf.setProperty("journalMaxGroupWaitMSec", 10); // default 200ms
+
+        if (httpServerPort > 0) {
+            conf.setHttpServerEnabled(true);
+            conf.setHttpServerPort(httpServerPort);
+        }
 
         if (format) {
             BookKeeperAdmin.initNewCluster(conf);
