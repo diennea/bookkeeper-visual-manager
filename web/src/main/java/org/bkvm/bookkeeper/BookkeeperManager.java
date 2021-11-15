@@ -115,6 +115,7 @@ public class BookkeeperManager implements AutoCloseable {
                     Bookie.EndpointInfo endpoint = new Bookie.EndpointInfo();
                     endpoint.setAddress(s.getHost() + ":" + s.getPort());
                     endpoint.setProtocol(s.getProtocol());
+                    endpoint.setId(s.getId());
                     if (s.getAuth() != null) {
                         endpoint.setAuth(String.join(",", s.getAuth()));
                     } else {
@@ -166,7 +167,7 @@ public class BookkeeperManager implements AutoCloseable {
         private final Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration;
 
         public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh,
-                                        Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration) {
+                Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
             this.lastClusterWideConfiguration = lastClusterWideConfiguration;
@@ -425,12 +426,12 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Map.Entry<Integer, Long>> searchLedgers(String term,
-                                                        String bookieId,
-                                                        Integer clusterId,
-                                                        List<Long> ledgerIds,
-                                                        Integer minLength,
-                                                        Integer maxLength,
-                                                        Integer minAge) throws BookkeeperManagerException {
+            String bookieId,
+            Integer clusterId,
+            List<Long> ledgerIds,
+            Integer minLength,
+            Integer maxLength,
+            Integer minAge) throws BookkeeperManagerException {
         return metadataCache
                 .searchLedgers(term, bookieId, clusterId, ledgerIds)
                 .stream()
@@ -453,6 +454,19 @@ public class BookkeeperManager implements AutoCloseable {
 
     public Collection<Bookie> getAllBookies() throws BookkeeperManagerException {
         return metadataCache.listBookies();
+    }
+
+    public String getHttpServerEndpoint(int clusterId, String bookieId) {
+        Bookie bookie = metadataCache.getBookie(clusterId, bookieId);
+        Bookie.BookieInfo parsedBookieInfo = Bookie.parseBookieInfo(bookie.getBookieInfo());
+        String httpServerUri = null;
+        for (Bookie.EndpointInfo info : parsedBookieInfo.getEndpoints()) {
+            if (info.getId().equals("httpserver")) {
+                httpServerUri = info.getProtocol() + "://" + info.getAddress();
+                break;
+            }
+        }
+        return httpServerUri;
     }
 
     public Collection<Cluster> getAllClusters() throws BookkeeperManagerException {
@@ -524,7 +538,7 @@ public class BookkeeperManager implements AutoCloseable {
         private final String configuration;
 
         public ClusterWideConfiguration(int clusterId, String clusterName, String configuration, String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion,
-                                        String layoutManagerFactoryClass, int layoutManagerVersion) {
+                String layoutManagerFactoryClass, int layoutManagerVersion) {
             this.clusterId = clusterId;
             this.clusterName = clusterName;
             this.configuration = configuration;

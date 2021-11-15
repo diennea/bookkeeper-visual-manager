@@ -8,5 +8,9 @@ export default {
     async post(url, data = {}) {
         const response = await axios.post(url, data);
         return response.data;
+    },
+    async put(url, data = {}) {
+        const response = await axios.put(url, data);
+        return response.data;
     }
 };

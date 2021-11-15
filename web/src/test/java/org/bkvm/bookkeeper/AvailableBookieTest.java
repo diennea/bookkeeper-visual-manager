@@ -30,7 +30,7 @@ public class AvailableBookieTest extends BookkeeperManagerTestUtils {
 
     @Test
     public void testAvailableBookiesTwoBookies() throws Exception {
-        startBookie(false);
+        startBookie(false, -1);
 
         final BookkeeperManager bookkeeperManager = getBookkeeperManager();
         long now = bookkeeperManager.getRefreshWorkerStatus().getLastMetadataCacheRefresh();

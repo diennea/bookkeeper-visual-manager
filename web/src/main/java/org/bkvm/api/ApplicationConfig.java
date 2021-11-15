@@ -30,19 +30,20 @@ public class ApplicationConfig extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new java.util.HashSet<>();
+        resources.add(RolesAllowedDynamicFeature.class);
         addRestResourceClasses(resources);
         return resources;
     }
 
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(org.bkvm.api.listeners.AuthFilter.class);
-        resources.add(org.bkvm.api.resources.LoginResource.class);
+        resources.add(org.bkvm.api.resources.BookieGcResource.class);
         resources.add(org.bkvm.api.resources.BookiesResource.class);
         resources.add(org.bkvm.api.resources.ClusterResource.class);
         resources.add(org.bkvm.api.resources.LedgersResource.class);
         resources.add(org.bkvm.api.resources.LoginResource.class);
         resources.add(org.bkvm.api.resources.SystemStatusResource.class);
-        resources.add(RolesAllowedDynamicFeature.class);
+
     }
 
 }
