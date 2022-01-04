@@ -1,7 +1,5 @@
 # BKVM - Visual Manager for Apache BookKeeper
 
-[![Build Status](https://travis-ci.org/diennea/bookkeeper-visual-manager.svg?branch=master)](https://travis-ci.org/apache/bookkeeper)
-
 Bookkeeper Visual Manager is an open source visual interface for [Apache
 Bookkeeper](https://bookkeeper.apache.org/).
 
