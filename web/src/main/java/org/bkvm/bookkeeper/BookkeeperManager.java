@@ -53,17 +53,14 @@ import org.apache.bookkeeper.client.BookieInfoReader.BookieInfo;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.conf.ClientConfiguration;
-import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.discover.BookieServiceInfo;
 import org.apache.bookkeeper.discover.RegistrationClient;
-import org.apache.bookkeeper.discover.ZKRegistrationClient;
 import org.apache.bookkeeper.meta.LedgerLayout;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerMetadataSerDe;
 import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.meta.exceptions.MetadataException;
 import org.apache.bookkeeper.net.BookieId;
-import org.apache.bookkeeper.replication.AuditorElector;
 import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
 import org.apache.zookeeper.KeeperException;
@@ -212,7 +209,8 @@ public class BookkeeperManager implements AutoCloseable {
                 BookKeeper bkClient = bkCluster.getBkClient();
                 BookKeeperAdmin bkAdmin = bkCluster.getBkAdmin();
 
-                lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(), cluster.getConfiguration(), bkClient, conf));
+                lastClusterWideConfiguration.put(clusterId, getClusterWideConfiguration(clusterId, cluster.getName(),
+                        cluster.getConfiguration(), bkClient, conf, bkAdmin));
                 RegistrationClient metadataClient = bkClient.getMetadataClientDriver().getRegistrationClient();
                 final Collection<BookieId> bookiesCookie = metadataClient.getAllBookies().get().getValue();
                 final Collection<BookieId> available = metadataClient.getWritableBookies().get().getValue();
@@ -484,7 +482,11 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
-    private static ClusterWideConfiguration getClusterWideConfiguration(int clusterId, String clusterName, String configString, BookKeeper bookkeeper, ClientConfiguration conf) throws BookkeeperManagerException {
+    private static ClusterWideConfiguration getClusterWideConfiguration(int clusterId, String clusterName,
+                                                                        String configString,
+                                                                        BookKeeper bookkeeper,
+                                                                        ClientConfiguration conf,
+                                                                        BookKeeperAdmin admin) throws BookkeeperManagerException {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;
@@ -497,9 +499,18 @@ public class BookkeeperManager implements AutoCloseable {
             layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
             layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
             layoutManagerVersion = ledgerLayout.getManagerVersion();
-            ZKRegistrationClient metadataClient = (ZKRegistrationClient) bookkeeper.getMetadataClientDriver().getRegistrationClient();
             try {
-                auditor = AuditorElector.getCurrentAuditor(new ServerConfiguration(conf), metadataClient.getZk());
+                auditor = admin.getCurrentAuditor();
+            } catch (IOException ioException) {
+                if (ioException.getCause() instanceof KeeperException) {
+                    LOG.log(Level.INFO, "Cannot get auditor info: {0}", ioException + ""); // do not write stacktrace
+                } else {
+                    throw ioException;
+                }
+            }
+
+            try {
+
                 try (LedgerUnderreplicationManager underreplicationManager = bookkeeper.getMetadataClientDriver().getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
                     autoRecoveryEnabled = underreplicationManager.isLedgerReplicationEnabled();
                     lostBookieRecoveryDelay = underreplicationManager.getLostBookieRecoveryDelay();
