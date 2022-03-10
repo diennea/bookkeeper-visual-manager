@@ -75,6 +75,27 @@ http://localhost:4500
 
 Username and passwords are: admin/admin
 
+### Docker
+You can build the docker image by running:
+```
+mvn clean install -DskipTests
+./docker/build.sh
+```
+
+Then you can run the container:
+```
+docker run --rm -p 4500:4500 -e BKVM_metadataServiceUri='zk+null://<my-zookeeper>:2181/ledgers' bkvm/bkvm:latest
+```
+In this way the local database will persist the data locally.
+
+If you want to rely on BookKeeper for all the BKVM data (cluster configuration, bookies metadata) you can run configure the JDBC url in this way:
+```
+ docker run --rm -p 4500:4500 -e BKVM_metadataServiceUri='zk+null://bk:2181/ledgers' \
+   -e BKVM_jdbc_url='jdbc:herddb:zookeeper:<my-zookeeper>:2181/herddb?server.mode=diskless-cluster' bkvm/bkvm:latest
+```
+Thanks to HerdDb `diskless-cluster` mode, the BKVM container is stateless.
+
+
 #### Deploy the war application using Maven Jetty Plugin
 ~~~~
 git clone https://github.com/diennea/bookkeeper-visual-manager.git
