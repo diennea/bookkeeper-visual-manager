@@ -69,7 +69,7 @@ done
 SERVICE=$1
 shift
 
-if [ "x$DAEMON_MODE" = "xtrue" ]; then
+if [ "$DAEMON_MODE" = "true" ]; then
   CONSOLE_OUTPUT_FILE=$SERVICE.service.log  
   nohup $JAVA -cp $CLASSPATH $JAVA_OPTS "$@" > "$CONSOLE_OUTPUT_FILE" 2>&1 < /dev/null &
   RETVAL=$?
