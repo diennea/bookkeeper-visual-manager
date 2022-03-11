@@ -302,7 +302,7 @@ public class BookkeeperManager implements AutoCloseable {
                     bookieAddresses.forEach(bookieId -> {
                         bookies.add(new LedgerBookie(ledgerId, bookieId, clusterId));
                     });
-                    LOG.log(Level.INFO, "Updating ledeger {0} metadata", ledgerId);
+                    LOG.log(Level.FINE, "Updating ledger {0} metadata", ledgerId);
                     metadataCache.updateLedger(ledger, bookies, metadataEntries);
                 }
             }
