@@ -132,6 +132,12 @@ BVM_WAR_PATH=path/to/warfile
 BVM_CONF_PATH=/path/to/conf java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
 ~~~~
 
+
+#### Deploy BKVM on Kubernetes using Helm
+
+You can use the sample [Helm Chart](kubernetes/README.md) to bootstrap BVKM on k8s.
+
+
 ### Advanced configuration
 
 In order to use a more advanced configuration you need to provide to the
