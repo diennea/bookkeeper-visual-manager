@@ -97,7 +97,7 @@ Thanks to HerdDb `diskless-cluster` mode, the BKVM container is stateless.
 
 #### Deploy BKVM on Kubernetes using Helm
 
-You can use the sample [Helm Chart](kubernetes/README.md) to bootstrap BVKM on k8s.
+You can use the sample [Helm Chart](kubernetes/README.md) to bootstrap BKVM on k8s.
 
 #### Deploy the war application using Maven Jetty Plugin
 ~~~~
