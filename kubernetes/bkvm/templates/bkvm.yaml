@@ -29,7 +29,7 @@ spec:
       imagePullPolicy: {{ .Values.imagePullPolicy }}
       image: {{ .Values.image }}
       env:
-        - name: BKVM_jdbc.Url
+        - name: BKVM_jdbc.url
           value: "{{ .Values.jdbcUrl }}"
         - name: BKVM_metadataServiceUri
           value: "{{ .Values.metadataServiceUri }}"
