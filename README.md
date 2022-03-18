@@ -189,6 +189,13 @@ Feel free to create issues and pull request in order to interact with the commun
 
 Please let us know if you are trying out this project, we will be happy to hear about your user case and help you.
 
+### Release commands
+```
+git checkout master
+mvn release:prepare
+mvn release:perform
+```
+
 ## License
 
 Bookkeeper Visual Manager is under [Apache 2 license](http://www.apache.org/licenses/LICENSE-2.0.html).
