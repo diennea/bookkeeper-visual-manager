@@ -17,9 +17,9 @@
 # under the License.
 #
 
-image: eolivelli/bkvm:latest
+image: herddb/bkvm:latest
 imagePullPolicy: Always
 podMem: "1Gi"
 podCpu: "0.5"
-jdbc.url: jdbc:herddb:local:temporary
+jdbcUrl: jdbc:herddb:local:temporary
 metadataServiceUri: zk://pulsar-zookeeper-ca:2181/ledgers
