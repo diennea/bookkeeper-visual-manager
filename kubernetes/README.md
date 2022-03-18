@@ -1,19 +1,19 @@
-* Helm chart for BKVM
+# Helm chart for BKVM
 
 In order to install BKVM in an existing cluster that runs BookKeeper you can use this Helm Chart.
 
-** Notes
+## Notes
 
 This helm chart is very simple and it only starts a pod that runs BKVM service and the embedded HerdDB database.
 The default configuration should work with simple clusters, without authentication on ZooKeeper services.
 
 Usually setting metadataServiceUri is enough if you do not have authentication for ZooKeeper.
 
-** Contributing
+## Contributing
 
 Feel free to give your feedback using GitHub issues or send Pull Requests with the enhancements you do locally.
 
-** Installing the chart
+## Installing the chart
 
 Ensure that you have KUBECONFIG properly configured and than `helm` works properly.
 
