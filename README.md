@@ -95,6 +95,9 @@ If you want instead to rely on BookKeeper for all the BKVM data (cluster configu
 ```
 Thanks to HerdDb `diskless-cluster` mode, the BKVM container is stateless.
 
+#### Deploy BKVM on Kubernetes using Helm
+
+You can use the sample [Helm Chart](kubernetes/README.md) to bootstrap BVKM on k8s.
 
 #### Deploy the war application using Maven Jetty Plugin
 ~~~~
@@ -131,11 +134,6 @@ BVM_WAR_PATH=path/to/warfile
 # Environment Variable configuration
 BVM_CONF_PATH=/path/to/conf java -jar jetty-runner.jar $BVM_WAR_PATH --port $BVM_PORT
 ~~~~
-
-
-#### Deploy BKVM on Kubernetes using Helm
-
-You can use the sample [Helm Chart](kubernetes/README.md) to bootstrap BVKM on k8s.
 
 
 ### Advanced configuration
