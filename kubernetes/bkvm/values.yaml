@@ -16,9 +16,43 @@
 # specific language governing permissions and limitations
 # under the License.
 
-image: herddb/bkvm:latest
-imagePullPolicy: Always
-podMem: "1Gi"
-podCpu: "0.5"
-jdbcUrl: jdbc:herddb:local:temporary
-metadataServiceUri: zk://pulsar-zookeeper-ca:2181/ledgers
+server:
+  labels:
+    app.kubernetes.io/instance: bkvm
+    app.kubernetes.io/name: bkvm-server
+
+  image:
+    repository: herddb/bkvm
+    tag: latest
+    imagePullPolicy: Always
+
+  jdbcUrl: jdbc:herddb:local:temporary
+  metadataServiceUri: zk://pulsar-zookeeper:2181/ledgers
+
+  service:
+    annotations: {}
+    clusterIP: "None"
+    externalIPs: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    type: ClusterIP
+    port: 4500
+    nodePort: ""
+    protocol: TCP
+    name: bkvm-service
+
+  ingress:
+    enabled: false
+    ingressClassName: ""
+    annotations: {}
+    tls: []
+    path: /
+    hosts: []
+
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: "1Gi"
+    limits:
+      cpu: "0.5"
+      memory: "1Gi"

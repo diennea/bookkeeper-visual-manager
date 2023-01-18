@@ -1,0 +1,35 @@
+{{- if .Values.server.ingress.enabled -}}
+{{- $ingressPath := .Values.server.ingress.path -}}
+{{- $servicePort := .Values.server.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bkvm-server
+{{- if .Values.server.ingress.annotations }}
+  annotations:
+{{ toYaml .Values.server.ingress.annotations | indent 4 }}
+{{- end }}
+  labels:
+{{ toYaml .Values.server.labels | nindent 4 }}
+spec:
+{{- if .Values.server.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.server.ingress.ingressClassName }}
+{{- end }}
+{{- if .Values.server.ingress.tls }}
+  tls:
+{{ toYaml .Values.server.ingress.tls | indent 4 }}
+{{- end }}
+  rules:
+    {{- range .Values.server.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: {{ $ingressPath }}
+            pathType: Prefix
+            backend:
+              service:
+                name: bkvm-server
+                port:
+                  number: {{ $servicePort }}
+    {{- end }}
+{{- end }}

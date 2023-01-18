@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bkvm-server
+  labels:
+    {{ toYaml .Values.server.labels | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bkvm-server
+      app.kubernetes.io/instance: bkvm
+      app.kubernetes.io/release: bkvm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bkvm-server
+        app.kubernetes.io/instance: bkvm
+        app.kubernetes.io/release: bkvm
+    spec:
+      containers:
+      - env:
+        - name: BKVM_jdbc.url
+          value: {{ .Values.server.jdbcUrl }}
+        - name: BKVM_metadataServiceUri
+          value: {{ .Values.server.metadataServiceUri }}
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.imagePullPolicy }}
+        name: bkvm-ui
+        ports:
+        - containerPort: {{ .Values.server.service.port }}
+          protocol: {{ .Values.server.service.protocol }}
+        resources:
+          requests:
+            cpu: {{ .Values.server.resources.requests.cpu }}
+            memory: {{ .Values.server.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.server.resources.limits.cpu }}
+            memory: {{ .Values.server.resources.limits.memory }}

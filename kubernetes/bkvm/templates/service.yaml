@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bkvm-server
+{{- if .Values.server.service.annotations }}
+  annotations:
+    {{ toYaml .Values.server.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    {{ toYaml .Values.server.labels | nindent 4 }}
+spec:
+  type: {{ .Values.server.service.type }}
+  ports:
+    - name: bkvm-ui
+      port: {{ .Values.server.service.port }}
+      protocol: {{ .Values.server.service.protocol }}
+      targetPort: {{ .Values.server.service.port }}
+  selector:
+    {{ toYaml .Values.server.labels | nindent 4 }}
