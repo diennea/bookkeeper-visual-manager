@@ -23,11 +23,13 @@ server:
 
   image:
     repository: herddb/bkvm
-    tag: latest
-    imagePullPolicy: Always
-
+    tag: 3.1.1
+    imagePullPolicy: IfNotPresent
+  
   jdbcUrl: jdbc:herddb:local:temporary
-  metadataServiceUri: zk://pulsar-zookeeper:2181/ledgers
+  # must be the access to the zookeeper's ledgers
+  # example for Pulsar : zk://pulsar-zookeeper:2181/ledgers
+  metadataServiceUri: ""
 
   service:
     annotations: {}
