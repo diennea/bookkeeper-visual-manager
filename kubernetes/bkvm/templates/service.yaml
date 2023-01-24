@@ -17,25 +17,21 @@
 # under the License.
 
 apiVersion: v1
-kind: Pod
+kind: Service
 metadata:
-  name: {{ .Release.Name }}-bkvm-server
+  name: bkvm-server
+{{- if .Values.server.service.annotations }}
+  annotations:
+    {{ toYaml .Values.server.service.annotations | indent 4 }}
+{{- end }}
   labels:
-    app: {{ .Release.Name }}
+    {{ toYaml .Values.server.labels | nindent 4 }}
 spec:
-  containers:
-    - name: {{ .Release.Name }}-bkvm-server
-      imagePullPolicy: {{ .Values.imagePullPolicy }}
-      image: {{ .Values.image }}
-      env:
-        - name: BKVM_jdbc.url
-          value: "{{ .Values.jdbcUrl }}"
-        - name: BKVM_metadataServiceUri
-          value: "{{ .Values.metadataServiceUri }}"
-      resources:
-        requests:
-          memory: '{{ .Values.podMem }}'
-          cpu: '{{ .Values.podCpu }}'
-        limits:
-          memory: '{{ .Values.podMem }}'
-          cpu: '{{ .Values.podCpu }}'
+  type: {{ .Values.server.service.type }}
+  ports:
+    - name: bkvm-ui
+      port: {{ .Values.server.service.port }}
+      protocol: {{ .Values.server.service.protocol }}
+      targetPort: {{ .Values.server.service.port }}
+  selector:
+    {{ toYaml .Values.server.labels | nindent 4 }}

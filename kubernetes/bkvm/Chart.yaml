@@ -17,10 +17,10 @@
 # under the License.
 
 apiVersion: v1
-appVersion: "0.0.1"
+appVersion: "0.0.2"
 description: A Helm chart for running BKVM
 name: bkvm
-version: 0.0.1
+version: 0.0.2
 sources:
   - https://github.com/diennea/bookkeeper-visual-manager
 maintainers:
