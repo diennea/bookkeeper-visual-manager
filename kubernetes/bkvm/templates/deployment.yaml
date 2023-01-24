@@ -55,3 +55,17 @@ spec:
           limits:
             cpu: {{ .Values.server.resources.limits.cpu }}
             memory: {{ .Values.server.resources.limits.memory }}
+{{- if .Values.server.probe.enabled }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.server.service.port }}
+          initialDelaySeconds: {{ .Values.server.probe.initial }}
+          periodSeconds: {{ .Values.server.probe.period }}
+          timeoutSeconds: {{ .Values.server.probe.timeout }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.server.service.port }}
+          initialDelaySeconds: {{ .Values.server.probe.initial }}
+          periodSeconds: {{ .Values.server.probe.period }}
+          timeoutSeconds: {{ .Values.server.probe.timeout }}
+{{- end }}
