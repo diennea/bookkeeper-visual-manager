@@ -200,6 +200,17 @@ mvn release:prepare
 mvn release:perform
 ```
 
+### Release the chart
+1. Update the chart version in `kubernetes/bkvm/Chart.yaml`.
+2.
+```
+version=0.0.2
+git commit -am "Release chart $version"
+git tag bkvm-$version
+git push
+git push --tags
+```
+
 ## License
 
 Bookkeeper Visual Manager is under [Apache 2 license](http://www.apache.org/licenses/LICENSE-2.0.html).
