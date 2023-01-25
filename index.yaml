@@ -1,0 +1,17 @@
+apiVersion: v1
+entries:
+  bkvm:
+  - apiVersion: v1
+    appVersion: 3.1.1
+    created: "2023-01-25T12:15:28.333792636Z"
+    description: A Helm chart for running BKVM
+    digest: 284e8e070e346ec898d720db0d1f5794e80b91827a4755fb8c3cd3d7a3201c9c
+    maintainers:
+    - name: BKVM Community
+    name: bkvm
+    sources:
+    - https://github.com/diennea/bookkeeper-visual-manager
+    urls:
+    - https://github.com/diennea/bookkeeper-visual-manager/releases/download/bkvm-0.0.1/bkvm-0.0.1.tgz
+    version: 0.0.1
+generated: "2023-01-25T12:15:28.333799936Z"
