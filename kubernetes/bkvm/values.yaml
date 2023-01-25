@@ -31,6 +31,12 @@ server:
   # example for Pulsar : zk://pulsar-zookeeper:2181/ledgers
   metadataServiceUri: ""
 
+  probe:
+    enabled: true
+    initial: 10
+    period: 30
+    timeout: 5
+
   service:
     annotations: {}
     clusterIP: "None"
