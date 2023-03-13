@@ -19,7 +19,7 @@ Ensure that you have KUBECONFIG properly configured and than `helm` works proper
 
 ```
 helm repo add bkvm https://diennea.github.io/bookkeeper-visual-manager/
-helm helm install bkvm bkvm/bkvm -n pcert --set 'metadataServiceUri=zk://pulsar-zookeeper-ca:2181/ledgers'
+helm install bkvm bkvm/bkvm --set 'metadataServiceUri=zk://pulsar-zookeeper-ca:2181/ledgers'
 ```
 
 Wait for the BKVM server deployment to be up and running
