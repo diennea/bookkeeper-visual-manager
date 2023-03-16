@@ -6,9 +6,6 @@
             <v-list-item-title>Usage</v-list-item-title>
             <v-list-item-subtitle class="text-right">{{ $library.formatPercent(bookie.totalDiskSpace - bookie.freeDiskSpace, bookie.totalDiskSpace) }}&#37;</v-list-item-subtitle>
         </v-list-item>
-        <v-card-text>
-            <p class="text-center text-uppercase display-1">{{ bookie.state }}</p>
-        </v-card-text>
         <v-divider />
         <v-card-actions>
             <v-btn text @click.stop="$emit('click-info', $event)" :disabled="!enableShowInfo">
