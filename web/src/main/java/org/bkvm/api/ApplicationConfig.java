@@ -39,6 +39,7 @@ public class ApplicationConfig extends Application {
         resources.add(org.bkvm.api.listeners.AuthFilter.class);
         resources.add(org.bkvm.api.resources.BookieGcResource.class);
         resources.add(org.bkvm.api.resources.BookiesResource.class);
+        resources.add(org.bkvm.api.resources.BookiesTopologyResource.class);
         resources.add(org.bkvm.api.resources.ClusterResource.class);
         resources.add(org.bkvm.api.resources.LedgersResource.class);
         resources.add(org.bkvm.api.resources.LoginResource.class);

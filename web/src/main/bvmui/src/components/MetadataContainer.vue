@@ -5,6 +5,7 @@
         <div v-for="item in mainItems" :key="item.title">{{ item.title }}: <b>{{ item.value }}</b></div>
         <div class="bvm-metadata-row" v-for="(blist, key) in currentLedger.ensembles" :key="key">
             <b>Ensemble {{ key }}</b>: <v-container><v-chip label outlined v-for="item in blist" :key="item">{{ item }}</v-chip></v-container>
+            <BookiesTopology :bookies="bookies.filter(b => blist.includes(b.bookieId))" :bookiesTopology="bookiesTopology" mini />
         </div>
         <div class="bvm-metadata-row" v-for="(key, value) in currentLedger.metadata" :key="key">
             <strong>{{ value }}</strong>: {{ key }}
@@ -12,9 +13,16 @@
     </div>
 </template>
 <script>
+import BookiesTopology from "@/components/BookiesTopology";
+
 export default {
+    components: {
+        BookiesTopology
+    },
     props: {
-        currentLedger: Object
+        currentLedger: Object,
+        bookiesTopology: {},
+        bookies: []
     },
     computed: {
         mainItems() {

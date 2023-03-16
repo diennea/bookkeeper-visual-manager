@@ -81,6 +81,8 @@
                 <MetadataContainer
                     :current-ledger="currentLedger"
                     @close="closeMetadata"
+                    :bookies="bookies"
+                    :bookiesTopology="bookiesTopology"
                 />
             </div>
         </div>
@@ -132,7 +134,9 @@ export default {
             currentLedger: null,
             ledgers: [],
             ledgersCount: 0,
-            totalSize: 0
+            totalSize: 0,
+            bookiesTopology: {},
+            bookies: []
         };
     },
     computed: {
@@ -176,6 +180,11 @@ export default {
             this.ledgers = ledgersResult.ledgers;
             this.ledgersCount = ledgersResult.totalLedgers;
             this.totalSize = ledgersResult.totalSize;
+
+
+            this.$request.get(`api/topology/all`).then((result) => this.bookiesTopology = result.bookies)
+            this.$request.get('api/bookie/all?' + qs.stringify({page: 1, size: 1000})).then((result) => this.bookies = result.bookies)
+
         },
         keyLedger(ledger) {
             return `${ledger.clusterId}|${ledger.id}`;
