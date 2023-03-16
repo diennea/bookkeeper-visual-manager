@@ -1,19 +1,16 @@
 <template>
-    <div class="bvm-tile" @click="$emit('click', $event)">
+    <div :class="rootClasses" @click="$emit('click', $event)">
         <div v-if="ledger.description !== ''" class="bvm-tile__descrow">
             <span>{{ ledger.description }}</span>
         </div>
         <div class="bvm-tile__row">
             <span>Ledger {{ ledger.id }} ({{ ledger.clusterName }})</span>
         </div>
-        <div class="bvm-tile__row">
-            <span>Size {{ $library.formatBytes(ledger.length) }}</span>
+        <div class="bvm-tile__row" v-if="ledger.state !== 'OPEN'">
+            <span>Size <b>{{ $library.formatBytes(ledger.length) }}</b></span>
         </div>
         <div class="bvm-tile__row">
-            <span>Replication {{ ledger.writeQuorumSize }}</span>
-        </div>
-        <div class="bvm-tile__row">
-            <span>Age {{ computedAge }}</span>
+            <span>E={{ ledger.ensembleSize }}, W={{ ledger.writeQuorumSize }}, A={{ ledger.ackQuorumSize }}</span>
         </div>
     </div>
 </template>
@@ -23,6 +20,9 @@ export default {
         ledger: Object
     },
     computed: {
+        rootClasses() {
+            return ["bvm-tile", this.ledger.state == "CLOSED" ? "closed" : ""];
+        },
         computedAge() {
             const countHours = Math.floor(this.ledger.age / 60);
             const countMinutes = this.ledger.age % 60;

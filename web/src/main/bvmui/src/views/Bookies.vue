@@ -2,9 +2,8 @@
     <v-container class="bvm-bookie">
         <v-dialog v-if="currentBookie" v-model="dialogInfo" max-width="500px">
             <v-card>
-                <v-card-title>
-                    <span class="headline">Bookie Info: {{ currentBookie.bookieId }} {{ currentBookie.clusterName }}</span>
-                </v-card-title>
+                <v-card-title>{{ currentBookie.bookieId }}</v-card-title>
+                <v-card-subtitle>{{ currentBookie.clusterName }}</v-card-subtitle>
                 <v-card-text>
                     <v-tabs
                         color="primary"

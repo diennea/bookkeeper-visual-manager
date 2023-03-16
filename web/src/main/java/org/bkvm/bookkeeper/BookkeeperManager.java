@@ -492,18 +492,26 @@ public class BookkeeperManager implements AutoCloseable {
             int lostBookieRecoveryDelay = 0;
             BookieId auditor = null;
             boolean autoRecoveryEnabled = false;
-            int layoutFormatVersion = 0;
-            String layoutManagerFactoryClass = "";
-            int layoutManagerVersion = 0;
-            LedgerLayout ledgerLayout = bookkeeper.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
-            layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
-            layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
-            layoutManagerVersion = ledgerLayout.getManagerVersion();
+            int layoutFormatVersion = -1;
+            String layoutManagerFactoryClass = "?";
+            int layoutManagerVersion = -1;
+            try {
+                LedgerLayout ledgerLayout = bookkeeper.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
+                layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
+                layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
+                layoutManagerVersion = ledgerLayout.getManagerVersion();
+            } catch (IOException ioException) {
+                if (ioException.getCause() instanceof KeeperException) {
+                    LOG.log(Level.SEVERE, "Cannot get ledger layout info: {0}", ioException + ""); // do not write stacktrace
+                } else {
+                    throw ioException;
+                }
+            }
             try {
                 auditor = admin.getCurrentAuditor();
             } catch (IOException ioException) {
                 if (ioException.getCause() instanceof KeeperException) {
-                    LOG.log(Level.INFO, "Cannot get auditor info: {0}", ioException + ""); // do not write stacktrace
+                    LOG.log(Level.SEVERE, "Cannot get auditor info: {0}", ioException + ""); // do not write stacktrace
                 } else {
                     throw ioException;
                 }

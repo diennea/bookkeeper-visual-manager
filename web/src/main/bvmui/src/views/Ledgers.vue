@@ -5,7 +5,7 @@
             <v-text-field
                 v-model="searchTerm"
                 class="pr-5"
-                label="Search"
+                label="Any text"
                 tile
                 flat
                 hide-details
@@ -21,7 +21,7 @@
             <v-text-field
                 v-model="minLength"
                 class="pr-5"
-                label="Min Length"
+                label="Min size (bytes)"
                 tile
                 flat
                 hide-details
@@ -29,7 +29,7 @@
             <v-text-field
                 v-model="maxLength"
                 class="pr-5"
-                label="Max Length"
+                label="Max size (bytes)"
                 tile
                 flat
                 hide-details
@@ -37,7 +37,7 @@
              <v-text-field
                 v-model="minAge"
                 class="pr-5"
-                label="Age"
+                label="Older than (minutes)"
                 tile
                 flat
                 hide-details
