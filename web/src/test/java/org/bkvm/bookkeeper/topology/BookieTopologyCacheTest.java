@@ -1,9 +1,8 @@
 package org.bkvm.bookkeeper.topology;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
-import org.bkvm.api.resources.BookiesTopologyResource;
 import org.junit.Test;
 
 public class BookieTopologyCacheTest {
