@@ -25,7 +25,7 @@ describe('Ledgers', () => {
     ])('Test Ledgers content (age %d, expected %s)', async (age, expectedAge) => {
         createGetResponse(new RegExp('api/ledger/all/*'), {
             ledgers: [
-                {id: '1', clusterName: 'def', description: 'desc', age: age, length: 1024, writeQuorumSize: 3}
+                {id: '1', clusterName: 'def', description: 'desc', age: age, length: 1024, writeQuorumSize: 3, ensembleSize: 5, ackQuorumSize: 2}
             ],
             totalSize: 1024,
             totalLedgers: 100
@@ -38,11 +38,9 @@ describe('Ledgers', () => {
         let ledgerName = ledger.findAll('.bvm-tile__row').at(0);
         let ledgerSize = ledger.findAll('.bvm-tile__row').at(1);
         let ledgerReplication = ledger.findAll('.bvm-tile__row').at(2);
-        let ledgerAge = ledger.findAll('.bvm-tile__row').at(3);
 
         expect(ledgerName.text()).toBe('Ledger 1 (def)');
         expect(ledgerSize.text()).toBe('Size 1 KB');
-        expect(ledgerReplication.text()).toBe('Replication 3');
-        expect(ledgerAge.text()).toBe(`Age ${expectedAge}`);
+        expect(ledgerReplication.text()).toBe('E=5, W=3, A=2');
     })
 });
