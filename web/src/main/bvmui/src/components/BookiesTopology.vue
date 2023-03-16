@@ -110,17 +110,6 @@ export default {
             const keys = Object.keys(this.regions);
             return keys.sort();
         },
-        enableShowInfo() {
-            const state = this.bookie.state ? this.bookie.state : "";
-            switch (state) {
-                case 'available':
-                case 'readonly':
-                    return true;
-                case 'down':
-                default:
-                    return false;
-            }
-        },
     },
     methods: {
         getSortedKeys(from) {

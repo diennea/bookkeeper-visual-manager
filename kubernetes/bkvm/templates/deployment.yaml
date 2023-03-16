@@ -30,7 +30,6 @@ spec:
       app.kubernetes.io/instance: bkvm
       app.kubernetes.io/release: bkvm
   template:
-
     metadata:
       labels:
         app.kubernetes.io/name: bkvm-server

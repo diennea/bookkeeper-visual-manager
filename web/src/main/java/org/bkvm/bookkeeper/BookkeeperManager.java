@@ -90,7 +90,6 @@ public class BookkeeperManager implements AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(BookkeeperManager.class.getName());
 
-
     private final ConfigurationStore configStore;
     private final BookkeeperClusterPool bkClusterPool;
 
