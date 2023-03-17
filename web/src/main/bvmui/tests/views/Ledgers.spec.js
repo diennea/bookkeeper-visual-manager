@@ -9,6 +9,8 @@ describe('Ledgers', () => {
             totalSize: 1024,
             totalLedgers: 100
         });
+        createGetResponse(new RegExp('api/bookie/*'), []);
+        createGetResponse(new RegExp('api/topology/*'), {});
         const ledgersPage = mount(Ledgers);
         await flushPromises();
 
@@ -18,7 +20,7 @@ describe('Ledgers', () => {
         expect(counterText).toContain('Found: 100 ledgers');
         expect(counterText).toContain('total size: 1 KB');
     })
-    test('Test Ledgers content (age %d, expected %s)', async () => {
+    test('Test Ledgers content', async () => {
         createGetResponse(new RegExp('api/ledger/all/*'), {
             ledgers: [
                 {id: '1', clusterName: 'def', description: 'desc', age: 1, length: 1024, writeQuorumSize: 3, ensembleSize: 5, ackQuorumSize: 2}
@@ -26,6 +28,8 @@ describe('Ledgers', () => {
             totalSize: 1024,
             totalLedgers: 100
         });
+        createGetResponse(new RegExp('api/bookie/*'), []);
+        createGetResponse(new RegExp('api/topology/*'), {});
         const ledgersPage = mount(Ledgers);
         await flushPromises();
 
