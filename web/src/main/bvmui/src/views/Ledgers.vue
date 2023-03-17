@@ -5,7 +5,7 @@
             <v-text-field
                 v-model="searchTerm"
                 class="pr-5"
-                label="Search"
+                label="Any text"
                 tile
                 flat
                 hide-details
@@ -21,7 +21,7 @@
             <v-text-field
                 v-model="minLength"
                 class="pr-5"
-                label="Min Length"
+                label="Min size (bytes)"
                 tile
                 flat
                 hide-details
@@ -29,7 +29,7 @@
             <v-text-field
                 v-model="maxLength"
                 class="pr-5"
-                label="Max Length"
+                label="Max size (bytes)"
                 tile
                 flat
                 hide-details
@@ -37,7 +37,7 @@
              <v-text-field
                 v-model="minAge"
                 class="pr-5"
-                label="Age"
+                label="Older than (minutes)"
                 tile
                 flat
                 hide-details
@@ -81,6 +81,8 @@
                 <MetadataContainer
                     :current-ledger="currentLedger"
                     @close="closeMetadata"
+                    :bookies="bookies"
+                    :bookies-topology="bookiesTopology"
                 />
             </div>
         </div>
@@ -132,7 +134,9 @@ export default {
             currentLedger: null,
             ledgers: [],
             ledgersCount: 0,
-            totalSize: 0
+            totalSize: 0,
+            bookiesTopology: {},
+            bookies: []
         };
     },
     computed: {
@@ -176,6 +180,11 @@ export default {
             this.ledgers = ledgersResult.ledgers;
             this.ledgersCount = ledgersResult.totalLedgers;
             this.totalSize = ledgersResult.totalSize;
+
+
+            this.$request.get(`api/topology/all`).then((result) => this.bookiesTopology = result.bookies)
+            this.$request.get('api/bookie/all?' + qs.stringify({page: 1, size: 1000})).then((result) => this.bookies = result.bookies)
+
         },
         keyLedger(ledger) {
             return `${ledger.clusterId}|${ledger.id}`;

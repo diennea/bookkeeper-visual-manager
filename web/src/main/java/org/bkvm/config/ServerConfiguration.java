@@ -49,4 +49,10 @@ public final class ServerConfiguration {
     public static final String PROPERTY_BK_METADATA_DESCRIPTION = "metadata.ledgerdescription";
     public static final String PROPERTY_BK_METADATA_DESCRIPTION_DEFAULT = "tablespacename,pulsar/,application";
 
+    /**
+     * Enable discovery of bookies topology (only for Kubernetes)
+     */
+    public static final String PROPERTY_ENABLE_BOOKIES_TOPOLOGY = "topology.enabled";
+    public static final String PROPERTY_ENABLE_BOOKIES_TOPOLOGY_DEFAULT = "false";
+
 }

@@ -65,6 +65,7 @@ import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tools.cli.helpers.CommandHelpers;
 import org.apache.zookeeper.KeeperException;
 import org.bkvm.bookkeeper.BookkeeperClusterPool.BookkeeperCluster;
+import org.bkvm.bookkeeper.topology.BookieTopologyCache;
 import org.bkvm.cache.Bookie;
 import org.bkvm.cache.Cluster;
 import org.bkvm.cache.Ledger;
@@ -74,7 +75,6 @@ import org.bkvm.cache.MetadataCache;
 import org.bkvm.config.ConfigurationStore;
 
 /**
- *
  * @author matteo
  */
 public class BookkeeperManager implements AutoCloseable {
@@ -87,6 +87,7 @@ public class BookkeeperManager implements AutoCloseable {
     private final MetadataCache metadataCache;
     private final LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
     private final ScheduledExecutorService refreshThread;
+    private final BookieTopologyCache topologyCache;
 
     public void ensureDefaultCluster(String metadataServiceUri) throws BookkeeperManagerException {
         Cluster exists = metadataCache.listClusters().stream().filter(c -> c.getName().equals("default")).findFirst().orElse(null);
@@ -134,7 +135,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     public BookkeeperManager(ConfigurationStore configStore, MetadataCache metadataCache) throws BookkeeperManagerException {
         int refreshSeconds = Integer.parseInt(configStore.getProperty(PROPERTY_METADATA_REFRESH_PERIOD, PROPERTY_METADATA_REFRESH_PERIOD_DEFAULT));
-        this.refreshThread = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+        final ThreadFactory threadFactory = new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
                 Thread t = new Thread(r, "bk-visual-manager-cache-refresh");
@@ -144,7 +145,9 @@ public class BookkeeperManager implements AutoCloseable {
                 });
                 return t;
             }
-        });
+        };
+        this.refreshThread = Executors.newSingleThreadScheduledExecutor(threadFactory);
+        this.topologyCache = new BookieTopologyCache(configStore, metadataCache);
         if (refreshSeconds > 0) {
             LOG.log(Level.INFO, "Scheduling automatic refresh of metadata, every {0} seconds", refreshSeconds);
             refreshThread.scheduleWithFixedDelay(() -> {
@@ -306,6 +309,7 @@ public class BookkeeperManager implements AutoCloseable {
                     metadataCache.updateLedger(ledger, bookies, metadataEntries);
                 }
             }
+            topologyCache.refreshBookiesTopology();
 
             lastMetadataCacheRefresh = System.currentTimeMillis();
             LOG.info("Refreshing Metadata Cache Finished");
@@ -424,12 +428,12 @@ public class BookkeeperManager implements AutoCloseable {
     }
 
     public List<Map.Entry<Integer, Long>> searchLedgers(String term,
-            String bookieId,
-            Integer clusterId,
-            List<Long> ledgerIds,
-            Integer minLength,
-            Integer maxLength,
-            Integer minAge) throws BookkeeperManagerException {
+                                                        String bookieId,
+                                                        Integer clusterId,
+                                                        List<Long> ledgerIds,
+                                                        Integer minLength,
+                                                        Integer maxLength,
+                                                        Integer minAge) throws BookkeeperManagerException {
         return metadataCache
                 .searchLedgers(term, bookieId, clusterId, ledgerIds)
                 .stream()
@@ -450,7 +454,7 @@ public class BookkeeperManager implements AutoCloseable {
 
     }
 
-    public Collection<Bookie> getAllBookies() throws BookkeeperManagerException {
+    public Collection<Bookie> getAllBookies() {
         return metadataCache.listBookies();
     }
 
@@ -486,24 +490,33 @@ public class BookkeeperManager implements AutoCloseable {
                                                                         String configString,
                                                                         BookKeeper bookkeeper,
                                                                         ClientConfiguration conf,
-                                                                        BookKeeperAdmin admin) throws BookkeeperManagerException {
+                                                                        BookKeeperAdmin admin)
+            throws BookkeeperManagerException {
         LOG.log(Level.INFO, "starting getClusterWideConfiguration");
         try {
             int lostBookieRecoveryDelay = 0;
             BookieId auditor = null;
             boolean autoRecoveryEnabled = false;
-            int layoutFormatVersion = 0;
-            String layoutManagerFactoryClass = "";
-            int layoutManagerVersion = 0;
-            LedgerLayout ledgerLayout = bookkeeper.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
-            layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
-            layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
-            layoutManagerVersion = ledgerLayout.getManagerVersion();
+            int layoutFormatVersion = -1;
+            String layoutManagerFactoryClass = "?";
+            int layoutManagerVersion = -1;
+            try {
+                LedgerLayout ledgerLayout = bookkeeper.getMetadataClientDriver().getLayoutManager().readLedgerLayout();
+                layoutFormatVersion = ledgerLayout.getLayoutFormatVersion();
+                layoutManagerFactoryClass = ledgerLayout.getManagerFactoryClass();
+                layoutManagerVersion = ledgerLayout.getManagerVersion();
+            } catch (IOException ioException) {
+                if (ioException.getCause() instanceof KeeperException) {
+                    LOG.log(Level.SEVERE, "Cannot get ledger layout info: {0}", ioException + ""); // do not write stacktrace
+                } else {
+                    throw ioException;
+                }
+            }
             try {
                 auditor = admin.getCurrentAuditor();
             } catch (IOException ioException) {
                 if (ioException.getCause() instanceof KeeperException) {
-                    LOG.log(Level.INFO, "Cannot get auditor info: {0}", ioException + ""); // do not write stacktrace
+                    LOG.log(Level.SEVERE, "Cannot get auditor info: {0}", ioException + ""); // do not write stacktrace
                 } else {
                     throw ioException;
                 }
@@ -511,7 +524,8 @@ public class BookkeeperManager implements AutoCloseable {
 
             try {
 
-                try (LedgerUnderreplicationManager underreplicationManager = bookkeeper.getMetadataClientDriver().getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
+                try (LedgerUnderreplicationManager underreplicationManager = bookkeeper.getMetadataClientDriver()
+                        .getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
                     autoRecoveryEnabled = underreplicationManager.isLedgerReplicationEnabled();
                     lostBookieRecoveryDelay = underreplicationManager.getLostBookieRecoveryDelay();
                 }
@@ -522,10 +536,12 @@ public class BookkeeperManager implements AutoCloseable {
             }
             String auditorDescription = "";
             if (auditor != null) {
-                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor, bookkeeper.getBookieAddressResolver());
+                auditorDescription = CommandHelpers.getBookieSocketAddrStringRepresentation(auditor,
+                        bookkeeper.getBookieAddressResolver());
             }
 
-            return new ClusterWideConfiguration(clusterId, clusterName, configString, auditorDescription, autoRecoveryEnabled, lostBookieRecoveryDelay,
+            return new ClusterWideConfiguration(clusterId, clusterName, configString, auditorDescription,
+                    autoRecoveryEnabled, lostBookieRecoveryDelay,
                     layoutFormatVersion, layoutManagerFactoryClass, layoutManagerVersion);
         } catch (InterruptedException
                 | MetadataException | IOException ex) {
@@ -548,8 +564,10 @@ public class BookkeeperManager implements AutoCloseable {
         private final int layoutManagerVersion;
         private final String configuration;
 
-        public ClusterWideConfiguration(int clusterId, String clusterName, String configuration, String auditor, boolean autorecoveryEnabled, int lostBookieRecoveryDelay, int layoutFormatVersion,
-                String layoutManagerFactoryClass, int layoutManagerVersion) {
+        public ClusterWideConfiguration(int clusterId, String clusterName, String configuration, String auditor,
+                                        boolean autorecoveryEnabled, int lostBookieRecoveryDelay,
+                                        int layoutFormatVersion,
+                                        String layoutManagerFactoryClass, int layoutManagerVersion) {
             this.clusterId = clusterId;
             this.clusterName = clusterName;
             this.configuration = configuration;
@@ -597,6 +615,10 @@ public class BookkeeperManager implements AutoCloseable {
             return layoutManagerVersion;
         }
 
+    }
+
+    public Map<String, BookieTopologyCache.BookieTopology> getBookiesTopology() {
+        return topologyCache.getBookiesTopology();
     }
 
 }

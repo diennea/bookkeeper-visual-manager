@@ -1,23 +1,36 @@
+@import '~vuetify/src/styles/styles.sass';
 .bvm-tile {
     padding: 5px 15px;
+    margin: 6px 2px;
 
     min-height: 150px;
     border-radius: 4px;
 
     color: #000000;
-    background-color: color("primary");
+    background-color: map-get($grey, lighten-4);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
     &:hover {
-        background-color: lighten(color("primary"), 3);
+        background-color: map-get($grey, lighten-3);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 
         cursor: pointer;
         transition: 0.15s;
     }
+
+    &.closed {
+        background-color: map-get($green, lighten-4);
+        &:hover {
+            background-color: map-get($green, lighten-3);
+        }
+    }
 }
 .bvm-tile__descrow {
-    font-size: large;
+    font-size: medium;
     word-break: break-all;
     padding-bottom: 5px;
+}
+.bvm-tile__row {
+    font-size: small;
+    word-break: break-all;
 }

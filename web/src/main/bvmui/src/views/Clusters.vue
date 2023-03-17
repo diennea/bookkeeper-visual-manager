@@ -35,6 +35,7 @@
                                     required
                                     :disabled="editClusterInfo.clusterId > 0"
                                     dense
+                                    placeholder="zk://zookeeper:2181/ledgers"
                                 />
                             </v-col>
                         </v-row>
@@ -53,7 +54,7 @@
                 <v-card-actions>
                     <v-spacer />
                     <v-btn depressed color="primary" text @click="closeEdit">Close</v-btn>
-                    <v-btn depressed color="primary" text @click="editCluster" :loading="loading">{{ editClusterInfo.clusterId > 0 ? 'Edit' : 'Add' }}</v-btn>
+                    <v-btn depressed color="primary white--text" @click="editCluster" :loading="loading">{{ editClusterInfo.clusterId > 0 ? 'Edit' : 'Add' }}</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>

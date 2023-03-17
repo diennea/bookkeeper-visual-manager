@@ -31,5 +31,16 @@ export default {
     },
     removeDoubleQuote(message) {
         return message.replace(/['"]+/g, '');
-    }
+    },
+    formatLedgerAge(ageInMinutes) {
+        if (ageInMinutes > 60) {
+            if (ageInMinutes > 60 * 24) {
+                return Math.floor(ageInMinutes / (60 * 24)) + " days";
+            }
+            return Math.floor(ageInMinutes / 60) + " hours";
+        }
+        return ageInMinutes + " minutes";
+    },
+
+
 }

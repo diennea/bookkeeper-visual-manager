@@ -72,6 +72,7 @@
         <guava.version>31.0.1-jre</guava.version>
         <protobuf-java.version>3.16.1</protobuf-java.version>
         <kotlin-stdlib-jdk8.version>1.6.10</kotlin-stdlib-jdk8.version>
+        <kubernetes-client.version>6.5.0</kubernetes-client.version>
     </properties>
     <licenses>
         <license>
@@ -297,6 +298,11 @@
                 <artifactId>kotlin-stdlib-jdk8</artifactId>
                 <version>${kotlin-stdlib-jdk8.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client</artifactId>
+                <version>${kubernetes-client.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
@@ -359,8 +365,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
+                    <release>11</release>
                 </configuration>
             </plugin>
             <plugin>

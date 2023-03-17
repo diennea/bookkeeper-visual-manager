@@ -1,10 +1,41 @@
 <template>
-    <v-container class="bvm-bookie">
-        <v-dialog v-if="currentBookie" v-model="dialogInfo" max-width="500px">
+    <v-container>
+        <v-row v-if="bookies.length > 0">
+            <v-col cols="2" justify="start">
+            <v-select
+                v-model="viewMode"
+                :items="[{text: 'Grid', value: 'grid'}, {text: 'Topology', value: 'topology'}]"
+                label="View"
+                color="primary"
+                class="my-1"
+                outlined
+                dense
+            />
+            </v-col>
+            <v-col cols="2" justify="start">
+                <v-select
+                    v-model="size"
+                    :items="[4, 8, 16, 32]"
+                    label="Show bookies"
+                    color="primary"
+                    class="my-1"
+                    outlined
+                    dense
+                />
+            </v-col>
+            <v-col cols="2">
+                <v-pagination
+                    v-show="pageLength > 1"
+                    v-model="page"
+                    :length="pageLength"
+                    color="primary"
+                />
+            </v-col>
+        </v-row>
+    <v-dialog v-if="currentBookie" v-model="dialogInfo" max-width="500px">
             <v-card>
-                <v-card-title>
-                    <span class="headline">Bookie Info: {{ currentBookie.bookieId }} {{ currentBookie.clusterName }}</span>
-                </v-card-title>
+                <v-card-title>{{ currentBookie.bookieId }}</v-card-title>
+                <v-card-subtitle>{{ currentBookie.clusterName }}</v-card-subtitle>
                 <v-card-text>
                     <v-tabs
                         color="primary"
@@ -142,51 +173,38 @@
               </v-card-actions>
             </v-card>
         </v-dialog>
-
         <v-row justify="start">
-            <Bookie
-                v-for="bookie in bookies"
-                :bookie="bookie"
-                :key="keyBookie(bookie)"
-                @click="openBookie(bookie)"
-                @click-info="openBookieInfo(bookie)"
-                @click-gc="openGC(bookie)"
-            />
+        <Bookie
+            v-for="bookie in bookiesList"
+            :bookie="bookie"
+            :key="bookie.bookieId"
+            @click="openBookie(bookie)"
+            @click-info="openBookieInfo(bookie)"
+            @click-gc="openGC(bookie)"
+        />
+        <BookiesTopology v-if="viewMode === 'topology'" :bookies="bookies" :bookies-topology="bookiesTopology"
+            @click="openBookie"
+            @click-info="openBookieInfo"
+            @click-gc="openGC"
+        />
         </v-row>
-        <v-row v-if="bookies.length > 0">
-            <v-col cols="4" justify="start">
-                <v-select
-                    v-model="size"
-                    :items="[4, 8, 16, 32]"
-                    label="Show bookies"
-                    color="primary"
-                    class="my-1"
-                    outlined
-                    dense
-                />
-            </v-col>
-            <v-col cols="8" justify="end">
-                <v-pagination
-                    v-show="pageLength > 1"
-                    v-model="page"
-                    :length="pageLength"
-                    color="primary"
-                    class="justify-end"
-                />
-            </v-col>
-        </v-row>
+
     </v-container>
 </template>
 <script>
-const DefaultPageSize = 8;
-import qs from 'query-string';
+const DefaultPageSize = 32;
 import Bookie from "@/components/Bookie";
+import BookiesTopology from "@/components/BookiesTopology";
+import qs from 'query-string';
+
 export default {
     components: {
-        Bookie
+        Bookie,
+        BookiesTopology
     },
     data() {
         return {
+            bookiesTopology: {},
             page: 1,
             size: DefaultPageSize,
             bookies: [],
@@ -198,13 +216,19 @@ export default {
             gcTriggerResult: null,
             triggerStatus: false,
             confirmGC: false,
-
+            viewMode: 'grid'
         };
     },
     computed: {
+        bookiesList() {
+            if (this.viewMode !== 'grid') {
+                return [];
+            }
+            return this.bookies
+        },
         pageLength() {
             return Math.ceil(this.bookiesCount / this.size);
-        }
+        },
     },
     watch: {
         async page(newPageValue) {
@@ -216,17 +240,17 @@ export default {
         }
     },
     async created() {
-        return this.refreshBookies(1, DefaultPageSize);
+        this.refreshBookies();
     },
     methods: {
-        async refreshBookies(page, size) {
-            const queryParameters = qs.stringify({page, size});
-            const url = `api/bookie/all?${queryParameters}`;
-            const bookieResponse = await this.$request.get(url);
-
+        async refreshBookies() {
+            this.bookiesTopology = (await this.$request.get(`api/topology/all`)).bookies;
+            const queryParameters = qs.stringify({page: this.page, size: this.size});
+            const bookieResponse = await this.$request.get(`api/bookie/all?${queryParameters}`)
             this.bookies = bookieResponse.bookies;
             this.bookiesCount = bookieResponse.totalBookies;
         },
+
         async getGcDetails(bookie){
             const clusterId = bookie.clusterId;
             const bookieId = bookie.bookieId;

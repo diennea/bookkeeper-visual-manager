@@ -151,7 +151,7 @@ public class ContextInitializer implements ServletContextListener {
         try {
             Properties properties = new Properties();
 
-                String metadataServiceUri = System.getProperty("bookkeeper.visual.manager.metadataServiceUri");
+            String metadataServiceUri = System.getProperty("bookkeeper.visual.manager.metadataServiceUri");
             if (metadataServiceUri != null) {
                 properties.put(ServerConfiguration.PROPERTY_BOOKKEEPER_METADATA_SERVICE_URI, metadataServiceUri);
                 return new PropertiesConfigurationStore(properties);

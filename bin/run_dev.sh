@@ -12,5 +12,5 @@ SCRIPTDIR=`dirname "$0"`
 BVM_HOME=`cd ${SCRIPTDIR}/..;pwd`
 
 # Start the backend without UI
-mvn clean install -DskipTests jetty:run -f $BVM_HOME -DskipYarn -Dbookkeeper.visual.manager.metadataServiceUri=$BVM_SERVICEURI -Djetty.http.port=$BVM_PORT -Dcheckstyle.skip
-echo "Started Bookkeeper Visual Manager on port ${BVM_PORT}.."
+echo "Starting Bookkeeper Visual Manager on port ${BVM_PORT}.."
+mvn clean install -DskipTests jetty:run -f $BVM_HOME -DskipYarn -Dbookkeeper.visual.manager.metadataServiceUri="$BVM_SERVICEURI" -Djetty.http.port=$BVM_PORT -Dcheckstyle.skip

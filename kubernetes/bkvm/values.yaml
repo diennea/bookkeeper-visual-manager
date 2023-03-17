@@ -30,6 +30,9 @@ server:
   # must be the access to the zookeeper's ledgers
   # example for Pulsar : zk://pulsar-zookeeper:2181/ledgers
   metadataServiceUri: ""
+  env:
+    - name: BKVM_topology.enabled
+      value: "true"
 
   probe:
     enabled: true
@@ -64,3 +67,10 @@ server:
     limits:
       cpu: "0.5"
       memory: "1Gi"
+
+  rbac:
+    create: true
+
+  serviceAccount:
+    create: true
+    name: bkvm-admin
