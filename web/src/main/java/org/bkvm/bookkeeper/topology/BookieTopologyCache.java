@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -47,7 +48,8 @@ public class BookieTopologyCache {
 
     private final MetadataCache metadataCache;
     private final KubernetesClient client;
-    private Map<String, BookieTopology> cachedTopology;
+    private volatile Map<String, BookieTopology> cachedTopology;
+    private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
 
     public BookieTopologyCache(ConfigurationStore configurationStore, MetadataCache metadataCache) {
         this.metadataCache = metadataCache;
@@ -89,13 +91,15 @@ public class BookieTopologyCache {
     }
 
 
-    public synchronized Map<String, BookieTopology> refreshBookiesTopology() {
+    public Map<String, BookieTopology> refreshBookiesTopology() {
         if (client == null) {
             return null;
         }
-        final Map<String, BookieTopology> newTopology = collectTopology();
-        cachedTopology = newTopology;
-        return newTopology;
+        if (refreshInProgress.compareAndSet(false, true)) {
+            cachedTopology = collectTopology();
+            refreshInProgress.set(false);
+        }
+        return cachedTopology;
     }
 
     public Map<String, BookieTopology> getBookiesTopology() {
