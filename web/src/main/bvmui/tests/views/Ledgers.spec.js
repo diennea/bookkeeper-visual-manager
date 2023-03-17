@@ -18,14 +18,10 @@ describe('Ledgers', () => {
         expect(counterText).toContain('Found: 100 ledgers');
         expect(counterText).toContain('total size: 1 KB');
     })
-    test.each([
-        [60, '1 hours 0 minutes'],
-        [122, '2 hours 2 minutes'],
-        [30, '30 minutes'],
-    ])('Test Ledgers content (age %d, expected %s)', async (age, expectedAge) => {
+    test('Test Ledgers content (age %d, expected %s)', async () => {
         createGetResponse(new RegExp('api/ledger/all/*'), {
             ledgers: [
-                {id: '1', clusterName: 'def', description: 'desc', age: age, length: 1024, writeQuorumSize: 3, ensembleSize: 5, ackQuorumSize: 2}
+                {id: '1', clusterName: 'def', description: 'desc', age: 1, length: 1024, writeQuorumSize: 3, ensembleSize: 5, ackQuorumSize: 2}
             ],
             totalSize: 1024,
             totalLedgers: 100

@@ -82,7 +82,7 @@
                     :current-ledger="currentLedger"
                     @close="closeMetadata"
                     :bookies="bookies"
-                    :bookiesTopology="bookiesTopology"
+                    :bookies-topology="bookiesTopology"
                 />
             </div>
         </div>

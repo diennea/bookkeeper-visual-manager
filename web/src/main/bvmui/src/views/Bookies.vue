@@ -1,7 +1,7 @@
 <template>
-    <v-container >
+    <v-container>
         <v-row v-if="bookies.length > 0">
-            <v-col cols="2" justify="start" >
+            <v-col cols="2" justify="start">
             <v-select
                 v-model="viewMode"
                 :items="[{text: 'Grid', value: 'grid'}, {text: 'Topology', value: 'topology'}]"
@@ -12,7 +12,7 @@
                 dense
             />
             </v-col>
-            <v-col cols="2" justify="start" >
+            <v-col cols="2" justify="start">
                 <v-select
                     v-model="size"
                     :items="[4, 8, 16, 32]"
@@ -23,7 +23,7 @@
                     dense
                 />
             </v-col>
-            <v-col cols="2" >
+            <v-col cols="2">
                 <v-pagination
                     v-show="pageLength > 1"
                     v-model="page"
@@ -182,7 +182,7 @@
             @click-info="openBookieInfo(bookie)"
             @click-gc="openGC(bookie)"
         />
-        <BookiesTopology v-if="viewMode === 'topology'" :bookies="bookies" :bookiesTopology="bookiesTopology"
+        <BookiesTopology v-if="viewMode === 'topology'" :bookies="bookies" :bookies-topology="bookiesTopology"
             @click="openBookie"
             @click-info="openBookieInfo"
             @click-gc="openGC"
