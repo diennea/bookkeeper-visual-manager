@@ -96,8 +96,11 @@ public class BookieTopologyCache {
             return null;
         }
         if (refreshInProgress.compareAndSet(false, true)) {
-            cachedTopology = collectTopology();
-            refreshInProgress.set(false);
+            try {
+                cachedTopology = collectTopology();
+            } finally {
+                refreshInProgress.set(false);
+            }
         }
         return cachedTopology;
     }
