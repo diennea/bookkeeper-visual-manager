@@ -36,7 +36,7 @@ public class ApplicationConfigTest {
         ApplicationConfig config = new ApplicationConfig();
 
         Set<Class<?>> classes = config.getClasses();
-        assertTrue(classes.size() == 8);
+        assertTrue(classes.size() == 9);
 
         assertContainsClass(classes, org.bkvm.api.listeners.AuthFilter.class);
         assertContainsClass(classes, org.bkvm.api.resources.LoginResource.class);
@@ -46,6 +46,7 @@ public class ApplicationConfigTest {
         assertContainsClass(classes, org.bkvm.api.resources.LoginResource.class);
         assertContainsClass(classes, org.bkvm.api.resources.SystemStatusResource.class);
         assertContainsClass(classes, org.bkvm.api.resources.BookieGcResource.class);
+        assertContainsClass(classes, org.bkvm.api.resources.BookiesTopologyResource.class);
         assertContainsClass(classes, RolesAllowedDynamicFeature.class);
 
     }
