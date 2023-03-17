@@ -23,7 +23,7 @@ server:
 
   image:
     repository: herddb/bkvm
-    tag: 3.1.1
+    tag: 3.2.0
     imagePullPolicy: IfNotPresent
   
   jdbcUrl: jdbc:herddb:local:temporary
