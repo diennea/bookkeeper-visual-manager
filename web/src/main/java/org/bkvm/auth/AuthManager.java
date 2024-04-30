@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.EnumUtils;
 import org.bkvm.config.ConfigurationStore;
 
 /**
@@ -57,7 +56,7 @@ public final class AuthManager {
     }
 
     private boolean checkUserRole(String role) {
-        return EnumUtils.isValidEnum(UserRole.class, role);
+        return UserRole.Fields.isValidRole(role);
     }
 
     public boolean login(String username, String password) {

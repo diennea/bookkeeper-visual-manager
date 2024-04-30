@@ -61,7 +61,7 @@
         <jersey.version>2.35</jersey.version>
         <libs.checkstyle>3.1.1</libs.checkstyle>
         <libs.spotbugs>4.1.4</libs.spotbugs>
-        <eclipselink.version>2.7.5</eclipselink.version>
+        <eclipselink.version>2.7.14</eclipselink.version>
         <libs.spotbugsannotations>3.1.7</libs.spotbugsannotations>
 
         <libs.jaxws.jaxb-api>2.3.1</libs.jaxws.jaxb-api>
@@ -70,7 +70,7 @@
         <dependency-check-maven.version>6.1.6</dependency-check-maven.version>
         <bc-fips.version>1.0.2.3</bc-fips.version>
         <guava.version>33.1.0-jre</guava.version>
-        <protobuf-java.version>3.19.6</protobuf-java.version>
+        <protobuf-java.version>3.24.0</protobuf-java.version>
         <kotlin-stdlib-jdk8.version>1.6.10</kotlin-stdlib-jdk8.version>
         <kubernetes-client.version>6.5.0</kubernetes-client.version>
     </properties>
@@ -107,7 +107,7 @@
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.asm</artifactId>
-                <version>${eclipselink.version}</version>
+                <version>9.7.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>

@@ -65,7 +65,7 @@ public class BookkeeperClusterPool implements Closeable {
                     conf.setProperty(p, properties.get(p));
                 }
             } catch (IOException ex) {
-                LOG.log(Level.INFO, "Wrong configuration passed {0}", configuration);
+                LOG.log(Level.SEVERE, "Wrong configuration passed {0}", configuration);
             }
 
             LOG.log(Level.INFO, "Creating cluster {0}, at {1}", new Object[]{clusterId, metadataServiceUri});

@@ -19,10 +19,15 @@
  */
 package org.bkvm.auth;
 
-import lombok.experimental.FieldNameConstants;
+import java.util.Set;
 
-@FieldNameConstants
-public enum UserRole {
-    @FieldNameConstants.Include Admin,
-    @FieldNameConstants.Include User
+public class UserRole {
+    public static class Fields {
+        public static final String Admin = "Admin";
+        public static final String User = "User";
+        private static final Set<String> ALL = Set.of(Admin, User);
+        public static boolean isValidRole(String role) {
+            return ALL.contains(role);
+        }
+    }
 }

@@ -1,0 +1,48 @@
+version: '3'
+services:
+  zk:
+    image: zookeeper:3.9.2
+    hostname: zk
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/commands/stat"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: always
+
+  bookie-1:
+    image: apache/bookkeeper:4.16.5
+    hostname: bk-1
+    ports:
+      - "3181:3181"
+      - "8080:8080"
+    environment:
+      - BK_zkServers=zk:2181
+      - BK_metadataServiceUri=zk+null://zk:2181/ledgers
+      - BK_DATA_DIR=/data/bookkeeper
+      - BK_useHostNameAsBookieID=true
+      - BK_bookiePort=3181
+      - BK_httpServerEnabled=true
+    depends_on:
+      - "zk"
+    restart: always
+
+  bookie-1-insert:
+    image: apache/bookkeeper:4.16.5
+    depends_on:
+      - bookie-1
+    restart: on-failure
+    environment:
+      - BK_zkServers=zk:2181
+      - BK_metadataServiceUri=zk+null://zk:2181/ledgers
+    entrypoint: [ "bash", "-c", "source /opt/bookkeeper/scripts/common.sh && bin/bookkeeper shell simpletest -e 1 -a 1 -w 1" ]
+
+  bkvm:
+    ports:
+      - "4500:4500"
+    image: bkvm/bkvm:latest
+    environment:
+      BKVM_metadataServiceUri: zk://zk:2181/ledgers
+

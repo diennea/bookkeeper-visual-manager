@@ -129,6 +129,7 @@ public class BookkeeperManager implements AutoCloseable {
         IDLE,
         WORKING
     }
+
     private volatile long lastMetadataCacheRefresh;
     private final ConcurrentHashMap<Integer, ClusterWideConfiguration> lastClusterWideConfiguration = new ConcurrentHashMap<>();
     private final AtomicReference<RefreshStatus> refreshStatus = new AtomicReference<>(RefreshStatus.IDLE);
@@ -167,7 +168,7 @@ public class BookkeeperManager implements AutoCloseable {
         private final Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration;
 
         public RefreshCacheWorkerStatus(RefreshStatus status, long lastMetadataCacheRefresh,
-                Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration) {
+                                        Map<Integer, ClusterWideConfiguration> lastClusterWideConfiguration) {
             this.status = status;
             this.lastMetadataCacheRefresh = lastMetadataCacheRefresh;
             this.lastClusterWideConfiguration = lastClusterWideConfiguration;
@@ -281,15 +282,15 @@ public class BookkeeperManager implements AutoCloseable {
                         metadataCache.deleteBookie(b.getClusterId(), b.getBookieId());
                     }
                 }
+                Set<Long> deletedLedgers = new HashSet<>(metadataCache.listLedgers(clusterId));
 
                 Iterable<Long> ledgersIds = bkAdmin.listLedgers();
                 for (long ledgerId : ledgersIds) {
                     LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId, clusterId);
                     if (ledgerMetadata == null) {
-                        // ledger disappeared
-                        metadataCache.deleteLedger(clusterId, ledgerId);
-                        return;
+                        continue;
                     }
+                    deletedLedgers.remove(ledgerId);
                     Ledger ledger = new Ledger(ledgerId, clusterId,
                             ledgerMetadata.getLength(),
                             new java.sql.Timestamp(ledgerMetadata.getCtime()),
@@ -308,6 +309,10 @@ public class BookkeeperManager implements AutoCloseable {
                     LOG.log(Level.FINE, "Updating ledger {0} metadata", ledgerId);
                     metadataCache.updateLedger(ledger, bookies, metadataEntries);
                 }
+                for (Long deletedLedger : deletedLedgers) {
+                    metadataCache.deleteLedger(clusterId, deletedLedger);
+                }
+
             }
             topologyCache.refreshBookiesTopology();
 
@@ -528,7 +533,8 @@ public class BookkeeperManager implements AutoCloseable {
                     autoRecoveryEnabled = underreplicationManager.isLedgerReplicationEnabled();
                     lostBookieRecoveryDelay = underreplicationManager.getLostBookieRecoveryDelay();
                 }
-            } catch (ReplicationException.UnavailableException | ReplicationException.CompatibilityException notConfigured) {
+            } catch (ReplicationException.UnavailableException
+                     | ReplicationException.CompatibilityException notConfigured) {
                 // auto replication stuff never initialized
                 LOG.log(Level.INFO, "Cannot get auditor info: {0}", notConfigured + ""); // do not write stacktrace
             }
@@ -542,7 +548,7 @@ public class BookkeeperManager implements AutoCloseable {
                     autoRecoveryEnabled, lostBookieRecoveryDelay,
                     layoutFormatVersion, layoutManagerFactoryClass, layoutManagerVersion);
         } catch (InterruptedException
-                | MetadataException | IOException ex) {
+                 | MetadataException | IOException ex) {
             LOG.log(Level.SEVERE, "Error", ex);
             throw new BookkeeperManagerException(ex);
         } finally {

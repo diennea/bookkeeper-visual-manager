@@ -7,7 +7,6 @@ RUN test -n "$TARBALL"
 
 ENV WEB_PORT=4500
 EXPOSE $WEB_PORT
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 
 RUN apt-get update \
      && apt-get -y dist-upgrade \

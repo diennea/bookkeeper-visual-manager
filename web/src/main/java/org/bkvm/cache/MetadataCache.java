@@ -207,13 +207,21 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
+    public List<Long> listLedgers(int clusterId) {
+        try (EntityManagerWrapper emw = getEntityManager()) {
+            EntityManager em = emw.em;
+            Query q = em.createQuery("select l.ledgerId from ledger l where l.clusterId=" + clusterId, Ledger.class);
+            return q.getResultList();
+        }
+    }
+
     public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
                              List<LedgerMetadataEntry> metadataEntries) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
             long ledgerId = ledger.getLedgerId();
-            innerDeleteLedger(ledger.getClusterId(), ledger.getLedgerId(), em);
+            innerDeleteLedger(ledger.getClusterId(), ledgerId, em);
             em.persist(ledger);
             bookies.forEach((lb) -> {
                 if (ledgerId != lb.getLedgerId()) {
@@ -243,7 +251,7 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    private void innerDeleteLedger(int clusterId, long ledgerId, EntityManager em) {
+    private static void innerDeleteLedger(int clusterId, long ledgerId, EntityManager em) {
         em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
         em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
         em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
