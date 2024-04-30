@@ -19,6 +19,9 @@
  */
 package org.bkvm.cache;
 
+import static org.junit.Assert.assertEquals;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.api.WriteHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
@@ -26,12 +29,6 @@ import org.bkvm.bookkeeper.BookkeeperManager;
 import org.bkvm.utils.BookkeeperManagerTestUtils;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class LoadMetadataCacheTest extends BookkeeperManagerTestUtils {
 
@@ -42,6 +39,21 @@ public class LoadMetadataCacheTest extends BookkeeperManagerTestUtils {
         bkConf.setMetadataServiceUri(getMetadataServiceUri());
 
         BookKeeper bk = BookKeeper.forConfig(bkConf).build();
+        WriteHandle wr0 = createLedger(bk);
+        WriteHandle wr = createLedger(bk);
+        wr.append("test".getBytes());
+        final BookkeeperManager bookkeeperManager = getBookkeeperManager();
+        bookkeeperManager.doRefreshMetadataCache();
+        assertEquals(2, bookkeeperManager.getAllLedgers().size());
+
+        bk.newDeleteLedgerOp()
+                .withLedgerId(wr.getId())
+                .execute().get();
+        bookkeeperManager.doRefreshMetadataCache();
+        assertEquals(1, bookkeeperManager.getAllLedgers().size());
+    }
+
+    private static WriteHandle createLedger(BookKeeper bk) throws InterruptedException, ExecutionException {
         WriteHandle wr = bk.newCreateLedgerOp()
                 .withAckQuorumSize(1)
                 .withEnsembleSize(1)
@@ -49,16 +61,7 @@ public class LoadMetadataCacheTest extends BookkeeperManagerTestUtils {
                 .withPassword("p".getBytes())
                 .withCustomMetadata(Map.of("meta1", "value1".getBytes()))
                 .execute().get();
-        wr.append("test".getBytes());
-        final BookkeeperManager bookkeeperManager = getBookkeeperManager();
-        bookkeeperManager.doRefreshMetadataCache();
-        assertEquals(1, bookkeeperManager.getAllLedgers().size());
-
-        bk.newDeleteLedgerOp()
-                .withLedgerId(wr.getId())
-                .execute().get();
-        bookkeeperManager.doRefreshMetadataCache();
-        assertEquals(0, bookkeeperManager.getAllLedgers().size());
+        return wr;
     }
 
 }

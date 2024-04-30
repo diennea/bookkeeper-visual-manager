@@ -207,11 +207,20 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
+    public List<Long> listLedgers(int clusterId) {
+        try (EntityManagerWrapper emw = getEntityManager()) {
+            EntityManager em = emw.em;
+            Query q = em.createQuery("select l.ledgerId from ledger l where l.clusterId=" + clusterId, Ledger.class);
+            return q.getResultList();
+        }
+    }
+
     public void insertLedger(Ledger ledger, List<LedgerBookie> bookies,
                              List<LedgerMetadataEntry> metadataEntries) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
+            innerDeleteLedger(ledger.getClusterId(), ledger.getLedgerId(), em);
             long ledgerId = ledger.getLedgerId();
             em.persist(ledger);
             bookies.forEach((lb) -> {
@@ -233,15 +242,19 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public void clearLedgers(int clusterId) {
+    public void deleteLedger(int clusterId, long ledgerId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
-            em.createQuery("DELETE FROM ledger_metadata lm where lm.clusterId=" + clusterId).executeUpdate();
-            em.createQuery("DELETE FROM ledger_bookie lm where lm.clusterId=" + clusterId).executeUpdate();
-            em.createQuery("DELETE FROM ledger lm where lm.clusterId=" + clusterId).executeUpdate();
+            innerDeleteLedger(clusterId, ledgerId, em);
             em.getTransaction().commit();
         }
+    }
+
+    private static void innerDeleteLedger(int clusterId, long ledgerId, EntityManager em) {
+        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
+        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
     }
 
     public Ledger getLedgerMetadata(int clusterId, long ledgerId) {
