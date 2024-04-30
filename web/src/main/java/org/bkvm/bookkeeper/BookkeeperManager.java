@@ -307,7 +307,7 @@ public class BookkeeperManager implements AutoCloseable {
                         bookies.add(new LedgerBookie(ledgerId, bookieId, clusterId));
                     });
                     LOG.log(Level.FINE, "Updating ledger {0} metadata", ledgerId);
-                    metadataCache.insertLedger(ledger, bookies, metadataEntries);
+                    metadataCache.updateLedger(ledger, bookies, metadataEntries);
                 }
                 for (Long deletedLedger : deletedLedgers) {
                     metadataCache.deleteLedger(clusterId, deletedLedger);

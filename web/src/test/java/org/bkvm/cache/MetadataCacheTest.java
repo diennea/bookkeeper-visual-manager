@@ -48,7 +48,7 @@ public class MetadataCacheTest {
                 entries.add(new LedgerMetadataEntry(1, clusterId, "other", "foo"));
                 entries.add(new LedgerMetadataEntry(1, clusterId, "metadataentry", "4933"));
                 entries.add(new LedgerMetadataEntry(1, clusterId, "metadataentry2", "Thu Aug 22 2019 12:29:58 GMT+0200 (Central European Summer Time)"));
-                metadataCache.insertLedger(ledger, lb, entries);
+                metadataCache.updateLedger(ledger, lb, entries);
                 List<Ledger> ledgers = metadataCache.listLedgers();
                 assertEquals(1, ledgers.size());
                 assertEquals(1024, ledgers.get(0).getSize());
@@ -87,7 +87,7 @@ public class MetadataCacheTest {
 
                 // UPDATE, just the size
                 Ledger ledger2 = new Ledger(1, clusterId, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
-                metadataCache.insertLedger(ledger2, lb, entries);
+                metadataCache.updateLedger(ledger2, lb, entries);
                 List<Ledger> ledgers2 = metadataCache.listLedgers();
                 assertEquals(1, ledgers2.size());
                 assertEquals(2048, ledgers2.get(0).getSize());
@@ -105,7 +105,7 @@ public class MetadataCacheTest {
                 List<LedgerBookie> lb2 = new ArrayList<>();
                 lb2.add(new LedgerBookie(1, "localhost:1234", clusterId));
                 lb2.add(new LedgerBookie(1, "localhost:1236", clusterId));
-                metadataCache.insertLedger(ledger2rewritten, lb2, entries);
+                metadataCache.updateLedger(ledger2rewritten, lb2, entries);
 
                 assertEquals(1, metadataCache.getLedgersForBookie(clusterId, "localhost:1234").size());
                 assertEquals(0, metadataCache.getLedgersForBookie(clusterId, "localhost:1235").size());

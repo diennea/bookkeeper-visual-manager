@@ -215,13 +215,13 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public void insertLedger(Ledger ledger, List<LedgerBookie> bookies,
+    public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
                              List<LedgerMetadataEntry> metadataEntries) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
-            innerDeleteLedger(ledger.getClusterId(), ledger.getLedgerId(), em);
             long ledgerId = ledger.getLedgerId();
+            innerDeleteLedger(ledger.getClusterId(), ledgerId, em);
             em.persist(ledger);
             bookies.forEach((lb) -> {
                 if (ledgerId != lb.getLedgerId()) {
