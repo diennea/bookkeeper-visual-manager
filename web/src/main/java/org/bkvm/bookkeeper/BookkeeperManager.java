@@ -523,14 +523,12 @@ public class BookkeeperManager implements AutoCloseable {
             }
 
             try {
-
                 try (LedgerUnderreplicationManager underreplicationManager = bookkeeper.getMetadataClientDriver()
                         .getLedgerManagerFactory().newLedgerUnderreplicationManager()) {
                     autoRecoveryEnabled = underreplicationManager.isLedgerReplicationEnabled();
                     lostBookieRecoveryDelay = underreplicationManager.getLostBookieRecoveryDelay();
                 }
-            } catch (ReplicationException.UnavailableException | KeeperException
-                    | ReplicationException.CompatibilityException notConfigured) {
+            } catch (ReplicationException.UnavailableException | ReplicationException.CompatibilityException notConfigured) {
                 // auto replication stuff never initialized
                 LOG.log(Level.INFO, "Cannot get auditor info: {0}", notConfigured + ""); // do not write stacktrace
             }
