@@ -11,15 +11,15 @@
   "dependencies": {
     "axios": "0.26.1",
     "query-string": "7.1.1",
-    "vue": "2.6.14",
+    "vue": "2.7.16",
     "vue-router": "3.4.9",
-    "vuetify": "2.6.4",
+    "vuetify": "2.7.2",
     "vuex": "3.6.0",
     "yargs": "17.3.1"
   },
   "devDependencies": {
-    "@babel/core": "7.17.5",
-    "@babel/preset-env": "7.16.11",
+    "@babel/core": "7.24.5",
+    "@babel/preset-env": "7.24.5",
     "@mdi/font": "5.8.55",
     "@vue/cli-plugin-babel": "~5.0.1",
     "@vue/cli-plugin-eslint": "~5.0.1",
@@ -39,7 +39,7 @@
     "sass-loader": "10.1.0",
     "vue-cli-plugin-vuetify": "2.4.7",
     "vue-jest": "3.0.7",
-    "vue-template-compiler": "2.6.14",
+    "vue-template-compiler": "2.7.16",
     "vuetify-loader": "1.7.3",
     "webpack": "4.42.0"
   },
@@ -55,5 +55,6 @@
     "classNameTemplate": "{classname}",
     "titleTemplate": "{title}",
     "ancestorSeparator": " › "
-  }
+  },
+  "packageManager": "yarn@4.1.1"
 }

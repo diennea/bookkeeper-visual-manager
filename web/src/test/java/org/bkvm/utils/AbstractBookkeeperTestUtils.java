@@ -20,8 +20,6 @@
 package org.bkvm.utils;
 
 import static junit.framework.Assert.fail;
-import static org.apache.zookeeper.Watcher.Event.KeeperState.SaslAuthenticated;
-import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
 import herddb.network.netty.NetworkUtils;
 import java.io.File;
 import java.util.ArrayList;
@@ -29,8 +27,10 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
+import org.apache.bookkeeper.common.component.LifecycleComponentStack;
 import org.apache.bookkeeper.conf.ServerConfiguration;
-import org.apache.bookkeeper.proto.BookieServer;
+import org.apache.bookkeeper.server.Main;
+import org.apache.bookkeeper.server.conf.BookieConfiguration;
 import org.apache.bookkeeper.zookeeper.ZooKeeperClient;
 import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.CreateMode;
@@ -59,7 +59,7 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
 
     TestingServer zkServerMain;
     ZooKeeper zkServer;
-    List<BookieServer> bookies = new ArrayList<>();
+    List<LifecycleComponentStack> bookies = new ArrayList<>();
 
     public AbstractBookkeeperTestUtils() {
     }
@@ -129,23 +129,21 @@ public abstract class AbstractBookkeeperTestUtils implements AutoCloseable {
             BookKeeperAdmin.format(conf, false, true);
         }
 
-        BookieServer bookie = new BookieServer(conf);
-        bookie.start();
-        bookies.add(bookie);
+        LifecycleComponentStack bookieServer = Main.buildBookieServer(new BookieConfiguration((conf)));
+        bookieServer.start();
+        bookies.add(bookieServer);
     }
 
     public void stopBookies() throws Exception {
-        for (BookieServer bookie : bookies) {
-            bookie.shutdown();
-            bookie.join();
+        for (LifecycleComponentStack bookie : bookies) {
+            bookie.stop();
         }
         bookies.clear();
     }
 
     public void stopOneBookie() throws Exception {
-        BookieServer removed = bookies.remove(0);
-        removed.shutdown();
-        removed.join();
+        LifecycleComponentStack removed = bookies.remove(0);
+        removed.stop();
     }
 
     public ZooKeeper getZookeeperServer() {
