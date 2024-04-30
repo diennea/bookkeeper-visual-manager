@@ -283,12 +283,11 @@ public class BookkeeperManager implements AutoCloseable {
                 }
 
                 Iterable<Long> ledgersIds = bkAdmin.listLedgers();
+                metadataCache.clearLedgers(clusterId);
                 for (long ledgerId : ledgersIds) {
                     LedgerMetadata ledgerMetadata = readLedgerMetadata(ledgerId, clusterId);
                     if (ledgerMetadata == null) {
-                        // ledger disappeared
-                        metadataCache.deleteLedger(clusterId, ledgerId);
-                        return;
+                        continue;
                     }
                     Ledger ledger = new Ledger(ledgerId, clusterId,
                             ledgerMetadata.getLength(),
@@ -306,7 +305,7 @@ public class BookkeeperManager implements AutoCloseable {
                         bookies.add(new LedgerBookie(ledgerId, bookieId, clusterId));
                     });
                     LOG.log(Level.FINE, "Updating ledger {0} metadata", ledgerId);
-                    metadataCache.updateLedger(ledger, bookies, metadataEntries);
+                    metadataCache.insertLedger(ledger, bookies, metadataEntries);
                 }
             }
             topologyCache.refreshBookiesTopology();

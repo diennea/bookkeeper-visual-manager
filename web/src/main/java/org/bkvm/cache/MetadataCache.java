@@ -207,13 +207,12 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public void updateLedger(Ledger ledger, List<LedgerBookie> bookies,
+    public void insertLedger(Ledger ledger, List<LedgerBookie> bookies,
                              List<LedgerMetadataEntry> metadataEntries) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
             long ledgerId = ledger.getLedgerId();
-            innerDeleteLedger(ledger.getClusterId(), ledger.getLedgerId(), em);
             em.persist(ledger);
             bookies.forEach((lb) -> {
                 if (ledgerId != lb.getLedgerId()) {
@@ -234,19 +233,15 @@ public class MetadataCache implements AutoCloseable {
         }
     }
 
-    public void deleteLedger(int clusterId, long ledgerId) {
+    public void clearLedgers(int clusterId) {
         try (EntityManagerWrapper emw = getEntityManager()) {
             EntityManager em = emw.em;
             em.getTransaction().begin();
-            innerDeleteLedger(clusterId, ledgerId, em);
+            em.createQuery("DELETE FROM ledger_metadata lm where lm.clusterId=" + clusterId).executeUpdate();
+            em.createQuery("DELETE FROM ledger_bookie lm where lm.clusterId=" + clusterId).executeUpdate();
+            em.createQuery("DELETE FROM ledger lm where lm.clusterId=" + clusterId).executeUpdate();
             em.getTransaction().commit();
         }
-    }
-
-    private void innerDeleteLedger(int clusterId, long ledgerId, EntityManager em) {
-        em.createQuery("DELETE FROM ledger_metadata lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
-        em.createQuery("DELETE FROM ledger_bookie lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
-        em.createQuery("DELETE FROM ledger lm where lm.ledgerId=" + ledgerId + " and lm.clusterId=" + clusterId).executeUpdate();
     }
 
     public Ledger getLedgerMetadata(int clusterId, long ledgerId) {

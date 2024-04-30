@@ -57,7 +57,7 @@ public final class AuthManager {
     }
 
     private boolean checkUserRole(String role) {
-        return EnumUtils.isValidEnum(UserRole.class, role);
+        return UserRole.Fields.isValidRole(role);
     }
 
     public boolean login(String username, String password) {
