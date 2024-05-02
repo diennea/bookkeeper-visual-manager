@@ -69,6 +69,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
                                        @QueryParam("minLength") String minLength,
                                        @QueryParam("maxLength") String maxLength,
                                        @QueryParam("minAge") String minAge,
+                                       @QueryParam("state") String state,
                                        @QueryParam("page") int page,
                                        @QueryParam("size") int size
     ) throws Exception {
@@ -85,7 +86,8 @@ public class LedgersResource extends AbstractBookkeeperResource {
                 .searchLedgers(term,
                         bookieId, convertParamInt(clusterId),
                         searchLedgerIds, convertParamInt(minLength),
-                        convertParamInt(maxLength), convertParamInt(minAge)
+                        convertParamInt(maxLength), convertParamInt(minAge),
+                        state == null || state.trim().equals("") ? null : state
                 );
 
         List<LedgerBean> allLedgers = new ArrayList<>();
@@ -140,8 +142,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         b.setPassword(ledgerMetadata.hasPassword() ? new String(ledgerMetadata.getPassword(), StandardCharsets.UTF_8) : "");
         b.setDigestType(ledgerMetadata.getDigestType() + "");
         b.setCtime(ledgerMetadata.getCtime());
-        b.setClosed(ledgerMetadata.isClosed());
-        b.setState(ledgerMetadata.getState() + "");
+        b.setState(ledgerMetadata.getState() == null ? LedgerBean.State.UNKNOWN : LedgerBean.State.valueOf(ledgerMetadata.getState().name()));
         b.setMetadataFormatVersion(ledgerMetadata.getMetadataFormatVersion());
         b.setEnsembles(new HashMap<>(BookkeeperManager.buildEnsembleMap(ledgerMetadata)));
         return b;
@@ -184,6 +185,14 @@ public class LedgersResource extends AbstractBookkeeperResource {
     @Data
     public static final class LedgerBean {
 
+        public enum State {
+            OPEN,
+            IN_RECOVERY,
+            CLOSED,
+            UNKNOWN
+        }
+
+
         private int clusterId;
         private String clusterName;
         private long id;
@@ -198,8 +207,7 @@ public class LedgersResource extends AbstractBookkeeperResource {
         private String password;
         private String digestType;
         private long ctime;
-        private boolean closed;
-        private String state;
+        private State state;
         private int metadataFormatVersion;
         private Map<Long, List<String>> ensembles;
 

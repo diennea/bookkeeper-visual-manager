@@ -18,18 +18,32 @@
                 flat
                 hide-details
                 @keydown.enter="performSearch" />
+          <v-select
+              label="State"
+              class="pr-5"
+              variant="outlined"
+              v-model="state"
+              tile
+              flat
+              :items="['ANY', 'OPEN', 'CLOSED', 'IN_RECOVERY']"
+              @change="performSearch"
+          />
             <v-text-field
                 v-model="minLength"
                 class="pr-5"
-                label="Min size (bytes)"
+                label="Min size"
+                suffix="MB"
                 tile
+                type="number"
                 flat
                 hide-details
                 @keydown.enter="performSearch" />
             <v-text-field
                 v-model="maxLength"
                 class="pr-5"
-                label="Max size (bytes)"
+                label="Max size"
+                type="number"
+                suffix="MB"
                 tile
                 flat
                 hide-details
@@ -37,9 +51,11 @@
              <v-text-field
                 v-model="minAge"
                 class="pr-5"
-                label="Older than (minutes)"
+                label="Older than"
                 tile
+                type="number"
                 flat
+                suffix="Minutes"
                 hide-details
                 @keydown.enter="performSearch" />
             <v-btn
@@ -127,9 +143,10 @@ export default {
             search: false,
             searchTerm: '',
             ledgerIds: '',
+            state: 'ANY',
             minLength: '',
             maxLength: '',
-            minAge: 0,
+            minAge: '',
             showLedgerMetadata: false,
             currentLedger: null,
             ledgers: [],
@@ -163,9 +180,12 @@ export default {
             if (this.search) {
                 params.term = this.searchTerm;
                 params.ledgerIds = this.ledgerIds;
-                params.minLength = this.minLength;
-                params.maxLength = this.maxLength;
-                params.minAge = this.minAge;
+                if (this.state !== "ANY") {
+                    params.state = this.state;
+                }
+                params.minLength = this.minLength > 0 ? Math.ceil(this.minLength * 1024 * 1024) : '';
+                params.maxLength = this.maxLength > 0 ? Math.ceil(this.maxLength * 1024 * 1024) : '';
+                params.minAge = !this.minAge ? 0 : this.minAge;
             }
             if (this.$route.meta.type === "bookie") {
                 const { bookieId, clusterId } = this.$route.params;
@@ -209,9 +229,10 @@ export default {
         async clearSearch() {
             this.searchTerm = '';
             this.ledgerIds = '';
+            this.state = "ANY";
             this.minLength = '';
             this.maxLength = '';
-            this.minAge = 0;
+            this.minAge = '';
 
             this.search = false;
             this.closeMetadata();
