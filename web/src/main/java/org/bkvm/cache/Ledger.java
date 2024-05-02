@@ -59,18 +59,22 @@ public class Ledger implements Serializable {
     private java.sql.Timestamp scanTime;
 
     @Column(columnDefinition = "string")
+    private String state;
+
+    @Column(columnDefinition = "string")
     private String serializedMetadata;
 
     public Ledger() {
     }
 
-    public Ledger(long ledgerId, int clusterId, long size, Timestamp ctime, Timestamp scanTime, String serializedMetadata) {
+    public Ledger(long ledgerId, int clusterId, long size, String state, Timestamp ctime, Timestamp scanTime, String serializedMetadata) {
         this.ledgerId = ledgerId;
         this.clusterId = clusterId;
         this.size = size;
         this.ctime = ctime;
         this.scanTime = scanTime;
         this.serializedMetadata = serializedMetadata;
+        this.state = state;
     }
 
     public long getAge() {

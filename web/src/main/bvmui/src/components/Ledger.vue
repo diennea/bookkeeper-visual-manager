@@ -21,7 +21,7 @@ export default {
     },
     computed: {
         rootClasses() {
-            return ["bvm-tile", this.ledger.state == "CLOSED" ? "closed" : ""];
+            return ["bvm-tile", this.ledger.state === "CLOSED" ? "closed" : ""];
         },
         computedAge() {
             const countHours = Math.floor(this.ledger.age / 60);

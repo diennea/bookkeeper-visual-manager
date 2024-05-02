@@ -32,7 +32,7 @@ export default {
     removeDoubleQuote(message) {
         return message.replace(/['"]+/g, '');
     },
-    formatLedgerAge(ageInMinutes) {
+    formatTimeFromMinutes(ageInMinutes) {
         if (ageInMinutes > 60) {
             if (ageInMinutes > 60 * 24) {
                 return Math.floor(ageInMinutes / (60 * 24)) + " days";
@@ -41,6 +41,21 @@ export default {
         }
         return ageInMinutes + " minutes";
     },
-
-
+    formatTimeDiff(timeMillis) {
+        if (timeMillis < 1000) {
+            return "1 second ago"
+        }
+        const seconds = Math.ceil(timeMillis / 1000)
+        if (seconds === 1) {
+            return "1 second ago"
+        }
+        if (seconds < 60) {
+            return seconds + " seconds ago"
+        }
+        const minutes = Math.ceil(seconds / 60)
+        if (minutes === 1) {
+            return "1 minute ago"
+        }
+        return minutes + " minutes ago"
+    },
 }
