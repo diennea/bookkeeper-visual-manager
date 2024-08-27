@@ -23,7 +23,7 @@ server:
 
   image:
     repository: herddb/bkvm
-    tag: 3.2.0
+    tag: latest
     imagePullPolicy: IfNotPresent
   
   jdbcUrl: jdbc:herddb:local:temporary
@@ -63,10 +63,10 @@ server:
   resources:
     requests:
       cpu: "0.5"
-      memory: "1Gi"
+      memory: "4Gi"
     limits:
       cpu: "0.5"
-      memory: "1Gi"
+      memory: "4Gi"
 
   rbac:
     create: true
