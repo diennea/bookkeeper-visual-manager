@@ -4,7 +4,7 @@
     <artifactId>bkvm-parent</artifactId>
     <packaging>pom</packaging>
     <groupId>org.bkvm</groupId>
-    <version>3.3.1-SNAPSHOT</version>
+    <version>3.3.1</version>
     <name>BKVM :: Parent</name>
     <url>https://bkvm.org</url>
     <description>
@@ -83,7 +83,7 @@
     <scm>
         <url>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</url>
         <developerConnection>scm:git:https://github.com/diennea/bookkeeper-visual-manager.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v3.3.1</tag>
     </scm>
 
     <dependencyManagement>
