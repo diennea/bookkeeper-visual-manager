@@ -38,7 +38,7 @@ public class MetadataCacheTest {
             datasource.setUrl("jdbc:herddb:local");
             int clusterId = 1234;
             try (MetadataCache metadataCache = new MetadataCache(datasource)) {
-                Ledger ledger = new Ledger(1, clusterId, 1024, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger = new Ledger(1, clusterId, 1024, "OPEN", new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb = new ArrayList<>();
                 lb.add(new LedgerBookie(1, "localhost:1234", clusterId));
                 lb.add(new LedgerBookie(1, "localhost:1235", clusterId));
@@ -86,7 +86,7 @@ public class MetadataCacheTest {
                 assertEquals(1, ledgersByKeyAndValue4.size());
 
                 // UPDATE, just the size
-                Ledger ledger2 = new Ledger(1, clusterId, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger2 = new Ledger(1, clusterId, 2048, "OPEN", new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 metadataCache.updateLedger(ledger2, lb, entries);
                 List<Ledger> ledgers2 = metadataCache.listLedgers();
                 assertEquals(1, ledgers2.size());
@@ -101,7 +101,7 @@ public class MetadataCacheTest {
                 assertEquals(0, metadataCache.getLedgersForBookie(clusterId, "localhost:1236").size());
 
                 // UPDATE, re-replication moved data to another bookie
-                Ledger ledger2rewritten = new Ledger(1, clusterId, 2048, new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
+                Ledger ledger2rewritten = new Ledger(1, clusterId, 2048, "OPEN", new java.sql.Timestamp(System.currentTimeMillis()), new java.sql.Timestamp(System.currentTimeMillis()), "");
                 List<LedgerBookie> lb2 = new ArrayList<>();
                 lb2.add(new LedgerBookie(1, "localhost:1234", clusterId));
                 lb2.add(new LedgerBookie(1, "localhost:1236", clusterId));

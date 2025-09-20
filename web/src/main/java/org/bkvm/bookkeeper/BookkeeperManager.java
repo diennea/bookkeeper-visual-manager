@@ -293,6 +293,7 @@ public class BookkeeperManager implements AutoCloseable {
                     deletedLedgers.remove(ledgerId);
                     Ledger ledger = new Ledger(ledgerId, clusterId,
                             ledgerMetadata.getLength(),
+                            ledgerMetadata.getState() == null ? null : ledgerMetadata.getState().name(),
                             new java.sql.Timestamp(ledgerMetadata.getCtime()),
                             new java.sql.Timestamp(System.currentTimeMillis()),
                             Base64.getEncoder().encodeToString(serDe.serialize(ledgerMetadata)));
@@ -438,11 +439,15 @@ public class BookkeeperManager implements AutoCloseable {
                                                         List<Long> ledgerIds,
                                                         Integer minLength,
                                                         Integer maxLength,
-                                                        Integer minAge) throws BookkeeperManagerException {
+                                                        Integer minAge,
+                                                        String state) {
         return metadataCache
                 .searchLedgers(term, bookieId, clusterId, ledgerIds)
                 .stream()
                 .filter(l -> {
+                    if (state != null && !state.equalsIgnoreCase(l.getState())) {
+                        return false;
+                    }
                     if (minLength != null && l.getSize() < minLength) {
                         return false;
                     }
